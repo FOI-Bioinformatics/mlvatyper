@@ -45,13 +45,15 @@ ignored.
 
 merPCR (1.0.3 or newer) is not on PyPI or conda and requires Python 3.13 or newer.
 
+    git clone https://github.com/FOI-Bioinformatics/mlvatyper
+    cd mlvatyper
     conda env create -f environment.yml
     conda activate mlvatyper
+    pip install .
 
 or
 
-    pip install git+https://github.com/FOI-Bioinformatics/merpcr
-    pip install .
+    pip install git+https://github.com/FOI-Bioinformatics/mlvatyper
 
 An aligner is optional: `conda install -c bioconda mafft` or `muscle`.
 
