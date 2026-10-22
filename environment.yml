@@ -8,6 +8,7 @@ dependencies:
   - pandas
   - numpy
   - pytest
+  - pytest-cov
   - pip
   # optional aligners; either one is picked up automatically when on PATH
   - mafft
