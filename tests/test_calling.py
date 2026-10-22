@@ -26,6 +26,8 @@ DEF = MarkerDef("m1", (UNIT,), 6, ref_size=len(FL + FR) + 5 * 6, ref_repeats=5)
     (5.2, "nearest", ("5", False)),
     (4.8, "nearest", ("5", False)),
     (5.5, "nearest", ("6", True)),
+    (5.25, "intermediate", ("5.5", True)),  # exactly at the tolerance is intermediate, as in MLVA_finder
+    (4.75, "nearest", ("5", True)),
     (5.4, "up", ("6", True)),
     (5.6, "down", ("5", True)),
     (5.4, "intermediate", ("5.5", True)),

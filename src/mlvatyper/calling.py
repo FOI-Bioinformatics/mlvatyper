@@ -102,7 +102,8 @@ def read_bins(path: str | Path) -> dict[str, list[Bin]]:
 def round_repeats(raw: float, tolerance: float, policy: str) -> tuple[str, bool]:
     """Return (allele text, is_intermediate)."""
     nearest = round(raw)
-    if abs(raw - nearest) <= tolerance:
+    # strict comparison as in MLVA_finder: a value exactly tolerance away is intermediate
+    if abs(raw - nearest) < tolerance:
         return str(nearest), False
     if policy == "nearest":
         return str(nearest), True

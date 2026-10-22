@@ -53,8 +53,9 @@ The repeat number of an amplicon is anchored to a reference strain:
 where `ref_size` is the amplicon length in the reference strain (outer primer
 edge to outer primer edge, as merPCR reports it) and `ref_repeats` the repeat
 number in that strain. This is the convention of MLVAbank and of MLVA_finder.
-A raw value within `--allele-tolerance` (default 0.25) of an integer is that
-integer. Other values depend on `--rounding`: `intermediate` (default)
+A raw value closer than `--allele-tolerance` (default 0.25) to an integer is
+that integer; a value exactly at the tolerance is not, as in MLVA_finder.
+Other values depend on `--rounding`: `intermediate` (default)
 reports `n.5` as MLVA_finder does, `nearest`, `up` and `down` round as named.
 In all cases the call is flagged INTERMEDIATE. Rounding conventions differ
 between laboratories, so the policy is recorded in `run_info.json`.
