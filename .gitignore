@@ -1,0 +1,13 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+out_test/
+.pytest_cache/
+.remember/
+.coverage
+htmlcov/
+.ruff_cache/
+.DS_Store
+test.fasta
+testID.sts

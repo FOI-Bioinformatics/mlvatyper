@@ -1,0 +1,17 @@
+name: vntrfinder
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python>=3.13
+  - biopython
+  - pandas
+  - numpy
+  - pytest
+  - pip
+  # optional aligners; either one is picked up automatically when on PATH
+  - mafft
+  # - muscle
+  - pip:
+      - git+https://github.com/FOI-Bioinformatics/merpcr@a5f3075
+      - -e .

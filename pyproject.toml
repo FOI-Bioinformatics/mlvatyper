@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vntrfinder"
+version = "0.1.0"
+description = "Locate VNTR amplicons in assemblies with merPCR and summarise repeat lengths"
+readme = "README.md"
+requires-python = ">=3.13"
+license = {text = "GPL-3.0-or-later"}
+dependencies = [
+    "merpcr @ git+https://github.com/FOI-Bioinformatics/merpcr@a5f3075",
+    "biopython>=1.80",
+    "pandas>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov", "ruff"]
+
+[project.scripts]
+vntrfinder = "vntrfinder.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "SIM", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
