@@ -1,0 +1,204 @@
+marker	unit_length	ref_size	ref_repeats	offset	patterns
+testID001	0	224			N/A
+testID002	0	399			N/A
+testID003	11	295	2		TGGTTAAATTT
+testID004	0	287			N/A
+testID005	0	288			N/A
+testID006	0	308			N/A
+testID007	0	198			N/A
+testID008_9	0	395			N/A
+testID010	0	268			N/A
+testID011	0	271			N/A
+testID012	6	265	3		TTATAT
+testID013	0	247			N/A
+testID014	0	253			N/A
+testID015	0	309			N/A
+testID016	0	303			N/A
+testID017	0	246			N/A
+testID018	0	209			N/A
+testID019	9	255	2		ATTGATCTA
+testID020	0	1245			N/A
+testID021	0	188			N/A
+testID022	19	212	2		ATTCTACATATTTTAAGTT
+testID023	0	330			N/A
+testID024	6	219	7		TAATTA
+testID025	8	382	3		TAAAAACT
+testID026	0	223			N/A
+testID027	0	279			N/A
+testID028	0	244			N/A
+testID029	0	243			N/A
+testID030	0	354			N/A
+testID031	0	244			N/A
+testID033	0	234			N/A
+testID034	0	313			N/A
+testID035	0	257			N/A
+testID036	0	214			N/A
+testID037	0	299			N/A
+testID038	0	193			N/A
+testID039	0	186			N/A
+testID040	0	248			N/A
+testID042	0	279			N/A
+testID044	0	289			N/A
+testID045	0	255			N/A
+testID046	0	200			N/A
+testID047	0	272			N/A
+testID048	0	231			N/A
+testID049	0	275			N/A
+testID050	5	257	3		ATTTG
+testID051	0	309			N/A
+testID052	0	191			N/A
+testID053	7	298	2		TTTTTCA
+testID054	0	244			N/A
+testID055	0	269			N/A
+testID056	0	231			N/A
+testID057	0	251			N/A
+testID057_58	0	251			N/A
+testID058	0	249			N/A
+testID059	0	255			N/A
+testID060	0	255			N/A
+testID061	0	315			N/A
+testID062	0	290			N/A
+testID063	0	268			N/A
+testID064	0	201			N/A
+testID064_65	8	336	2		CAAAAGAA
+testID065	8	294	2		CAAAAGAA
+testID066	0	287			N/A
+testID067	6	299	4		TATAAG
+testID068	0	379			N/A
+testID069	0	253			N/A
+testID070	0	290			N/A
+testID071	0	295			N/A
+testID072	0	227			N/A
+testID073	0	194			N/A
+testID074	0	256			N/A
+testID075	0	247			N/A
+testID076	0	255			N/A
+testID077	0	240			N/A
+testID077_78	0	328			N/A
+testID079	0	196			N/A
+testID080	0	317			N/A
+testID081	10	283	1		AATTAATCGA
+testID082	0	212			N/A
+testID083	0	375			N/A
+testID084	0	266			N/A
+testID085	0	238			N/A
+testID086	0	249			N/A
+testID087	0	275			N/A
+testID088	0	233			N/A
+testID089	0	258			N/A
+testID090	0	217			N/A
+testID091	0	194			N/A
+testID092	0	286			N/A
+testID093	0	214			N/A
+testID094	0	266			N/A
+testID095	0	241			N/A
+testID096	0	254			N/A
+testID097	0	242			N/A
+testID098	0	249			N/A
+testID099	0	229			N/A
+testID100	0	207			N/A
+testID101	0	190			N/A
+testID102	0	222			N/A
+testID103	0	339			N/A
+testID104	0	208			N/A
+testID105	0	326			N/A
+testID106	0	220			N/A
+testID107	0	272			N/A
+testID108	0	281			N/A
+testID109	0	232			N/A
+testID110	0	336			N/A
+testID111	0	250			N/A
+testID112	0	321			N/A
+testID113	0	290			N/A
+testID114	7	286	2		TTATTAA
+testID115	0	283			N/A
+testID116	19	276	2		TAAATAATTGTTTTCAAAA
+testID117	0	250			N/A
+testID118	0	209			N/A
+testID119	6	261	4		AGTTGA
+testID120	7	296	3		ATTTTTT
+testID121	0	289			N/A
+testID122	0	273			N/A
+testID123	0	272			N/A
+testID124	0	320			N/A
+testID125	0	275			N/A
+testID126	0	253			N/A
+testID128	0	299			N/A
+testID129	0	256			N/A
+testID130	9	301	2		TAAATACAT
+testID131	0	217			N/A
+testID132	0	205			N/A
+testID133	0	269			N/A
+testID134	0	129			N/A
+testID135	0	267			N/A
+testID136_137	0	316			N/A
+testID138	0	78			N/A
+testID139	0	302			N/A
+testID140	0	280			N/A
+testID141	0	202			N/A
+testID142	0	260			N/A
+testID143	0	390			N/A
+testID144	0	354			N/A
+testID145	0	214			N/A
+testID146	0	366			N/A
+testID147	0	390			N/A
+testID148	0	335			N/A
+testID149	0	356			N/A
+testID150	0	364			N/A
+testID151	0	273			N/A
+testID152	0	230			N/A
+testID153	0	379			N/A
+testID154	0	307			N/A
+testID155	0	373			N/A
+testID156	0	355			N/A
+testID157	0	374			N/A
+testID158	0	267			N/A
+testID159	0	284			N/A
+testID160	0	224			N/A
+testID161	0	182			N/A
+testID162	0	249			N/A
+testID163	11	323	1		TGAAAAGATTT
+testID164	0	295			N/A
+testID165	0	373			N/A
+testID166	0	396			N/A
+testID167	0	369			N/A
+testID168	0	310			N/A
+testID169	8	332	2		TTTAAGAT
+testID170	0	233			N/A
+testID171	0	307			N/A
+testID172	0	252			N/A
+testID173	0	215			N/A
+testID174	0	327			N/A
+testID175	0	223			N/A
+testID176	0	325			N/A
+testID177	0	305			N/A
+testID179	0	225			N/A
+testID180	0	1052			N/A
+testID181	0	308			N/A
+testID182	0	317			N/A
+testID183	8	251	3		ATAATAAT
+testID184	0	245			N/A
+testID185	0	367			N/A
+testID186	0	264			N/A
+testID187	0	339			N/A
+testID188	0	278			N/A
+testID189	0	308			N/A
+testID191	0	363			N/A
+testID192	0	380			N/A
+testID193	0	300			N/A
+testID194	0	272			N/A
+testID195	0	234			N/A
+testID196	0	326			N/A
+testID197	0	254			N/A
+testID198	9	249	3		TTTTATAAT
+testID199	0	208			N/A
+testID200	0	221			N/A
+testID201	0	238			N/A
+testID202	0	385			N/A
+testID203	6	198	3		AAATGC
+testID204	0	277			N/A
+testID205	0	365			N/A
+testID206	7	374	2		TAAGCTT
+testID207	9	265	3		GAGCAAAAT
+testID208	5	258	4		TTGTT
+testID209	0	391			N/A

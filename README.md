@@ -215,7 +215,10 @@ Log excerpt:
 `out_test/` then contains `hits.tsv`, `primers_used.sts`, `invalid_primers.tsv`,
 `samples.txt`, `near_contig_end.tsv`, `run_info.json`, `sequences/` with
 per-marker FASTA, aligned FASTA and CLUSTAL files, and the lengths table.
-Allele tables need marker definitions. First columns of `hits.tsv`:
+Allele tables need marker definitions. `mlvatyper discover --outdir out_test`
+with TRF finds a tandem array in 25 of the 203 amplicons; its report and the
+resulting definition file are kept under `examples/testID/` as an example of
+the two formats. First columns of `hits.tsv`:
 
     sample  marker     copy  contig  start    end      strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end
     test    testID001  1     test    1221679  1221902  -       224     0      224            0               0               0               672255

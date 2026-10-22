@@ -1,0 +1,204 @@
+marker	sample	amplicon_length	unit_length	unit	copies	exact_copies	variant_copies	score	entropy	array_start	array_end	array_span	left_flank	right_flank	engine	engine_copies	pct_match	pct_indel
+testID003	test	295	11	TGGTTAAATTT	2	1	1	35	1.44	252	274	22	252	21	trf	2.0	90	0
+testID012	test	265	6	TTATAT	3	1	2	31	0.92	136	154	18	136	111	trf	3.2	86	13
+testID019	test	255	9	ATTGATCTA	2	1	1	34	1.75	63	81	18	63	174	trf	2.8	88	5
+testID022	test	212	19	ATTCTACATATTTTAAGTT	2	2	0	80	1.58	136	174	38	136	38	trf	2.1	100	0
+testID024	test	219	6	TAATTA	7	4	3	57	1.00	32	74	42	32	145	trf	5.5	92	0
+testID025	test	382	8	TAAAAACT	3	1	2	36	1.30	91	115	24	91	267	trf	2.2	100	0
+testID050	test	257	5	ATTTG	3	3	0	36	1.37	203	218	15	203	39	trf	3.6	100	0
+testID053	test	298	7	TTTTTCA	2	2	0	30	1.15	36	50	14	36	248	trf	2.1	100	0
+testID064_65	test	336	8	CAAAAGAA	2	2	0	32	1.06	52	68	16	52	268	trf	2.0	100	0
+testID065	test	294	8	CAAAAGAA	2	2	0	32	1.06	16	32	16	16	262	trf	2.0	100	0
+testID067	test	299	6	TATAAG	4	3	1	42	1.46	30	54	24	30	245	trf	3.5	100	0
+testID081	test	283	10	AATTAATCGA	1	1	0	36	1.69	23	33	10	23	250	trf	2.6	83	16
+testID114	test	286	7	TTATTAA	2	2	0	30	0.99	191	205	14	191	81	trf	2.1	100	0
+testID116	test	276	19	TAAATAATTGTTTTCAAAA	2	2	0	76	1.48	154	192	38	154	84	trf	2.0	100	0
+testID119	test	261	6	AGTTGA	4	3	1	40	1.58	88	112	24	88	149	trf	3.3	100	0
+testID120	test	296	7	ATTTTTT	3	1	2	30	0.59	96	117	21	96	179	trf	2.1	100	0
+testID130	test	301	9	TAAATACAT	2	1	1	31	1.35	198	216	18	198	85	trf	2.2	90	0
+testID163	test	323	11	TGAAAAGATTT	1	1	0	37	1.49	172	183	11	172	140	trf	2.1	91	8
+testID169	test	332	8	TTTAAGAT	2	2	0	34	1.41	288	304	16	288	28	trf	2.1	100	0
+testID183	test	251	8	ATAATAAT	3	0	3	31	0.95	30	54	24	30	197	trf	2.5	91	8
+testID198	test	249	9	TTTTATAAT	3	1	2	36	0.92	143	170	27	143	79	trf	2.0	100	0
+testID203	test	198	6	AAATGC	3	2	1	34	1.79	106	124	18	106	74	trf	2.8	100	0
+testID206	test	374	7	TAAGCTT	2	2	0	32	1.84	121	135	14	121	239	trf	2.3	100	0
+testID207	test	265	9	GAGCAAAAT	3	1	2	48	1.66	18	45	27	18	220	trf	2.7	100	0
+testID208	test	258	5	TTGTT	4	4	0	44	0.72	74	94	20	74	164	trf	4.4	100	0
+testID001					0													
+testID002					0													
+testID004					0													
+testID005					0													
+testID006					0													
+testID007					0													
+testID008_9					0													
+testID010					0													
+testID011					0													
+testID013					0													
+testID014					0													
+testID015					0													
+testID016					0													
+testID017					0													
+testID018					0													
+testID020					0													
+testID021					0													
+testID023					0													
+testID026					0													
+testID027					0													
+testID028					0													
+testID029					0													
+testID030					0													
+testID031					0													
+testID033					0													
+testID034					0													
+testID035					0													
+testID036					0													
+testID037					0													
+testID038					0													
+testID039					0													
+testID040					0													
+testID042					0													
+testID044					0													
+testID045					0													
+testID046					0													
+testID047					0													
+testID048					0													
+testID049					0													
+testID051					0													
+testID052					0													
+testID054					0													
+testID055					0													
+testID056					0													
+testID057					0													
+testID057_58					0													
+testID058					0													
+testID059					0													
+testID060					0													
+testID061					0													
+testID062					0													
+testID063					0													
+testID064					0													
+testID066					0													
+testID068					0													
+testID069					0													
+testID070					0													
+testID071					0													
+testID072					0													
+testID073					0													
+testID074					0													
+testID075					0													
+testID076					0													
+testID077					0													
+testID077_78					0													
+testID079					0													
+testID080					0													
+testID082					0													
+testID083					0													
+testID084					0													
+testID085					0													
+testID086					0													
+testID087					0													
+testID088					0													
+testID089					0													
+testID090					0													
+testID091					0													
+testID092					0													
+testID093					0													
+testID094					0													
+testID095					0													
+testID096					0													
+testID097					0													
+testID098					0													
+testID099					0													
+testID100					0													
+testID101					0													
+testID102					0													
+testID103					0													
+testID104					0													
+testID105					0													
+testID106					0													
+testID107					0													
+testID108					0													
+testID109					0													
+testID110					0													
+testID111					0													
+testID112					0													
+testID113					0													
+testID115					0													
+testID117					0													
+testID118					0													
+testID121					0													
+testID122					0													
+testID123					0													
+testID124					0													
+testID125					0													
+testID126					0													
+testID128					0													
+testID129					0													
+testID131					0													
+testID132					0													
+testID133					0													
+testID134					0													
+testID135					0													
+testID136_137					0													
+testID138					0													
+testID139					0													
+testID140					0													
+testID141					0													
+testID142					0													
+testID143					0													
+testID144					0													
+testID145					0													
+testID146					0													
+testID147					0													
+testID148					0													
+testID149					0													
+testID150					0													
+testID151					0													
+testID152					0													
+testID153					0													
+testID154					0													
+testID155					0													
+testID156					0													
+testID157					0													
+testID158					0													
+testID159					0													
+testID160					0													
+testID161					0													
+testID162					0													
+testID164					0													
+testID165					0													
+testID166					0													
+testID167					0													
+testID168					0													
+testID170					0													
+testID171					0													
+testID172					0													
+testID173					0													
+testID174					0													
+testID175					0													
+testID176					0													
+testID177					0													
+testID179					0													
+testID180					0													
+testID181					0													
+testID182					0													
+testID184					0													
+testID185					0													
+testID186					0													
+testID187					0													
+testID188					0													
+testID189					0													
+testID191					0													
+testID192					0													
+testID193					0													
+testID194					0													
+testID195					0													
+testID196					0													
+testID197					0													
+testID199					0													
+testID200					0													
+testID201					0													
+testID202					0													
+testID204					0													
+testID205					0													
+testID209					0													
