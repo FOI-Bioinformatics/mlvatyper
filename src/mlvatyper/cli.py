@@ -4,6 +4,7 @@ Subcommands:
   run        search, extract, align and call alleles in one go
   search     search and extract only (writes hits.tsv and sequences/)
   summarize  rebuild summary tables and allele calls from an existing hits.tsv
+  discover   find repeat units in the amplicons of one sample and write a marker definition file
 """
 
 import argparse
@@ -15,6 +16,7 @@ from pathlib import Path
 
 from . import __version__
 from .align import align_all, detect_aligner
+from .discover import discover_units, discoveries_to_definitions, write_report
 from .calling import (
     ROUNDING_POLICIES, allele_table, call_all, derive_definitions, long_table, profile_table, read_bins,
     status_table, tandem_count_table,
@@ -38,6 +40,8 @@ SEQ_DIR = "sequences"
 STS_USED = "primers_used.sts"
 NEAR_END_FILE = "near_contig_end.tsv"
 DERIVED_FILE = "marker_defs_derived.tsv"
+DISCOVERED_FILE = "marker_defs_discovered.tsv"
+DISCOVER_REPORT = "discover_report.tsv"
 RUN_INFO = "run_info.json"
 
 
@@ -119,6 +123,21 @@ def build_parser() -> argparse.ArgumentParser:
     summ = sub.add_parser("summarize", help="rebuild tables and allele calls from hits.tsv")
     summ.add_argument("--outdir", required=True, help="directory containing hits.tsv and samples.txt")
     _add_summary_args(summ)
+
+    disc = sub.add_parser("discover", help="find repeat units in the amplicons of one sample")
+    disc.add_argument("--outdir", required=True, help="directory containing hits.tsv")
+    disc.add_argument("--sample", help="sample to use (default: the only sample)")
+    disc.add_argument("--min-unit", type=int, default=3, help="smallest repeat unit length (default 3)")
+    disc.add_argument("--max-unit", type=int, default=100, help="largest repeat unit length (default 100)")
+    disc.add_argument("--min-copies", type=float, default=2.0,
+                      help="smallest array, in copies, that counts as a repeat (default 2)")
+    disc.add_argument("--unit-mismatches", type=int, default=1,
+                      help="mismatches tolerated per repeat unit, at most one per six bases (default 1)")
+    disc.add_argument("--min-score", type=int, default=30,
+                      help="smallest array score, +2 per matching and -7 per differing position between "
+                           "consecutive copies (default 30; Tandem Repeats Finder uses 50 for genomes)")
+    disc.add_argument("--output", default=DISCOVERED_FILE,
+                      help=f"marker definition file name within outdir (default {DISCOVERED_FILE})")
     return parser
 
 
@@ -310,6 +329,32 @@ def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
     write_run_info(outdir, args, "summarize")
 
 
+def do_discover(args: argparse.Namespace, outdir: Path) -> None:
+    hits_path = outdir / HITS_FILE
+    if not hits_path.exists():
+        raise SystemExit(f"{hits_path} not found; run 'mlvatyper search' first")
+    amplicons = read_hits_table(hits_path)
+    samples = sorted({a.hit.sample for a in amplicons})
+    sample = args.sample
+    if sample is None:
+        if len(samples) != 1:
+            raise SystemExit(f"--sample is required when hits.tsv holds several samples: {samples}")
+        sample = samples[0]
+    elif sample not in samples:
+        raise SystemExit(f"sample {sample!r} has no amplicons in {hits_path}")
+    found, missing = discover_units(amplicons, sample, args.min_unit, args.max_unit, args.min_copies,
+                                    args.unit_mismatches, args.min_score)
+    write_report(found, missing, outdir / DISCOVER_REPORT)
+    defs = discoveries_to_definitions(found, missing, amplicons, sample)
+    sts_path = outdir / STS_USED
+    if sts_path.exists():
+        order = {p.id: n for n, p in enumerate(read_sts(sts_path)[0])}
+        defs.sort(key=lambda d: order.get(d.primer_id, len(order)))
+    write_markers(defs, outdir / args.output)
+    log.info("Marker definitions written to %s, details in %s", outdir / args.output, outdir / DISCOVER_REPORT)
+    write_run_info(outdir, args, "discover")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     configure_logging(args.verbose)
@@ -320,6 +365,8 @@ def main(argv: list[str] | None = None) -> int:
             do_search(args, outdir)
         elif args.command == "summarize":
             do_summarize(args, outdir)
+        elif args.command == "discover":
+            do_discover(args, outdir)
         elif args.command == "run":
             do_search(args, outdir)
             do_summarize(args, outdir)

@@ -90,6 +90,33 @@ Marker definitions come from three sources, which are merged:
 Markers without unit length cannot be called. Without any definition only
 the lengths table is produced.
 
+### Discovering repeat units
+
+When neither unit sequences nor unit lengths are known, `mlvatyper discover`
+seeds a definition file from the amplicons of one sample:
+
+    mlvatyper search --sts primers.sts --fasta ref.fasta --outdir results
+    mlvatyper discover --outdir results --sample ref
+    mlvatyper summarize --outdir results --prefix study \
+        --markers results/marker_defs_discovered.tsv
+
+For each amplicon the dominant tandem array is located by self-comparison at
+every period from `--min-unit` to `--max-unit` (3 to 100 bp), with the
+mismatch allowance of the tandem counter. Arrays are scored as in Tandem
+Repeats Finder (+2 per matching and -7 per differing position between
+consecutive copies) and need `--min-score` (default 30) and `--min-copies`
+(default 2). The smallest period whose score is close to the best is
+reported so that a unit is not given as its own multiple. The unit is the
+per-column majority over the array, written in the phase and orientation of
+the amplicon. `discover_report.tsv` lists unit, copies, exact and variant
+copies, score, unit entropy and array coordinates for review; markers
+without an array keep only their reference size.
+
+The result depends on the sample. A reference strain with one or two copies
+at a locus, or with a degenerate array, yields no unit, so discovery is
+best run on the sample with the most copies, and the file should be
+reviewed and completed by hand where the scheme publication gives the unit.
+
 An optional bin file (`--bins`: marker, size or `low-high` range, allele)
 maps amplicon sizes directly to allele names and takes precedence over the
 formula, as some schemes (for example Brucella) number alleles by

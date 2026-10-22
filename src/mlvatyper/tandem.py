@@ -2,7 +2,10 @@
 
 An array is the longest run of consecutive, non-overlapping windows of the
 unit length in which every window is within a Hamming distance of
-max_mismatch from some rotation of one of the given unit variants. Both
+max_mismatch from some rotation of one of the given unit variants. The
+allowance is scaled down for short units (one mismatch per six bases at
+most), since one difference in a trinucleotide would match a quarter of all
+windows. Both
 orientations of the units are tried. The count is an independent estimate
 of the repeat number that does not depend on the amplicon length and is used
 as a cross-check of the length based allele.
@@ -73,6 +76,11 @@ def _longest_run(seq: str, variants: set[str], length: int, max_mismatch: int, o
     return best
 
 
+def effective_mismatch(unit_length: int, max_mismatch: int) -> int:
+    """Mismatches allowed per window: at most one per six bases of unit length."""
+    return max(0, min(max_mismatch, unit_length // 6))
+
+
 def count_tandem_array(sequence: str, units: tuple[str, ...], max_mismatch: int = 1) -> TandemArray:
     """Longest tandem array of the given units in either orientation.
 
@@ -86,6 +94,7 @@ def count_tandem_array(sequence: str, units: tuple[str, ...], max_mismatch: int 
     if any(len(u) != length for u in units) or length == 0 or len(sequence) < length:
         return EMPTY
     seq = sequence.upper()
+    max_mismatch = effective_mismatch(length, max_mismatch)
     fwd = set().union(*(rotations(u) for u in units))
     rev = {str(Seq(u).reverse_complement()) for u in fwd}
     best = _longest_run(seq, fwd, length, max_mismatch, "+")
