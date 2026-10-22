@@ -1,4 +1,4 @@
-from vntrfinder.patterns import parse_pattern_line, read_patterns
+from mlvatyper.patterns import parse_pattern_line, read_patterns
 
 
 def test_parse_pattern_line_variants():

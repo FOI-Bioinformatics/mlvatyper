@@ -1,6 +1,6 @@
 import pytest
 
-from vntrfinder.sts import StsError, parse_sts_line, read_sts
+from mlvatyper.sts import StsError, parse_sts_line, read_sts
 
 
 def test_parse_valid_line():
@@ -17,7 +17,7 @@ def test_reject_non_acgt_primer():
 
 
 def test_iupac_codes_are_accepted():
-    from vntrfinder.sts import is_degenerate
+    from mlvatyper.sts import is_degenerate
     pair = parse_sts_line("id\tACGTR\tTTGCN\t250", 1)
     assert is_degenerate(pair)
     assert not is_degenerate(parse_sts_line("id\tACGT\tTTGC\t250", 1))

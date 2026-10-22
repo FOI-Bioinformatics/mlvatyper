@@ -16,10 +16,10 @@ jobs:
         with:
           miniforge-version: latest
           environment-file: environment.yml
-          activate-environment: vntrfinder
+          activate-environment: mlvatyper
       - name: Lint
         run: |
           pip install ruff
           ruff check src tests
       - name: Test
-        run: pytest -q --cov=vntrfinder --cov-report=term
+        run: pytest -q --cov=mlvatyper --cov-report=term

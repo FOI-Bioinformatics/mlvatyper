@@ -1,4 +1,4 @@
-# vntrfinder
+# mlvatyper
 
 Locate VNTR (variable number tandem repeat) amplicons in genome assemblies with
 an STS primer table and summarise amplicon lengths and repeat unit counts across
@@ -46,7 +46,7 @@ ignored.
 merPCR (1.0.3 or newer) is not on PyPI or conda and requires Python 3.13 or newer.
 
     conda env create -f environment.yml
-    conda activate vntrfinder
+    conda activate mlvatyper
 
 or
 
@@ -57,7 +57,7 @@ An aligner is optional: `conda install -c bioconda mafft` or `muscle`.
 
 ## Usage
 
-    vntrfinder run --sts primers.sts --fasta 'assemblies/*.fasta' \
+    mlvatyper run --sts primers.sts --fasta 'assemblies/*.fasta' \
         --outdir results --prefix study -N 3 -M 500 \
         --pattern patterns.tsv --clwclean --skip-invalid -T 4
 
@@ -69,7 +69,7 @@ and `summarize` (rebuild tables from an existing `results/hits.tsv`).
 Running on the full example data (one assembly, 208 markers; not included in
 the repository, a small slice with five markers is kept under `tests/data`):
 
-    vntrfinder run --sts testID.sts --fasta test.fasta --outdir out_test \
+    mlvatyper run --sts testID.sts --fasta test.fasta --outdir out_test \
         --prefix test -N 3 -M 500 --skip-invalid --clwclean
 
 Log excerpt:
@@ -113,7 +113,7 @@ A marker can be absent from the output for two reasons.
 - IUPAC codes in primers are honoured by default (`--no-iupac` restores the
   me-PCR default where they count as mismatches).
 - Summaries are built from `hits.tsv`, not from re-parsed FASTA headers, and
-  resuming is explicit through `vntrfinder summarize`.
+  resuming is explicit through `mlvatyper summarize`.
 - The length difference table is relative to the shortest amplicon, as the old
   code computed; the old docstring said longest.
 - Unused pattern file columns (min and max repeats, score) are ignored.
@@ -122,7 +122,7 @@ A marker can be absent from the output for two reasons.
 
     pip install -e ".[dev]"
     ruff check src tests
-    pytest --cov=vntrfinder
+    pytest --cov=mlvatyper
 
 Tests run in GitHub Actions on every push (`.github/workflows/tests.yml`).
 

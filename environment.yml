@@ -1,4 +1,4 @@
-name: vntrfinder
+name: mlvatyper
 channels:
   - conda-forge
   - bioconda

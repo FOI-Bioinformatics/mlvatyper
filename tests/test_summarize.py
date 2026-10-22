@@ -1,5 +1,5 @@
-from vntrfinder.models import Amplicon, Hit, PatternDef
-from vntrfinder.summarize import (
+from mlvatyper.models import Amplicon, Hit, PatternDef
+from mlvatyper.summarize import (
     count_repeats, length_diff_from_shortest_table, lengths_table, pattern_counts_table,
 )
 

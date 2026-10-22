@@ -1,5 +1,5 @@
-from vntrfinder.search import MerPcrSearcher
-from vntrfinder.sts import read_sts, write_sts
+from mlvatyper.search import MerPcrSearcher
+from mlvatyper.sts import read_sts, write_sts
 
 
 def make_searcher(fixture_dir, margin, mismatches):

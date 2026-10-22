@@ -1,6 +1,6 @@
 import pandas as pd
 
-from vntrfinder.cli import main
+from mlvatyper.cli import main
 
 
 def test_run_end_to_end(fixture_dir):

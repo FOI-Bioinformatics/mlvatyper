@@ -2,7 +2,7 @@
 
 import logging
 
-LOGGER_NAME = "vntrfinder"
+LOGGER_NAME = "mlvatyper"
 
 
 def get_logger() -> logging.Logger:

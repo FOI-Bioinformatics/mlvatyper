@@ -1,9 +1,9 @@
 from Bio.Seq import Seq
 
-from vntrfinder.extract import (
+from mlvatyper.extract import (
     extract_amplicons, load_fasta, read_hits_table, write_hits_table, write_marker_fastas,
 )
-from vntrfinder.models import Hit
+from mlvatyper.models import Hit
 
 
 def test_extract_forward_and_reverse(fixture_dir):

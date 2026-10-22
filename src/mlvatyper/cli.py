@@ -68,9 +68,9 @@ def _add_align_args(p: argparse.ArgumentParser) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="vntrfinder", description="Locate VNTR amplicons with merPCR and summarise repeat lengths"
+        prog="mlvatyper", description="Locate VNTR amplicons with merPCR and summarise repeat lengths"
     )
-    parser.add_argument("--version", action="version", version=f"vntrfinder {__version__}")
+    parser.add_argument("--version", action="version", version=f"mlvatyper {__version__}")
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -172,7 +172,7 @@ def do_search(args: argparse.Namespace, outdir: Path) -> None:
 def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
     hits_path = outdir / HITS_FILE
     if not hits_path.exists():
-        raise SystemExit(f"{hits_path} not found; run 'vntrfinder search' first")
+        raise SystemExit(f"{hits_path} not found; run 'mlvatyper search' first")
     amplicons = read_hits_table(hits_path)
     samples_path = outdir / SAMPLES_FILE
     samples = read_samples(samples_path) if samples_path.exists() else sorted({a.hit.sample for a in amplicons})

@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vntrfinder"
+name = "mlvatyper"
 version = "0.1.0"
 description = "Locate VNTR amplicons in assemblies with merPCR and summarise repeat lengths"
 readme = "README.md"
@@ -19,7 +19,7 @@ dependencies = [
 dev = ["pytest>=7", "pytest-cov", "ruff"]
 
 [project.scripts]
-vntrfinder = "vntrfinder.cli:main"
+mlvatyper = "mlvatyper.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

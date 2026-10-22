@@ -6,7 +6,7 @@ from Bio import AlignIO, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from vntrfinder.align import align_marker, detect_aligner, fasta_to_clustal, filter_n
+from mlvatyper.align import align_marker, detect_aligner, fasta_to_clustal, filter_n
 
 
 def write(path: Path, seqs: dict[str, str]) -> None:
@@ -54,7 +54,7 @@ def test_mafft_alignment(tmp_path):
 
 def test_align_all_with_clwclean_and_no_aligner(tmp_path):
     """Without an aligner, single sequences still get CLUSTAL output and clean files are produced."""
-    from vntrfinder.align import align_all
+    from mlvatyper.align import align_all
     write(tmp_path / "m1.fasta", {"s_1": "ACGTACGT"})
     write(tmp_path / "m2.fasta", {"a_1": "ACGT", "b_1": "ACNT"})
     align_all(tmp_path, None, clwclean=True)
@@ -72,7 +72,7 @@ def test_align_all_with_clwclean_and_no_aligner(tmp_path):
 def test_muscle_command_selection(tmp_path, monkeypatch):
     """The MUSCLE command line follows the detected major version."""
     import subprocess
-    from vntrfinder import align as mod
+    from mlvatyper import align as mod
 
     calls = []
 
@@ -93,7 +93,7 @@ def test_muscle_command_selection(tmp_path, monkeypatch):
 
 def test_muscle_version_parsing(monkeypatch):
     import subprocess
-    from vntrfinder import align as mod
+    from mlvatyper import align as mod
 
     def fake(text):
         return lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0, text, "")
@@ -106,7 +106,7 @@ def test_muscle_version_parsing(monkeypatch):
 
 def test_aligner_failure_is_reported(tmp_path, monkeypatch):
     import subprocess
-    from vntrfinder import align as mod
+    from mlvatyper import align as mod
 
     def failing(cmd, **kwargs):
         raise subprocess.CalledProcessError(1, cmd, stderr="boom")

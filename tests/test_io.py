@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from vntrfinder.cli import main
-from vntrfinder.extract import load_fasta
-from vntrfinder.io import open_text, strip_compression
-from vntrfinder.search import sample_name
-from vntrfinder.sts import read_sts
+from mlvatyper.cli import main
+from mlvatyper.extract import load_fasta
+from mlvatyper.io import open_text, strip_compression
+from mlvatyper.search import sample_name
+from mlvatyper.sts import read_sts
 
 DATA = Path(__file__).parent / "data"
 
