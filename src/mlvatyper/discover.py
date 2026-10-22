@@ -39,6 +39,10 @@ class Discovery:
     left_flank: int
     right_flank: int
     score: int = 0
+    engine: str = "builtin"
+    engine_copies: float | None = None  # copy number as reported by the engine, fractional for TRF
+    pct_match: int | None = None
+    pct_indel: int | None = None
 
     @property
     def unit_length(self) -> int:
@@ -190,6 +194,7 @@ def discoveries_to_definitions(found: list[Discovery], missing: list[str], ampli
 REPORT_COLUMNS = [
     "marker", "sample", "amplicon_length", "unit_length", "unit", "copies", "exact_copies", "variant_copies",
     "score", "entropy", "array_start", "array_end", "array_span", "left_flank", "right_flank",
+    "engine", "engine_copies", "pct_match", "pct_indel",
 ]
 
 
@@ -201,6 +206,8 @@ def write_report(found: list[Discovery], missing: list[str], path) -> None:
             handle.write("\t".join(str(x) for x in [
                 d.marker, d.sample, d.amplicon_length, d.unit_length, d.unit, a.copies, a.exact, a.variant,
                 d.score, f"{d.entropy:.2f}", a.start, a.end, a.span, d.left_flank, d.right_flank,
+                d.engine, "" if d.engine_copies is None else d.engine_copies,
+                "" if d.pct_match is None else d.pct_match, "" if d.pct_indel is None else d.pct_indel,
             ]) + "\n")
         for m in missing:
             handle.write(m + "\t" * 5 + "0" + "\t" * (len(REPORT_COLUMNS) - 6) + "\n")

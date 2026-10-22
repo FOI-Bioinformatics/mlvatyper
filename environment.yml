@@ -13,6 +13,8 @@ dependencies:
   # optional aligners; either one is picked up automatically when on PATH
   - mafft
   # - muscle
+  # optional repeat finder for 'mlvatyper discover'
+  - trf
   - pip:
       - git+https://github.com/FOI-Bioinformatics/merpcr@a5f3075
       - -e .

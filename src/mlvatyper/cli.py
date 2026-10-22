@@ -17,6 +17,7 @@ from pathlib import Path
 from . import __version__
 from .align import align_all, detect_aligner
 from .discover import discover_units, discoveries_to_definitions, write_report
+from .trf import discover_with_trf, trf_available
 from .calling import (
     ROUNDING_POLICIES, allele_table, call_all, derive_definitions, long_table, profile_table, read_bins,
     status_table, tandem_count_table,
@@ -136,6 +137,9 @@ def build_parser() -> argparse.ArgumentParser:
     disc.add_argument("--min-score", type=int, default=30,
                       help="smallest array score, +2 per matching and -7 per differing position between "
                            "consecutive copies (default 30; Tandem Repeats Finder uses 50 for genomes)")
+    disc.add_argument("--engine", choices=["auto", "builtin", "trf"], default="auto",
+                      help="repeat finder: Tandem Repeats Finder (trf) when on PATH, else the built-in "
+                           "self-comparison (default auto)")
     disc.add_argument("--output", default=DISCOVERED_FILE,
                       help=f"marker definition file name within outdir (default {DISCOVERED_FILE})")
     return parser
@@ -342,8 +346,18 @@ def do_discover(args: argparse.Namespace, outdir: Path) -> None:
         sample = samples[0]
     elif sample not in samples:
         raise SystemExit(f"sample {sample!r} has no amplicons in {hits_path}")
-    found, missing = discover_units(amplicons, sample, args.min_unit, args.max_unit, args.min_copies,
-                                    args.unit_mismatches, args.min_score)
+    engine = args.engine
+    if engine == "auto":
+        engine = "trf" if trf_available() else "builtin"
+        log.info("Repeat finder: %s", engine)
+    if engine == "trf":
+        found, missing, command = discover_with_trf(amplicons, sample, args.min_score, args.max_unit,
+                                                    args.unit_mismatches, args.min_copies)
+        args.trf_command = " ".join(command)
+    else:
+        found, missing = discover_units(amplicons, sample, args.min_unit, args.max_unit, args.min_copies,
+                                        args.unit_mismatches, args.min_score)
+    args.engine = engine
     write_report(found, missing, outdir / DISCOVER_REPORT)
     defs = discoveries_to_definitions(found, missing, amplicons, sample)
     sts_path = outdir / STS_USED

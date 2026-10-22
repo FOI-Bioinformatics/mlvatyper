@@ -100,16 +100,28 @@ seeds a definition file from the amplicons of one sample:
     mlvatyper summarize --outdir results --prefix study \
         --markers results/marker_defs_discovered.tsv
 
-For each amplicon the dominant tandem array is located by self-comparison at
-every period from `--min-unit` to `--max-unit` (3 to 100 bp), with the
-mismatch allowance of the tandem counter. Arrays are scored as in Tandem
-Repeats Finder (+2 per matching and -7 per differing position between
-consecutive copies) and need `--min-score` (default 30) and `--min-copies`
-(default 2). The smallest period whose score is close to the best is
-reported so that a unit is not given as its own multiple. The unit is the
-per-column majority over the array, written in the phase and orientation of
-the amplicon. `discover_report.tsv` lists unit, copies, exact and variant
-copies, score, unit entropy and array coordinates for review; markers
+Two repeat finders are available (`--engine`, default `auto`):
+
+- `trf`: Tandem Repeats Finder (Benson 1999; `conda install -c bioconda trf`,
+  included in environment.yml) is run once on the amplicons with the pinned
+  alignment parameters 2 7 7 80 10, `--min-score` as its minimum score and
+  `--max-unit` as its maximum period. TRF handles indels inside arrays and
+  reports fractional copy numbers. Of the repeats TRF reports for an
+  amplicon the highest scoring one is taken, and among those within 85
+  percent of that score the smallest period, so that a unit is not given as
+  its own multiple. The exact command line is recorded in `run_info.json`.
+- `builtin`: self-comparison at every period from `--min-unit` to
+  `--max-unit` (3 to 100 bp), with the mismatch allowance of the tandem
+  counter and the same scoring as TRF (+2 per matching and -7 per differing
+  position between consecutive copies), without indel handling. Used when
+  TRF is not on PATH.
+
+Both need `--min-score` (default 30; TRF itself defaults to 50 for whole
+genomes) and `--min-copies` (default 2). The chosen unit is counted again
+with the tandem counter so that `ref_repeats` is the integer allele calling
+will see. `discover_report.tsv` lists unit, copies, exact and variant
+copies, score, unit entropy, array coordinates, the engine and its own copy
+number and, for TRF, percent matches and indels, for review; markers
 without an array keep only their reference size.
 
 The result depends on the sample. A reference strain with one or two copies
