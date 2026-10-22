@@ -1,10 +1,13 @@
 """Summary tables built from the hits table.
 
 All tables have one row per sample and one column per marker. Samples without
-a hit for a marker are reported as NA. When a sample has several copies of a
-marker, the per-copy values are joined with "/" (lengths) or ";" (counts and
-length differences), in copy order. This matches the layout of the original
-vntr_searcher script.
+a hit for a marker are reported as NA. When a sample has several amplicons
+for a marker, the per-copy values are joined with "/" (lengths) or ";"
+(counts and length differences), in copy order.
+
+The pattern count and length difference tables are the legacy estimators of
+the original vntr_searcher script. They are kept for comparison under the
+--legacy-tables option; allele calling lives in calling.py.
 """
 
 from collections import defaultdict
@@ -13,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 
 from .log import get_logger
-from .models import Amplicon, PatternDef
+from .models import Amplicon, MarkerDef
 
 log = get_logger()
 
@@ -47,7 +50,7 @@ def lengths_table(amplicons: list[Amplicon], samples: list[str], clean: bool = F
 
 
 def count_repeats(sequence: str, patterns: tuple[str, ...]) -> int:
-    """Sum of non-overlapping, case-insensitive occurrences of each pattern on the given strand."""
+    """Legacy count: sum of exact, non-overlapping occurrences of each pattern on the amplicon strand."""
     seq = sequence.upper()
     total = 0
     for pattern in patterns:
@@ -63,16 +66,16 @@ def count_repeats(sequence: str, patterns: tuple[str, ...]) -> int:
 
 
 def pattern_counts_table(
-    amplicons: list[Amplicon], samples: list[str], defs: list[PatternDef], clean: bool = False
+    amplicons: list[Amplicon], samples: list[str], defs: list[MarkerDef], clean: bool = False
 ) -> pd.DataFrame:
-    """Repeat unit counts per copy, joined with ';'."""
+    """Legacy exact pattern counts per copy, joined with ';'."""
     valid = {d.primer_id: d for d in defs if d.has_repeats}
     data: dict[str, dict[str, str | None]] = defaultdict(dict)
     grouped = _by_marker_sample(_select(amplicons, clean))
     for marker, d in valid.items():
         per_sample = grouped.get(marker)
         if not per_sample:
-            log.info("%s: no amplicons for pattern counting", marker)
+            log.debug("%s: no amplicons for pattern counting", marker)
             continue
         for sample, amps in per_sample.items():
             data[sample][marker] = ";".join(str(count_repeats(a.sequence, d.patterns)) for a in amps)
@@ -80,12 +83,12 @@ def pattern_counts_table(
 
 
 def length_diff_from_shortest_table(
-    amplicons: list[Amplicon], samples: list[str], defs: list[PatternDef], clean: bool = False
+    amplicons: list[Amplicon], samples: list[str], defs: list[MarkerDef], clean: bool = False
 ) -> pd.DataFrame:
-    """(length - shortest length for the marker) / repeat unit length, per copy, joined with ';'.
+    """Legacy (length - shortest length for the marker) / repeat unit length, per copy, joined with ';'.
 
-    The shortest amplicon across all samples is the reference, so values are
-    zero or positive. This reproduces the behaviour of the original script.
+    The reference is the shortest amplicon in the current dataset, so the
+    values are relative to the run and not comparable between runs.
     """
     valid = {d.primer_id: d for d in defs if d.has_repeats and d.pattern_length > 0}
     data: dict[str, dict[str, str | None]] = defaultdict(dict)
@@ -108,14 +111,15 @@ def write_table(df: pd.DataFrame, path: str | Path) -> None:
 
 
 def write_all_summaries(amplicons: list[Amplicon], samples: list[str], outdir: Path, prefix: str,
-                        defs: list[PatternDef] | None, clwclean: bool) -> list[Path]:
+                        defs: list[MarkerDef] | None, clwclean: bool, legacy_tables: bool = False) -> list[Path]:
+    """Lengths tables, plus the legacy count tables when requested."""
     written = []
     variants = [("", False)] + ([("_clean", True)] if clwclean else [])
     for suffix, clean in variants:
         p = outdir / f"{prefix}_lengths_summary{suffix}.tsv"
         write_table(lengths_table(amplicons, samples, clean), p)
         written.append(p)
-        if defs is not None:
+        if defs is not None and legacy_tables:
             p = outdir / f"{prefix}_count_summary{suffix}.tsv"
             write_table(pattern_counts_table(amplicons, samples, defs, clean), p)
             written.append(p)

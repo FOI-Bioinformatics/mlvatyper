@@ -2,7 +2,10 @@
 
 merPCR (https://github.com/FOI-Bioinformatics/merpcr) is a Python
 reimplementation of me-PCR. Its find_hits method (version 1.0.2 or newer)
-returns SearchHit objects with 1-based inclusive coordinates.
+returns SearchHit objects with 1-based inclusive coordinates. The reverse
+primer is searched only within the STS expected size plus or minus the
+margin, so for VNTR markers the expected size and the margin together define
+the allowed amplicon size window.
 """
 
 from pathlib import Path
@@ -44,7 +47,8 @@ class MerPcrSearcher:
             log.warning("%s: no FASTA records found", fasta_path)
             return []
         hits = [
-            Hit(sample=sample, contig=h.seq_label, start=h.start, end=h.end, strand=h.strand, primer_id=h.sts_id)
+            Hit(sample=sample, contig=h.seq_label, start=h.start, end=h.end, strand=h.strand, primer_id=h.sts_id,
+                expected_size=h.sts.pcr_size)
             for h in self.engine.find_hits(records)
         ]
         log.info("%s: %d hits", sample, len(hits))
