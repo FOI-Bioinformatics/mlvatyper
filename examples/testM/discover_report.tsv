@@ -1,0 +1,31 @@
+marker	sample	amplicon_length	unit_length	unit	copies	exact_copies	variant_copies	score	entropy	array_start	array_end	array_span	left_flank	right_flank	engine	engine_copies	pct_match	pct_indel	primer_overlap	category	n_candidates	mixed	n_samples	copy_range	explains
+testM01	test	310	10	AAAAAATAAT	2	1	1	33	0.72	201	221	20	201	89	trf	2.1	90	0	0	B	4	0			
+testM02	test	451	6	AAATAT	3	2	1	32	0.92	180	198	18	180	253	trf	2.7	100	0	0	B	2	0			
+testM03	test	297	9	ATCCTTATT	7	7	0	126	1.44	177	240	63	177	57	trf	7.0	100	0	0	A	4	1			
+testM04	test	439	5	GTTTT	4	4	0	44	0.72	255	275	20	255	164	trf	4.4	100	0	0	B	1	0			
+testM05	test	192	16	AAAAAGATATTTGTAG	2	2	0	66	1.48	64	96	32	64	96	trf	2.1	100	0	0	B	1	0			
+testM06	test	332	21	AACTTTCTTGCTCTTTTGGTG	4	4	0	196	1.72	77	161	84	77	171	trf	5.1	97	1	0	A	1	0			
+testM07	test	175	16	AAAAAGATATTTGTAG	2	2	0	66	1.48	47	79	32	47	96	trf	2.1	100	0	0	B	1	0			
+testM08	test	253	16	AAAAAGATATTTGTAG	2	2	0	66	1.48	125	157	32	125	96	trf	2.1	100	0	0	B	1	0			
+testM09	test	216	16	AAAAAGATATTTGTAG	2	2	0	66	1.48	88	120	32	88	96	trf	2.1	100	0	0	B	1	0			
+testM10	test	361	16	AAAAAGATATTTGTAG	2	2	0	66	1.48	233	265	32	233	96	trf	2.1	100	0	0	B	1	0			
+testM11	test	392	10	AATAATTTAT	2	1	1	34	1.00	150	170	20	150	222	trf	2.6	81	0	0	B	4	0			
+testM12	test	345	10	AAAAGCTAAT	2	1	1	43	1.57	191	211	20	191	134	trf	2.6	93	6	0	B	2	0			
+testM13	test	313	6	AGGATT	2	2	0	26	1.58	161	173	12	161	140	trf	2.2	100	0	0	C	1	0			
+testM14	test	442	6	ATCATT	5	3	2	40	1.46	202	232	30	202	210	trf	3.3	100	0	0	A	1	0			
+testM15	test	228	6	AAGTAT	4	3	1	42	1.46	126	150	24	126	78	trf	3.5	100	0	0	A	1	0			
+testM16	test	211	4	AAGT	2	2	0	20	1.50	136	144	8	136	67	trf	2.5	100	0	0	C	1	0			
+testM17	test	345	6	ATATTT	3	2	1	28	0.92	133	151	18	133	194	trf	2.3	100	0	0	C	1	0			
+testM18	test	360	6	AACATT	3	1	2	24	1.46	122	140	18	122	220	trf	2.0	100	0	0	C	1	0			
+testM20	test	255	12	AAAATAATGATC	3	2	1	67	1.55	27	63	36	27	192	trf	3.2	96	0	0	A	2	0			
+testM20a	test	165	12	AAAATAATGATC	3	2	1	67	1.55	20	56	36	20	109	trf	3.2	96	0	0	A	1	0			
+testM20b	test	190	12	AAAATAATGATC	3	2	1	67	1.55	62	98	36	62	92	trf	3.2	96	0	0	A	1	0			
+testM21	test	396	7	AATTGAT	2	2	0	34	1.45	117	131	14	117	265	trf	2.4	100	0	0	B	2	0			
+testM22	test	253	6	AAAAAT	6	5	1	54	0.65	143	179	36	143	74	trf	6.0	86	0	0	B	1	0			
+testM24	test	480	21	AAATTATTTATTTTGATTAAT	2	2	0	86	1.20	227	269	42	227	211	trf	2.0	100	0	0	B	2	0			
+testM26	test	198	6	AAATGC	3	2	1	34	1.79	106	124	18	106	74	trf	2.8	100	0	0	A	2	0			
+testM3a	test	173	9	ATCCTTATT	7	7	0	126	1.44	40	103	63	40	70	trf	7.0	100	0	0	A	4	0			
+testM3b	test	193	9	ATCCTTATT	7	7	0	126	1.44	58	121	63	58	72	trf	7.0	100	0	0	A	4	1			
+testM19					0																				
+testM23					0																				
+testM25_2					0																				

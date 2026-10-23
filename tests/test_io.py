@@ -41,7 +41,7 @@ def test_gz_fixtures_match_plain():
     gz, _ = read_sts(DATA / "mini.sts.gz")
     assert [p.id for p in gz] == [p.id for p in plain]
     assert load_fasta(DATA / "mini.fasta.gz") == load_fasta(DATA / "mini.fasta")
-    assert len(load_fasta(DATA / "mini.fasta")["mini"]) == 4129
+    assert [len(v) for v in load_fasta(DATA / "mini.fasta").values()] == [610, 751, 612, 632]
 
 
 def test_search_compressed_inputs(tmp_path):
@@ -51,5 +51,6 @@ def test_search_compressed_inputs(tmp_path):
     assert rc == 0
     hits = pd.read_csv(out / "hits.tsv", sep="\t")
     assert set(hits["sample"]) == {"mini"}
-    assert list(hits["marker"]) == ["testID146", "testID147", "testID148", "testID149", "testID150"]
-    assert list(hits["length"]) == [366, 390, 335, 356, 364]
+    assert list(hits["marker"]) == ["testM01", "testM02", "testM03", "testM06", "testM3a", "testM3b"]
+    assert list(hits["length"]) == [310, 451, 297, 332, 173, 193]
+    assert list(hits["contig"]) == ["mini1", "mini2", "mini3", "mini4", "mini3", "mini3"]

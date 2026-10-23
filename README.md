@@ -36,7 +36,7 @@ single-file script (`vntr_searcher_9.py`).
    written to `hits.tsv` and to one FASTA per marker in `sequences/`. Record
    ids are `<sample>_<copy>`.
 4. Markers without a hit in a sample get two rescue passes. A second merPCR
-   pass with a smaller word size (`--rescue-wordsize`, default 8; 0
+   pass with a smaller word size (`--rescue-wordsize`, default 6; 0
    disables), one-sided search and a wider window (`--rescue-margin`,
    default twice `-M`) finds primers whose IUPAC codes leave no 11-mer for
    the main pass. With `--rescue-indels`, one primer is then anchored by an
@@ -251,40 +251,51 @@ for example with other rounding settings or an edited definition file) and
 
 ## Example
 
-Running on the full example data (one assembly, 208 markers; not included in
-the repository, a small slice with five markers is kept under `tests/data`):
+`examples/testM/` holds a 31 marker scheme: `testM.sts` (primers and
+expected sizes from the strain the scheme was designed on) and
+`testM_pattern.txt`, the legacy pattern file with the repeat unit of every
+marker, converted to `testM_markers.tsv` (patterns and unit length, no
+reference values). The assembly used below is not included in the
+repository; four slices of it around six of the markers are kept under
+`tests/data` as `mini.fasta`.
 
-    mlvatyper run --sts testID.sts --fasta test.fasta --outdir out_test \
-        --prefix test -N 2 -M 500 --fix-sts --rescue-indels --clwclean
+    mlvatyper run --sts examples/testM/testM.sts --fasta test.fasta \
+        --outdir out_testM --prefix testM --markers examples/testM/testM_markers.tsv \
+        --reference-sample test --rescue-indels
+    mlvatyper discover --outdir out_testM
 
 Log excerpt:
 
-    WARNING line 189 (testID190): removed '1' at position 1 of the forward primer
-    INFO 208 valid primer pairs loaded from testID.sts (24 with IUPAC ambiguity codes, iupac mode on)
-    WARNING 3 primers have ambiguities which prevent computation of a hash value: not included in search
-    INFO test: 203 hits
-    INFO test: rescue pass (word size 8, one sided) found 3 hits for 3 markers
-    INFO test: primer alignment found 1 hits for 1 markers
-    INFO 207 amplicons for 207 markers written to out_test/sequences
+    INFO 31 valid primer pairs loaded from examples/testM/testM.sts (0 with IUPAC ambiguity codes, iupac mode on)
+    INFO test: 31 hits
+    INFO test: rescue pass (word size 6, one sided) found 1 hits for 1 markers
+    INFO 32 amplicons for 30 markers written to out_testM/sequences
     INFO 1 sample/marker combinations without a hit: ONE_PRIMER_ONLY 1
+    WARNING testM05: 2 amplicons in reference sample test, copy 1 used
+    INFO Reference sample test: 30 of 31 markers have reference size and repeats
 
-The three markers of the rescue pass (testID043, testID078, testID178) have
-IUPAC codes in every 11-mer of one primer; all three are found with no
-mismatches at the expected size. testID041 carries one base more in its
-reverse primer than the genome and needs `--rescue-indels`. testID062 has
-three mismatches in its reverse primer and is found with `-N 3`.
+testM18 is found by the rescue pass: its reverse primer has one mismatch
+inside the 11 bp word that merPCR must match exactly, so the main pass
+misses it whatever `-N` allows. testM25 has six mismatches in its reverse
+primer in this assembly and stays ONE_PRIMER_ONLY; testM25_2, a second
+primer pair for the same locus, is found. testM05 and testM14 occur twice
+in the assembly and are reported as MULTIPLE. The expected sizes in
+`testM.sts` are one base shorter than the products (end minus start
+without the inclusive base), which the reference sample absorbs.
 
-`out_test/` then contains `hits.tsv`, `primers_used.sts`, `samples.txt`,
-`missing_markers.tsv`, `near_contig_end.tsv`, `run_info.json`, `sequences/`
-with per-marker FASTA, aligned FASTA and CLUSTAL files, and the lengths
-table. Allele tables need marker definitions. `mlvatyper discover --outdir
-out_test` with TRF gives a candidate in 92 of the 207 amplicons, 7 of
-category A and 17 of category B; the report, the candidate table and the
-resulting definition file are kept under `examples/testID/`. First columns
-of `hits.tsv`:
+With the assembly as reference every allele is its own tandem count, so
+the run mainly checks that the length based and the array based numbers
+agree: they do for all 30 markers. `mlvatyper discover` with TRF gives a
+candidate in 28 of the 30 markers; for 22 the unit equals the one in the
+pattern file, for 2 it has the right length but another sequence (one or
+two copies only), 3 are other units, and 3 markers with one copy or a
+2 bp unit give nothing. The outputs (allele, status, tandem count and
+long tables, derived and discovered definitions, discovery report and
+candidate table, missing markers) are kept under `examples/testM/`.
+First columns of `hits.tsv`:
 
-    sample  marker     copy  contig  start    end      strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
-    test    testID001  1     test    1221679  1221902  -       224     0      224            0               0               0               672255              0           0           main
+    sample  marker   copy  contig  start   end     strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
+    test    testM01  1     test    148691  149000  +       310     0      309            0               0               0               148690              0           0           main
 
 ## Markers without hits
 

@@ -1,7 +1,9 @@
 """Rescue searches for markers without a hit, and reasons for markers that stay missing.
 
 merPCR needs a run of wordsize unambiguous bases in a primer to hash it and
-drops the record otherwise; it also allows no indels in a primer. Two rescue
+drops the record otherwise; the hashed word must also match the sequence
+exactly, so a mismatch inside it hides the hit whatever -N allows; and no
+indels are allowed in a primer. Two rescue
 steps run only for the markers that the main search did not find in a
 sample, so that the main scan keeps its speed and specificity:
 
@@ -43,7 +45,7 @@ NOT_FOUND = "NOT_FOUND"
 
 @dataclass(frozen=True)
 class RescueOptions:
-    wordsize: int = 8  # 0 disables the second merPCR pass
+    wordsize: int = 6  # 0 disables the second merPCR pass
     margin: int = 1000
     indels: bool = False
     mismatches: int = 2

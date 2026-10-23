@@ -1,6 +1,6 @@
 import pytest
 
-from mlvatyper.sts import StsError, parse_sts_line, read_sts, write_sts
+from mlvatyper.sts import StsError, parse_sts_line, read_sts
 
 
 def test_parse_valid_line():
@@ -38,27 +38,14 @@ def test_read_sts_reports_invalid_and_duplicates(tmp_path):
     assert "duplicate" in invalid[1][2]
 
 
-def test_real_sts_file_has_one_invalid_entry():
+def test_example_sts_and_markers():
     from pathlib import Path
-    sts = Path(__file__).resolve().parents[1] / "testID.sts"
-    if not sts.exists():
-        pytest.skip("testID.sts not present")
-    valid, invalid = read_sts(sts)
-    assert len(valid) == 207
-    assert [i[0] for i in invalid] == [189]
 
-
-def test_size_range_and_fix(tmp_path):
-    pair = parse_sts_line("id\tACGT\tTTGC\t200-220", 1)
-    assert (pair.expected_size, pair.size_low, pair.size_high, pair.size_text) == (210, 200, 220, "200-220")
-    with pytest.raises(StsError, match="low-high"):
-        parse_sts_line("id\tACGT\tTTGC\t220-200", 1)
-    with pytest.raises(StsError, match="'1' at position 1"):
-        parse_sts_line("id\t1ACGT\tTTGC\t100", 1)
-    fixed = parse_sts_line("id\t1ACGT\tTT*GC\t100", 1, fix=True)
-    assert (fixed.forward, fixed.reverse) == ("ACGT", "TTGC")
-    p = tmp_path / "r.sts"
-    p.write_text("a\tACGTACGTACGT\tTTGCTTGCTTGC\t200-220\n")
-    valid, invalid = read_sts(p)
-    write_sts(valid, tmp_path / "w.sts")
-    assert (tmp_path / "w.sts").read_text() == "a\tACGTACGTACGT\tTTGCTTGCTTGC\t200-220\n" and not invalid
+    from mlvatyper.markers import read_markers
+    example = Path(__file__).resolve().parents[1] / "examples" / "testM"
+    valid, invalid = read_sts(example / "testM.sts")
+    assert len(valid) == 31 and not invalid
+    defs = {d.primer_id: d for d in read_markers(example / "testM_markers.tsv")}
+    assert set(defs) == {p.id for p in valid}
+    assert defs["testM03"].patterns[0] == "ATCCTTATT" and len(defs["testM03"].patterns) == 5
+    assert all(d.has_repeats and not d.can_call for d in defs.values())

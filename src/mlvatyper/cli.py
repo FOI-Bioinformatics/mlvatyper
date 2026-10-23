@@ -80,9 +80,10 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
                    help="skip invalid STS entries instead of aborting; they are listed in invalid_primers.tsv")
     p.add_argument("--fix-sts", action="store_true",
                    help="remove characters that are not IUPAC codes from primers, logging each removal")
-    p.add_argument("--rescue-wordsize", type=int, default=8,
-                   help="word size of a second, one-sided merPCR pass for markers without a hit, so that "
-                        "primers with IUPAC codes in every %(default)s-mer are still searched (0 disables)")
+    p.add_argument("--rescue-wordsize", type=int, default=6,
+                   help="word size of a second, one-sided merPCR pass for markers without a hit; merPCR needs "
+                        "an exact, unambiguous match of the word, so a smaller word finds primers with IUPAC "
+                        "codes or a mismatch inside the main word (default %(default)s, 0 disables)")
     p.add_argument("--rescue-margin", type=int,
                    help="size window of the rescue passes (default twice -M)")
     p.add_argument("--max-repeats", type=int, default=50,
