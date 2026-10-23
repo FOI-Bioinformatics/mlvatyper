@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mlvatyper"
-version = "0.2.0"
+version = "0.2.1"
 description = "Locate VNTR amplicons in assemblies with merPCR and summarise repeat lengths"
 readme = "README.md"
 requires-python = ">=3.13"
