@@ -30,6 +30,10 @@ ROUNDING_POLICIES = ("nearest", "up", "down", "intermediate")
 OK = "OK"
 NOT_DETECTED = "NOT_DETECTED"
 NEAR_CONTIG_END = "NEAR_CONTIG_END"
+NOT_SEARCHED = "NOT_SEARCHED"
+ONE_PRIMER_ONLY = "ONE_PRIMER_ONLY"
+PRIMER_INDEL = "PRIMER_INDEL"
+MISSING_CODES = {NEAR_CONTIG_END, NOT_SEARCHED, ONE_PRIMER_ONLY}
 INTERMEDIATE = "INTERMEDIATE"
 NEGATIVE = "NEGATIVE"
 OFF_TABLE = "OFF_TABLE"
@@ -160,6 +164,8 @@ def call_amplicon(
         call.status.append(HAS_N)
     if amp.hit.n_alternatives:
         call.status.append(AMBIGUOUS)
+    if amp.hit.fwd_indels or amp.hit.rev_indels:
+        call.status.append(PRIMER_INDEL)
     if d.has_repeats:
         call.array = count_tandem_array(amp.sequence, d.patterns, max_mismatch)
     if not d.can_call:
@@ -174,8 +180,13 @@ def call_all(
     amplicons: list[Amplicon], samples: list[str], defs: list[MarkerDef], tolerance: float, policy: str,
     bins: dict[str, list[Bin]] | None = None, max_mismatch: int = 1, max_array_length: int | None = None,
     near_contig_end: set[tuple[str, str]] | None = None,
+    missing_reasons: dict[tuple[str, str], str] | None = None,
 ) -> list[Call]:
-    """One Call per amplicon, plus one Call per sample and marker without amplicon."""
+    """One Call per amplicon, plus one Call per sample and marker without amplicon.
+
+    missing_reasons maps (sample, marker) to one of MISSING_CODES and takes
+    precedence over the near_contig_end set, which is kept for older runs.
+    """
     by_marker = {d.primer_id: d for d in defs}
     present: dict[tuple[str, str], list[Call]] = defaultdict(list)
     calls: list[Call] = []
@@ -191,7 +202,10 @@ def call_all(
     for sample in samples:
         for d in defs:
             if (sample, d.primer_id) not in present:
-                code = NEAR_CONTIG_END if near_contig_end and (sample, d.primer_id) in near_contig_end else NOT_DETECTED
+                code = (missing_reasons or {}).get((sample, d.primer_id))
+                if code not in MISSING_CODES:
+                    near = near_contig_end and (sample, d.primer_id) in near_contig_end
+                    code = NEAR_CONTIG_END if near else NOT_DETECTED
                 calls.append(Call(sample, d.primer_id, None, status=[code]))
     return calls
 
@@ -238,13 +252,13 @@ def profile_table(calls: list[Call], samples: list[str], markers: list[str]) -> 
 
 LONG_COLUMNS = [
     "sample", "marker", "copy", "contig", "start", "end", "strand", "length", "expected_size",
-    "fwd_mismatches", "rev_mismatches", "n_alternatives", "dist_to_contig_end", "has_N",
-    "raw_repeats", "allele", "residual_bp", "tandem_copies", "tandem_exact", "tandem_variant",
+    "fwd_mismatches", "rev_mismatches", "n_alternatives", "dist_to_contig_end", "fwd_indels", "rev_indels",
+    "search_pass", "has_N", "raw_repeats", "allele", "residual_bp", "tandem_copies", "tandem_exact", "tandem_variant",
     "tandem_orientation", "status",
 ]
 INT_COLUMNS = [
     "copy", "start", "end", "length", "expected_size", "fwd_mismatches", "rev_mismatches", "n_alternatives",
-    "dist_to_contig_end", "has_N", "tandem_copies", "tandem_exact", "tandem_variant",
+    "dist_to_contig_end", "fwd_indels", "rev_indels", "has_N", "tandem_copies", "tandem_exact", "tandem_variant",
 ]
 
 
@@ -262,6 +276,8 @@ def long_table(calls: list[Call]) -> pd.DataFrame:
             "rev_mismatches": h.rev_mismatches if h and h.rev_mismatches >= 0 else None,
             "n_alternatives": h.n_alternatives if h else None,
             "dist_to_contig_end": h.dist_to_contig_end if h and h.dist_to_contig_end >= 0 else None,
+            "fwd_indels": h.fwd_indels if h else None, "rev_indels": h.rev_indels if h else None,
+            "search_pass": h.search_pass if h else None,
             "has_N": int(c.amplicon.has_n) if c.amplicon else None,
             "raw_repeats": None if c.raw is None else round(c.raw, 3),
             "allele": c.allele,

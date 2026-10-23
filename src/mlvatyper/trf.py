@@ -8,9 +8,9 @@ number, consensus size, percent matches, percent indels, score, A, C, G, T
 counts, entropy, consensus unit, repeat sequence and the two flanking
 sequences. Coordinates are 1-based and inclusive.
 
-TRF reports the same array at several periods. The repeat with the highest
-score is chosen, and among repeats scoring within period_slack of it the
-smallest period, so that a unit is not reported as its own multiple. The
+TRF reports the same array at several periods and every array in the
+sequence. All rows become candidates that discover.merge_harmonics reduces
+to one per locus; select_repeat applies the same rule to one list. Each
 consensus unit is then counted with the tandem counter so that ref_repeats
 is the same integer that allele calling would see.
 """
@@ -21,10 +21,11 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from .discover import Discovery
+from .discover import (
+    Discovery, RawArray, Thresholds, chosen_amplicons, finish_candidates, make_discovery, merge_harmonics,
+)
 from .log import get_logger
 from .models import Amplicon
-from .tandem import count_tandem_array
 
 log = get_logger()
 
@@ -94,41 +95,47 @@ def run_trf(fasta: Path, min_score: int, max_period: int) -> str:
     return proc.stdout
 
 
+def trf_raw_arrays(repeats: list[TrfRepeat]) -> list[RawArray]:
+    """TRF rows as raw arrays with 0-based half-open coordinates."""
+    return [RawArray(r.start - 1, r.end, r.period, r.consensus, r.score, r.copies, r.pct_match, r.pct_indel)
+            for r in repeats]
+
+
 def discover_with_trf(
     amplicons: list[Amplicon], sample: str, min_score: int = 30, max_period: int = 100, max_mismatch: int = 1,
-    min_copies: float = 2.0,
-) -> tuple[list[Discovery], list[str], list[str]]:
-    """Discoveries from TRF for the amplicons (copy 1) of one sample.
+    min_copies: float = 1.8, thresholds: Thresholds | None = None,
+    primer_lengths: dict[str, tuple[int, int]] | None = None,
+) -> tuple[dict[str, list[Discovery]], list[str], list[str]]:
+    """Candidates per marker from TRF for the amplicons (copy 1) of one sample.
 
-    Returns (found, markers without a repeat, the command line used).
+    TRF is run at the weak score floor so that weak arrays appear as category
+    C candidates. Returns ({marker: ranked candidates}, markers without a
+    candidate, the command line used).
     """
     if not trf_available():
         raise FileNotFoundError("trf not found on PATH; install with: conda install -c bioconda trf")
-    chosen: dict[str, Amplicon] = {}
-    for amp in sorted((a for a in amplicons if a.hit.sample == sample), key=lambda a: (a.hit.primer_id, a.copy)):
-        chosen.setdefault(amp.hit.primer_id, amp)
+    t = thresholds or Thresholds(min_score=min_score, min_copies=min_copies)
+    chosen = chosen_amplicons(amplicons, sample)
     with tempfile.TemporaryDirectory() as tmp:
         fasta = Path(tmp) / "amplicons.fasta"
         with open(fasta, "w", encoding="utf-8") as handle:
             for marker, amp in chosen.items():
                 handle.write(f">{marker}\n{amp.sequence}\n")
-        command = trf_command(fasta, min_score, max_period)
-        repeats = parse_trf_ngs(run_trf(fasta, min_score, max_period))
-    found: list[Discovery] = []
+        floor = min(t.min_score, t.weak_score)
+        command = trf_command(fasta, floor, max_period)
+        repeats = parse_trf_ngs(run_trf(fasta, floor, max_period))
+    found: dict[str, list[Discovery]] = {}
     missing: list[str] = []
     for marker, amp in chosen.items():
-        r = select_repeat(repeats.get(marker, []))
-        if r is None or r.copies < min_copies:
+        seq = amp.sequence.upper()
+        raw = merge_harmonics(trf_raw_arrays(repeats.get(marker, [])))
+        cands = [make_discovery(marker, sample, seq, r, "trf", max_mismatch, (primer_lengths or {}).get(marker))
+                 for r in raw if r.copies >= t.min_copies]
+        cands = finish_candidates([c for c in cands if c is not None], t)
+        if cands:
+            found[marker] = cands
+        else:
             missing.append(marker)
-            continue
-        array = count_tandem_array(amp.sequence, (r.consensus,), max_mismatch)
-        if array.copies == 0:
-            missing.append(marker)
-            continue
-        found.append(Discovery(
-            marker, sample, len(amp.sequence), r.consensus, array, array.start, len(amp.sequence) - array.end,
-            r.score, "trf", r.copies, r.pct_match, r.pct_indel,
-        ))
     log.info("%s: TRF found repeat units for %d markers, none for %d", sample, len(found), len(missing))
     command[1] = "amplicons.fasta"
     return found, missing, command

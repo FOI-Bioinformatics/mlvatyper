@@ -10,8 +10,11 @@ single-file script (`vntr_searcher_9.py`).
 
 1. The STS file (id, forward primer, reverse primer, expected product size,
    optional alias) is validated. Primers may contain IUPAC ambiguity codes.
-   Entries with other characters, non-integer sizes or duplicate ids are
-   reported and, with `--skip-invalid`, written to `invalid_primers.tsv`.
+   Entries with other characters, invalid sizes or duplicate ids are
+   reported and, with `--skip-invalid`, written to `invalid_primers.tsv`;
+   `--fix-sts` instead removes stray characters from primers and logs each
+   removal. The size may be a range `low-high`, which merPCR uses as a
+   per-marker size window in place of `-M`.
    Both the STS file and the FASTA files may be gzip, bzip2 or xz compressed
    (recognised by the `.gz`, `.bz2` or `.xz` suffix). This requires merPCR 1.0.4
    or newer.
@@ -32,10 +35,18 @@ single-file script (`vntr_searcher_9.py`).
    discarded alternatives is recorded (`--no-dedup` keeps all). Amplicons are
    written to `hits.tsv` and to one FASTA per marker in `sequences/`. Record
    ids are `<sample>_<copy>`.
-4. For markers without a hit in a sample, both primers are searched exactly
-   within the expected size plus margin of every contig end. A match is
-   recorded in `near_contig_end.tsv` because such a locus is more likely
-   split by the assembly than deleted.
+4. Markers without a hit in a sample get two rescue passes. A second merPCR
+   pass with a smaller word size (`--rescue-wordsize`, default 8; 0
+   disables), one-sided search and a wider window (`--rescue-margin`,
+   default twice `-M`) finds primers whose IUPAC codes leave no 11-mer for
+   the main pass. With `--rescue-indels`, one primer is then anchored by an
+   exact IUPAC-aware match and the other aligned with up to one indel.
+   Hits record their origin in the `search_pass` column (`main`, `rescue`,
+   `aligned`) and the indel counts. Markers that stay missing are listed in
+   `missing_markers.tsv` with a reason: NOT_SEARCHED (no primer holds a
+   hash word), NEAR_CONTIG_END (a primer within the size window of a contig
+   end, so the locus is more likely split than deleted), ONE_PRIMER_ONLY
+   (one primer matches exactly somewhere) or NOT_FOUND.
 5. If MAFFT or MUSCLE is on PATH, amplicons per marker are aligned and written
    as aligned FASTA and CLUSTAL (`.clw`) using Biopython.
 6. Summary tables, one row per sample and one column per marker, are written
@@ -94,10 +105,10 @@ the lengths table is produced.
 ### Discovering repeat units
 
 When neither unit sequences nor unit lengths are known, `mlvatyper discover`
-seeds a definition file from the amplicons of one sample:
+seeds a definition file from the amplicons of one or more samples:
 
-    mlvatyper search --sts primers.sts --fasta ref.fasta --outdir results
-    mlvatyper discover --outdir results --sample ref
+    mlvatyper search --sts primers.sts --fasta 'assemblies/*.fasta' --outdir results
+    mlvatyper discover --outdir results --all-samples --reference-sample ref
     mlvatyper summarize --outdir results --prefix study \
         --markers results/marker_defs_discovered.tsv
 
@@ -105,30 +116,61 @@ Two repeat finders are available (`--engine`, default `auto`):
 
 - `trf`: Tandem Repeats Finder (Benson 1999; `conda install -c bioconda trf`,
   included in environment.yml) is run once on the amplicons with the pinned
-  alignment parameters 2 7 7 80 10, `--min-score` as its minimum score and
-  `--max-unit` as its maximum period. TRF handles indels inside arrays and
-  reports fractional copy numbers. Of the repeats TRF reports for an
-  amplicon the highest scoring one is taken, and among those within 85
-  percent of that score the smallest period, so that a unit is not given as
-  its own multiple. The exact command line is recorded in `run_info.json`.
+  alignment parameters 2 7 7 80 10, the weak score floor as its minimum
+  score and `--max-unit` as its maximum period. TRF handles indels inside
+  arrays and reports fractional copy numbers. The exact command line is
+  recorded in `run_info.json`.
 - `builtin`: self-comparison at every period from `--min-unit` to
   `--max-unit` (3 to 100 bp), with the mismatch allowance of the tandem
   counter and the same scoring as TRF (+2 per matching and -7 per differing
   position between consecutive copies), without indel handling. Used when
   TRF is not on PATH.
 
-Both need `--min-score` (default 30; TRF itself defaults to 50 for whole
-genomes) and `--min-copies` (default 2). The chosen unit is counted again
-with the tandem counter so that `ref_repeats` is the integer allele calling
-will see. `discover_report.tsv` lists unit, copies, exact and variant
-copies, score, unit entropy, array coordinates, the engine and its own copy
-number and, for TRF, percent matches and indels, for review; markers
-without an array keep only their reference size.
+Every array an engine reports becomes a candidate. Arrays that describe the
+same locus at several periods are merged, keeping the smallest period whose
+score is within 85 percent of the best, so that a unit is not given as its
+own multiple. Each candidate is counted again with the tandem counter so
+that `ref_repeats` is the integer allele calling will see, and is placed in
+a category:
 
-The result depends on the sample. A reference strain with one or two copies
-at a locus, or with a degenerate array, yields no unit, so discovery is
-best run on the sample with the most copies, and the file should be
-reviewed and completed by hand where the scheme publication gives the unit.
+| category | conditions |
+|---|---|
+| A | unit of at least `--strong-unit` bp (5), at least `--strong-copies` integer copies (3), score at least `--min-score` (30), unit entropy at least `--min-entropy` bits (1.0), no overlap with a primer |
+| B | unit of at least `--strong-unit` bp, at least two integer copies (`--min-copies` engine copies, default 1.8), score at least `--min-score`, no primer overlap |
+| C | anything else above `--weak-score` (20): short units, weak scores, arrays reaching a whole unit into a primer |
+
+Candidates of a marker are ranked by category, cross-sample support, integer
+copies and score. The first is the primary and seeds the definition when its
+category is at least `--accept` (default B); markers whose primary is only
+category C keep their reference size. A marker with two or more
+non-overlapping A or B candidates is flagged as mixed in the report, so that
+the choice can be reviewed.
+
+A single reference genome typically holds two or three copies of each unit,
+where a chance tandem scores like the true VNTR. The best evidence is
+variation: with `--sample` given several times or `--all-samples`,
+candidates are pooled per marker by unit (equal up to rotation and reverse
+complement) and two columns are added. `copy_range` is the smallest and
+largest integer copy number over the samples, and `explains` is the
+fraction of sample pairs with different amplicon lengths whose difference
+is a whole number of units within `--allele-tolerance`. A unit seen in two
+or more samples with a copy range of at least one and `explains` of at
+least 0.8 is category A whatever its copy number in the reference; a unit
+that explains less than half of the differences while another unit of the
+marker explains them is demoted one category. `ref_size` and `ref_repeats`
+come from `--reference-sample` (default the first sample). When the best
+supported unit was not found as an array in the reference amplicon, it is
+counted there directly (engine `pooled`), so the definition is still
+anchored to the reference even with one or zero copies.
+
+Outputs: `discover_report.tsv` has one row per marker with the primary
+candidate (unit, copies, exact and variant copies, score, entropy, array
+coordinates, engine and its own copy number, TRF percent matches and
+indels), its category, the number of candidates, the mixed flag and the
+cross-sample columns. `discover_candidates.tsv` lists every candidate of
+every sample with rank and category. Both are meant for review; the
+definition file should be completed by hand where the scheme publication
+gives the unit.
 
 An optional bin file (`--bins`: marker, size or `low-high` range, allele)
 maps amplicon sizes directly to allele names and takes precedence over the
@@ -151,17 +193,19 @@ read assemblies, so L should be the assembly k-mer or read length.
   string per sample.
 - `<prefix>_calls_long.tsv`: one row per amplicon (and per missing marker)
   with coordinates, length, expected size, primer mismatches, discarded
-  alternatives, distance to contig end, raw repeat number, allele, residual
+  alternatives, distance to contig end, primer indels and search pass, raw
+  repeat number, allele, residual
   in bp between the length and the expected size of the called allele,
   tandem array count, and status.
 - `run_info.json`: versions and all parameters of the search and summary
   steps.
 
 Status codes: OK, NOT_DETECTED (no hit), NEAR_CONTIG_END (no hit but a primer
-within the size window of a contig end), INTERMEDIATE, NEGATIVE (fewer bases
-than the flanking region), BINNED, OFF_TABLE, MULTIPLE (several loci in the
-sample), AMBIGUOUS (overlapping hits were collapsed), CENSORED, HAS_N,
-COUNT_DISAGREES and NO_DEFINITION. The codes are text so that they cannot be
+within the size window of a contig end), NOT_SEARCHED and ONE_PRIMER_ONLY
+(from `missing_markers.tsv`), INTERMEDIATE, NEGATIVE (fewer bases than the
+flanking region), BINNED, OFF_TABLE, MULTIPLE (several loci in the sample),
+AMBIGUOUS (overlapping hits were collapsed), PRIMER_INDEL (hit from the
+indel rescue), CENSORED, HAS_N, COUNT_DISAGREES and NO_DEFINITION. The codes are text so that they cannot be
 confused with the allele 0, which is a valid call.
 
 `--legacy-tables` additionally writes the two tables of the original script:
@@ -193,9 +237,10 @@ An aligner is optional: `conda install -c bioconda mafft` or `muscle`.
         --markers markers.tsv --reference-sample ref_strain \
         --rounding intermediate --clwclean --skip-invalid -T 4
 
-Subcommands: `run` (everything), `search` (hits, sequences, alignments only)
-and `summarize` (rebuild tables and calls from an existing `results/hits.tsv`,
-for example with other rounding settings or an edited definition file).
+Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
+`summarize` (rebuild tables and calls from an existing `results/hits.tsv`,
+for example with other rounding settings or an edited definition file) and
+`discover` (seed a marker definition file from the amplicons).
 
 ## Example
 
@@ -203,45 +248,54 @@ Running on the full example data (one assembly, 208 markers; not included in
 the repository, a small slice with five markers is kept under `tests/data`):
 
     mlvatyper run --sts testID.sts --fasta test.fasta --outdir out_test \
-        --prefix test -N 3 -M 500 --skip-invalid --clwclean
+        --prefix test -N 2 -M 500 --fix-sts --rescue-indels --clwclean
 
 Log excerpt:
 
-    ERROR invalid STS entry: line 189 (testID190): forward primer '1ACCATTTGTAGAGCCTGAACT' contains non-IUPAC characters ['1']
-    INFO 207 valid primer pairs loaded from testID.sts (24 with IUPAC ambiguity codes, iupac mode on)
+    WARNING line 189 (testID190): removed '1' at position 1 of the forward primer
+    INFO 208 valid primer pairs loaded from testID.sts (24 with IUPAC ambiguity codes, iupac mode on)
     WARNING 3 primers have ambiguities which prevent computation of a hash value: not included in search
     INFO test: 203 hits
-    INFO Wrote out_test/test_lengths_summary.tsv (1 samples, 203 markers)
+    INFO test: rescue pass (word size 8, one sided) found 3 hits for 3 markers
+    INFO test: primer alignment found 1 hits for 1 markers
+    INFO 207 amplicons for 207 markers written to out_test/sequences
+    INFO 1 sample/marker combinations without a hit: ONE_PRIMER_ONLY 1
 
-`out_test/` then contains `hits.tsv`, `primers_used.sts`, `invalid_primers.tsv`,
-`samples.txt`, `near_contig_end.tsv`, `run_info.json`, `sequences/` with
-per-marker FASTA, aligned FASTA and CLUSTAL files, and the lengths table.
-Allele tables need marker definitions. `mlvatyper discover --outdir out_test`
-with TRF finds a tandem array in 25 of the 203 amplicons; its report and the
-resulting definition file are kept under `examples/testID/` as an example of
-the two formats. First columns of `hits.tsv`:
+The three markers of the rescue pass (testID043, testID078, testID178) have
+IUPAC codes in every 11-mer of one primer; all three are found with no
+mismatches at the expected size. testID041 carries one base more in its
+reverse primer than the genome and needs `--rescue-indels`. testID062 has
+three mismatches in its reverse primer and is found with `-N 3`.
 
-    sample  marker     copy  contig  start    end      strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end
-    test    testID001  1     test    1221679  1221902  -       224     0      224            0               0               0               672255
+`out_test/` then contains `hits.tsv`, `primers_used.sts`, `samples.txt`,
+`missing_markers.tsv`, `near_contig_end.tsv`, `run_info.json`, `sequences/`
+with per-marker FASTA, aligned FASTA and CLUSTAL files, and the lengths
+table. Allele tables need marker definitions. `mlvatyper discover --outdir
+out_test` with TRF gives a candidate in 92 of the 207 amplicons, 7 of
+category A and 17 of category B; the report, the candidate table and the
+resulting definition file are kept under `examples/testID/`. First columns
+of `hits.tsv`:
+
+    sample  marker     copy  contig  start    end      strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
+    test    testID001  1     test    1221679  1221902  -       224     0      224            0               0               0               672255              0           0           main
 
 ## Markers without hits
 
-A marker can be absent from the output for two reasons.
+A marker without an amplicon in a sample is still a column in the summary
+tables, reported as NA in the lengths table and with the reason from
+`missing_markers.tsv` in the allele and status tables. The reasons are:
 
-- The primer pair was not found within the mismatch and size limits. Such a
-  marker is still a column in the summary tables, reported as NA in the
-  lengths table and NOT_DETECTED or NEAR_CONTIG_END in the allele table.
-- merPCR could not build a hash word for a primer because it contains too many
-  ambiguity codes close together. merPCR logs
-  "primers have ambiguities which prevent computation of a hash value" and
-  excludes the affected primer. If this is the forward primer the whole marker
-  is dropped; if it is the reverse primer only the reverse-strand search is
-  dropped. In the test data testID078 and testID178 are dropped entirely, and
-  testID041 and testID043 are searched but not found within the limits.
-  Two options help: `--one-sided` keeps such a marker and searches it on the
-  strand its other primer allows (merPCR 1.0.3 or newer), and `-W` lowers the
-  word size for all markers. In the test data `--one-sided` recovers
-  testID078 and testID178, and `-W 8` additionally recovers testID043.
+- NOT_SEARCHED: neither primer holds a run of unambiguous bases as long as
+  the word size of the most permissive merPCR pass (`-W`, or
+  `--rescue-wordsize` when the rescue pass ran). merPCR logs "primers have
+  ambiguities which prevent computation of a hash value" for such primers.
+- NEAR_CONTIG_END: a primer matches within the size window of a contig end;
+  the locus is more likely split by the assembly than deleted.
+- ONE_PRIMER_ONLY: one primer matches exactly somewhere in the assembly, so
+  the other primer has more than `-N` mismatches or an indel
+  (`--rescue-indels` allows one), or the product lies outside the size
+  window.
+- NOT_FOUND: neither primer matches exactly.
 
 ## Limitations
 

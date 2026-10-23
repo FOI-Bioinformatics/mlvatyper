@@ -48,10 +48,12 @@ def test_discover_with_trf_on_synthetic():
         Amplicon(Hit("ref", "c", 1, 1, "+", "m2"), 1, random_dna(200, 31)),
     ]
     found, missing, command = discover_with_trf(amps, "ref", min_score=20)
-    assert [d.marker for d in found] == ["m1"] and missing == ["m2"]
-    d = found[0]
+    assert list(found) == ["m1"] and missing == ["m2"]
+    d = found["m1"][0]
     assert d.engine == "trf" and d.copies == 5 and d.unit_length == 6 and d.engine_copies >= 4.9
+    assert d.primary and d.category == "A"
     assert set(d.unit) <= set(UNIT) and command[0] == "trf" and command[1] == "amplicons.fasta"
+    assert command[7] == "20"  # TRF runs at the weak score floor
 
 
 @pytest.mark.skipif(not trf_available(), reason="trf not installed")
@@ -61,7 +63,8 @@ def test_discover_cli_trf_engine(fixture_dir):
                  "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]) == 0
     assert main(["discover", "--outdir", str(out), "--engine", "trf", "--min-score", "20"]) == 0
     report = (out / "discover_report.tsv").read_text()
-    assert "\ttrf\t" in report and "VNTR1\t6\t70\t5\t\t" in (out / "marker_defs_discovered.tsv").read_text()
+    assert "\ttrf\t" in report and "\tA\t1\t0\t" in report
+    assert "VNTR1\t6\t70\t5\t\t" in (out / "marker_defs_discovered.tsv").read_text()
     assert "trf_command" in (out / "run_info.json").read_text()
 
 

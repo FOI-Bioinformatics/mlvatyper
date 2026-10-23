@@ -13,6 +13,14 @@ class PrimerPair:
     expected_size: int
     alias: str | None = None
     line_number: int = 0
+    size_low: int | None = None  # set when the STS size was given as a range
+    size_high: int | None = None
+
+    @property
+    def size_text(self) -> str:
+        if self.size_low is not None and self.size_high is not None:
+            return f"{self.size_low}-{self.size_high}"
+        return str(self.expected_size)
 
 
 @dataclass(frozen=True)
@@ -23,6 +31,7 @@ class Hit:
     and the distance to the nearest contig end are filled in during
     extraction; -1 means unknown. n_alternatives is the number of overlapping
     hits for the same locus that were discarded in favour of this one.
+    search_pass records which search found the hit.
     """
 
     sample: str
@@ -36,6 +45,9 @@ class Hit:
     rev_mismatches: int = -1
     dist_to_contig_end: int = -1
     n_alternatives: int = 0
+    fwd_indels: int = 0  # primer indels, only from the indel rescue
+    rev_indels: int = 0
+    search_pass: str = "main"  # main, rescue (smaller word size, one sided) or aligned (primer indels)
 
     @property
     def length(self) -> int:

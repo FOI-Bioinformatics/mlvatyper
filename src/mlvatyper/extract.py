@@ -19,7 +19,8 @@ log = get_logger()
 
 HITS_COLUMNS = [
     "sample", "marker", "copy", "contig", "start", "end", "strand", "length", "has_N",
-    "expected_size", "fwd_mismatches", "rev_mismatches", "n_alternatives", "dist_to_contig_end", "sequence",
+    "expected_size", "fwd_mismatches", "rev_mismatches", "n_alternatives", "dist_to_contig_end",
+    "fwd_indels", "rev_indels", "search_pass", "sequence",
 ]
 
 
@@ -184,7 +185,7 @@ def write_hits_table(amplicons: list[Amplicon], path: str | Path) -> None:
                 h.sample, h.primer_id, amp.copy, h.contig, h.start, h.end, h.strand,
                 len(amp.sequence), int(amp.has_n),
                 h.expected_size, h.fwd_mismatches, h.rev_mismatches, h.n_alternatives, h.dist_to_contig_end,
-                amp.sequence,
+                h.fwd_indels, h.rev_indels, h.search_pass, amp.sequence,
             ])
 
 
@@ -206,6 +207,9 @@ def read_hits_table(path: str | Path) -> list[Amplicon]:
                 rev_mismatches=_int(row, "rev_mismatches", -1),
                 dist_to_contig_end=_int(row, "dist_to_contig_end", -1),
                 n_alternatives=_int(row, "n_alternatives", 0),
+                fwd_indels=_int(row, "fwd_indels", 0),
+                rev_indels=_int(row, "rev_indels", 0),
+                search_pass=row.get("search_pass") or "main",
             )
             amplicons.append(Amplicon(hit=hit, copy=int(row["copy"]), sequence=row["sequence"]))
     return amplicons

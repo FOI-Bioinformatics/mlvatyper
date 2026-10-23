@@ -1,6 +1,6 @@
 import pytest
 
-from mlvatyper.sts import StsError, parse_sts_line, read_sts
+from mlvatyper.sts import StsError, parse_sts_line, read_sts, write_sts
 
 
 def test_parse_valid_line():
@@ -24,7 +24,7 @@ def test_iupac_codes_are_accepted():
 
 
 def test_reject_non_integer_size():
-    with pytest.raises(StsError, match="not an integer"):
+    with pytest.raises(StsError, match="not a non-negative integer"):
         parse_sts_line("id\tACGT\tTTGC\tabc", 1)
 
 
@@ -46,3 +46,19 @@ def test_real_sts_file_has_one_invalid_entry():
     valid, invalid = read_sts(sts)
     assert len(valid) == 207
     assert [i[0] for i in invalid] == [189]
+
+
+def test_size_range_and_fix(tmp_path):
+    pair = parse_sts_line("id\tACGT\tTTGC\t200-220", 1)
+    assert (pair.expected_size, pair.size_low, pair.size_high, pair.size_text) == (210, 200, 220, "200-220")
+    with pytest.raises(StsError, match="low-high"):
+        parse_sts_line("id\tACGT\tTTGC\t220-200", 1)
+    with pytest.raises(StsError, match="'1' at position 1"):
+        parse_sts_line("id\t1ACGT\tTTGC\t100", 1)
+    fixed = parse_sts_line("id\t1ACGT\tTT*GC\t100", 1, fix=True)
+    assert (fixed.forward, fixed.reverse) == ("ACGT", "TTGC")
+    p = tmp_path / "r.sts"
+    p.write_text("a\tACGTACGTACGT\tTTGCTTGCTTGC\t200-220\n")
+    valid, invalid = read_sts(p)
+    write_sts(valid, tmp_path / "w.sts")
+    assert (tmp_path / "w.sts").read_text() == "a\tACGTACGTACGT\tTTGCTTGCTTGC\t200-220\n" and not invalid
