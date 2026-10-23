@@ -40,16 +40,28 @@ class MerPcrSearcher:
         if not self.engine.load_sts_file(str(sts_path)):
             raise SearchError(f"merPCR could not load STS file {sts_path}")
 
+    @staticmethod
+    def _to_hit(sample: str, h) -> Hit:
+        """Hit from a merPCR SearchHit.
+
+        merPCR (1.0.5 and later) counts the mismatches under both primers with
+        the rule the search applied. For a minus strand record merPCR has
+        swapped the primers, so its first count belongs to the STS reverse
+        primer. Older merPCR versions have no counts; they are left at -1 and
+        counted from the amplicon sequence during extraction.
+        """
+        m1 = getattr(h, "mismatches1", -1)
+        m2 = getattr(h, "mismatches2", -1)
+        fwd, rev = (m1, m2) if h.strand == "+" else (m2, m1)
+        return Hit(sample=sample, contig=h.seq_label, start=h.start, end=h.end, strand=h.strand, primer_id=h.sts_id,
+                   expected_size=h.sts.pcr_size, fwd_mismatches=fwd, rev_mismatches=rev)
+
     def search_fasta(self, fasta_path: str | Path) -> list[Hit]:
         sample = sample_name(fasta_path)
         records = self.engine.load_fasta_file(str(fasta_path))
         if not records:
             log.warning("%s: no FASTA records found", fasta_path)
             return []
-        hits = [
-            Hit(sample=sample, contig=h.seq_label, start=h.start, end=h.end, strand=h.strand, primer_id=h.sts_id,
-                expected_size=h.sts.pcr_size)
-            for h in self.engine.find_hits(records)
-        ]
+        hits = [self._to_hit(sample, h) for h in self.engine.find_hits(records)]
         log.info("%s: %d hits", sample, len(hits))
         return hits

@@ -44,16 +44,26 @@ def primer_mismatches(observed: str, primer: str) -> int:
 
 
 def annotate_hit(hit: Hit, fragment: str, contig_length: int, pair: PrimerPair | None) -> Hit:
-    """Fill mismatch counts, expected size and distance to the nearest contig end."""
+    """Fill expected size, distance to the nearest contig end and missing mismatch counts.
+
+    Mismatch counts reported by merPCR are kept. Counts are computed here from
+    the amplicon sequence only when the hit has none, as for hits read from an
+    older hits table; this count treats IUPAC codes in the primer as matching
+    any base they stand for, whether or not the search did.
+    """
     dist = min(hit.start - 1, contig_length - hit.end)
     if pair is None:
         return replace(hit, dist_to_contig_end=dist)
-    rev_rc = str(Seq(pair.reverse).reverse_complement())
+    fwd, rev = hit.fwd_mismatches, hit.rev_mismatches
+    if fwd < 0 or rev < 0:
+        rev_rc = str(Seq(pair.reverse).reverse_complement())
+        fwd = primer_mismatches(fragment[: len(pair.forward)], pair.forward)
+        rev = primer_mismatches(fragment[len(fragment) - len(rev_rc) :], rev_rc)
     return replace(
         hit,
         expected_size=pair.expected_size if hit.expected_size < 0 else hit.expected_size,
-        fwd_mismatches=primer_mismatches(fragment[: len(pair.forward)], pair.forward),
-        rev_mismatches=primer_mismatches(fragment[len(fragment) - len(rev_rc) :], rev_rc),
+        fwd_mismatches=fwd,
+        rev_mismatches=rev,
         dist_to_contig_end=dist,
     )
 

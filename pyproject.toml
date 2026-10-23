@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = {text = "GPL-3.0-or-later"}
 dependencies = [
-    "merpcr @ git+https://github.com/FOI-Bioinformatics/merpcr@a5f3075",
+    "merpcr @ git+https://github.com/FOI-Bioinformatics/merpcr@v1.0.5",
     "biopython>=1.80",
     "pandas>=2.0",
 ]

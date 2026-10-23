@@ -63,3 +63,21 @@ def test_smaller_wordsize_recovers_marker(tmp_path):
     small_w = MerPcrSearcher(tmp_path / "p.sts", margin=50, mismatches=0, iupac_mode=1, wordsize=8)
     hits = small_w.search_fasta(tmp_path / "s.fasta")
     assert len(hits) == 1 and hits[0].length == size
+
+
+def test_mismatch_counts_follow_the_sts_primers_on_both_strands(fixture_dir):
+    """merPCR swaps the primers for minus-strand records; the counts must not swap with them."""
+    from mlvatyper.extract import extract_amplicons, load_fasta
+    from mlvatyper.models import PrimerPair
+    from tests.conftest import FWD, REV
+
+    altered = REV[:5] + ("A" if REV[5] != "A" else "C") + REV[6:]  # one difference inside the reverse primer
+    pair = PrimerPair("VNTR1", FWD, altered, 70)
+    write_sts([pair], fixture_dir / "altered.sts")
+    searcher = MerPcrSearcher(fixture_dir / "altered.sts", margin=50, mismatches=1)
+    hits = searcher.search_fasta(fixture_dir / "sampleA.fasta") + searcher.search_fasta(fixture_dir / "sampleB.fasta")
+    assert {h.strand for h in hits} == {"+", "-"}
+    assert all((h.fwd_mismatches, h.rev_mismatches) == (0, 1) for h in hits)
+    contigs = load_fasta(fixture_dir / "sampleB.fasta")
+    amps = extract_amplicons([h for h in hits if h.sample == "sampleB"], contigs, {"VNTR1": pair})
+    assert all((a.hit.fwd_mismatches, a.hit.rev_mismatches) == (0, 1) for a in amps)

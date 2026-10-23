@@ -23,8 +23,9 @@ single-file script (`vntr_searcher_9.py`).
    size and the margin together define the allowed amplicon size window.
    IUPAC codes in primers are honoured unless `--no-iupac` is given.
 3. Amplicons are extracted from the assemblies (reverse complemented for
-   minus-strand hits). Primer mismatches are counted against the amplicon
-   ends and the distance to the nearest contig end is recorded. Hits for one
+   minus-strand hits). Primer mismatches are taken from merPCR, which counts
+   them with the rule the search applied, and the distance to the nearest
+   contig end is recorded. Hits for one
    marker that share the forward primer position or overlap by more than a
    primer length are treated as one locus; the hit with fewest mismatches,
    then smallest deviation from the expected size, is kept and the number of

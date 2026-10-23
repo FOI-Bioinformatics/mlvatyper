@@ -16,5 +16,5 @@ dependencies:
   # optional repeat finder for 'mlvatyper discover'
   - trf
   - pip:
-      - git+https://github.com/FOI-Bioinformatics/merpcr@a5f3075
+      - git+https://github.com/FOI-Bioinformatics/merpcr@v1.0.5
       - -e .
