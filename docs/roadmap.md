@@ -4,9 +4,6 @@ Planned 2026-10-23 after the run report (Part 1 of the plan) was implemented.
 Items are ordered by the priorities given by the maintainer; each names the
 files it touches so that it can be picked up as its own task.
 
-Ordered by the priorities given. Each item names the files it touches so
-that it can be picked up as its own task.
-
 ### A. Scale and pipelines
 
 1. Parallel samples: `search_samples` in `cli.py` runs one sample at a
