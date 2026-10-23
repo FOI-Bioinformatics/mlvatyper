@@ -303,7 +303,8 @@ First columns of `hits.tsv`:
 
 A marker without an amplicon in a sample is still a column in the summary
 tables, reported as NA in the lengths table and with the reason from
-`missing_markers.tsv` in the allele and status tables. The reasons are:
+`missing_markers.tsv` in the allele and status tables (NOT_FOUND appears
+there as NOT_DETECTED). The reasons are:
 
 - NOT_SEARCHED: neither primer holds a run of unambiguous bases as long as
   the word size of the most permissive merPCR pass (`-W`, or
