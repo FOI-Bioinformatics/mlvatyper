@@ -58,3 +58,19 @@ def test_merge_and_check(tmp_path):
     write_markers(kept, out)
     back = {d.primer_id: d for d in read_markers(out)}
     assert back == {d.primer_id: d for d in kept}
+
+
+def test_read_headerless_legacy_pattern_file(tmp_path, caplog):
+    from pathlib import Path
+
+    from mlvatyper.markers import read_markers
+    p = tmp_path / "pattern.txt"
+    p.write_text("M1\tAAT\t3\nM2\tATCCTTATT;TTGCTCATT\t9\t1\t10\t1.0\nM3\tN/A\nM4\tACGTAC\t5\n")
+    defs = {d.primer_id: d for d in read_markers(p)}
+    assert list(defs) == ["M1", "M2", "M3", "M4"]  # the first line is data, not a skipped header
+    assert defs["M1"].patterns == ("AAT",) and defs["M1"].unit_length == 3
+    assert defs["M2"].patterns == ("ATCCTTATT", "TTGCTCATT") and defs["M2"].unit_length == 9
+    assert not defs["M3"].has_repeats
+    assert defs["M4"].unit_length == 6 and "stated unit length 5" in caplog.text
+    repo = Path(__file__).resolve().parents[1] / "examples" / "testM" / "testM_pattern.txt"
+    assert len(read_markers(repo)) == 31

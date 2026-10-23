@@ -107,19 +107,55 @@ def parse_marker_line(line: str, columns: dict[str, int], line_number: int) -> M
     return MarkerDef(marker, patterns, unit_length, ref_size, ref_repeats, offset)
 
 
+LEGACY_COLUMNS = {"marker": 0, "patterns": 1}  # the length column is checked, later columns are ignored
+SEQUENCE_RE = re.compile(r"^(N/A|[ACGTRYSWKMBDHVN;]+)$")  # upper case only, so that a header word is not a unit
+
+
+def looks_like_data(line: str) -> bool:
+    """A headerless legacy pattern line: an id followed by upper case unit sequences or N/A."""
+    fields = line.rstrip("\r\n").split("\t")
+    if len(fields) < 2 or not fields[0].strip() or COLUMN_ALIASES.get(fields[0].strip().lower().lstrip("#")):
+        return False
+    return bool(SEQUENCE_RE.match(fields[1].strip()))
+
+
 def read_markers(path: str | Path) -> list[MarkerDef]:
+    """Read a marker definition file.
+
+    A file without a header is read in the legacy layout (marker, patterns,
+    unit length, then ignored columns), with its first line as data; the
+    legacy script skipped that line. The unit length is then taken from the
+    patterns, and a differing stated length is only reported.
+    """
     results: list[MarkerDef] = []
     with open(path, encoding="utf-8") as handle:
         header = handle.readline()
-        columns = parse_header(header)
-        for number, line in enumerate(handle, start=2):
+        legacy = looks_like_data(header)
+        if legacy:
+            log.warning("%s has no header; read as marker, patterns, unit length", path)
+            columns = dict(LEGACY_COLUMNS)
+            lines = [(1, header)]
+        else:
+            columns = parse_header(header)
+            lines = []
+        lines.extend(enumerate(handle, start=2))
+        for number, line in lines:
             if not line.strip() or line.startswith("#"):
                 continue
             parsed = parse_marker_line(line, columns, number)
             if parsed is not None:
+                if legacy:
+                    _check_legacy_length(line, parsed, number)
                 results.append(parsed)
     log.info("Loaded %d marker definitions from %s", len(results), path)
     return results
+
+
+def _check_legacy_length(line: str, d: MarkerDef, number: int) -> None:
+    fields = line.rstrip("\r\n").split("\t")
+    if len(fields) > 2 and fields[2].strip().isdigit() and d.has_repeats and int(fields[2]) != d.unit_length:
+        log.warning("line %d (%s): stated unit length %s differs from the pattern length %d; the pattern is used",
+                    number, d.primer_id, fields[2].strip(), d.unit_length)
 
 
 def markers_from_ids(marker_ids: list[str]) -> list[MarkerDef]:

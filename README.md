@@ -88,7 +88,10 @@ Marker definitions come from three sources, which are merged:
   separated by `;`, or `N/A`), `unit_length`, `ref_size`, `ref_repeats` and
   `offset`. Only `marker` is required; `unit_length` defaults to the length
   of the first pattern. The older pattern file (`marker`, `pattern`,
-  `length`) is read by the same code. `--pattern` is accepted as an alias.
+  `length`, then ignored columns) is read by the same code, also without
+  a header, in which case the first line counts as data (the legacy script
+  skipped it) and a stated length that differs from the pattern is only
+  reported. `--pattern` is accepted as an alias.
 - STS ids in the MLVAbank convention `NAME_<unit>bp_<size>bp_<n>u` (for
   example `Bruce06_134bp_408bp_3u`) carry unit length, reference size and
   reference repeats and need no file.
@@ -346,6 +349,8 @@ there as NOT_DETECTED). The reasons are:
 - Summaries are built from `hits.tsv`, not from re-parsed FASTA headers, and
   resuming is explicit through `mlvatyper summarize`.
 - The default mismatch allowance per primer is 2 instead of 3.
+- A pattern file without a header keeps its first line; the legacy script
+  dropped it as a header.
 
 ## Development
 
