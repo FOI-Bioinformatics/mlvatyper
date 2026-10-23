@@ -125,12 +125,17 @@ def _gapped(primer: str, segment: str) -> tuple[int, int]:
 
 
 def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, max_mismatch: int):
-    """Products on one strand as (start, end, fwd_mm, rev_mm, fwd_indels, rev_indels), 0-based half open."""
-    size = pair.expected_size
+    """Products on one strand as (start, end, fwd_mm, rev_mm, fwd_indels, rev_indels), 0-based half open.
+
+    The product size window is the STS size range, or the expected size,
+    widened by the margin on both sides.
+    """
+    low = pair.expected_size if pair.size_low is None else pair.size_low
+    high = pair.expected_size if pair.size_high is None else pair.size_high
     found = []
     for m in re.finditer(f"(?={_iupac_regex(fwd)})", text):
         p = m.start()
-        lo, hi = max(p + len(fwd), p + size - margin - len(rev_rc)), min(len(text), p + size + margin)
+        lo, hi = max(p + len(fwd), p + low - margin - len(rev_rc)), min(len(text), p + high + margin)
         if hi <= lo:
             continue
         best = align_primer(rev_rc, text[lo:hi])
@@ -138,7 +143,7 @@ def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, m
             found.append((p, lo + best[3], 0, best[0], 0, best[1]))
     for m in re.finditer(f"(?={_iupac_regex(rev_rc)})", text):
         e = m.start() + len(rev_rc)
-        lo, hi = max(0, e - size - margin), min(e - len(rev_rc), e - size + margin + len(fwd))
+        lo, hi = max(0, e - high - margin), min(e - len(rev_rc), e - low + margin + len(fwd))
         if hi <= lo:
             continue
         best = align_primer(fwd, text[lo:hi])

@@ -363,17 +363,37 @@ def discoveries_to_definitions(
     primary per marker.
     """
     t = thresholds or Thresholds()
-    prim = primaries(found) if isinstance(found, dict) else list(found)
+    groups = found if isinstance(found, dict) else {d.marker: [d] for d in found}
     lengths = {a.hit.primer_id: len(a.sequence) for a in amplicons if a.hit.sample == sample and a.copy == 1}
     defs = []
     rest = list(missing)
-    for d in prim:
-        if d.category and not accepted(d, t):
-            rest.append(d.marker)
+    for marker, cands in groups.items():
+        if not cands:
             continue
-        defs.append(MarkerDef(d.marker, (d.unit,), d.unit_length, d.amplicon_length, d.copies))
+        d = cands[0]
+        if d.category and not accepted(d, t):
+            rest.append(marker)
+            continue
+        defs.append(MarkerDef(marker, companion_units(cands, t), d.unit_length, d.amplicon_length, d.copies))
     defs.extend(MarkerDef(m, (), 0, lengths.get(m), None) for m in rest)
     return defs
+
+
+def companion_units(cands: list[Discovery], t: Thresholds) -> tuple[str, ...]:
+    """The primary unit followed by accepted, non-overlapping units of the same length.
+
+    In a mixed marker whose arrays share the period, the tandem counter then
+    accepts windows of either unit, so the count covers the whole region.
+    Units of another period cannot be combined and are left to the report.
+    """
+    d = cands[0]
+    units = [d.unit]
+    for other in cands[1:]:
+        same_period = other.unit_length == d.unit_length and other.unit_key != d.unit_key
+        disjoint = other.array.end <= d.array.start or other.array.start >= d.array.end
+        if same_period and disjoint and accepted(other, t) and other.unit not in units:
+            units.append(other.unit)
+    return tuple(units)
 
 
 CANDIDATE_COLUMNS = [

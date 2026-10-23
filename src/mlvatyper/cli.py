@@ -11,6 +11,7 @@ import argparse
 import glob
 import json
 import sys
+from dataclasses import replace
 from datetime import datetime, UTC
 from pathlib import Path
 
@@ -84,6 +85,9 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
                         "primers with IUPAC codes in every %(default)s-mer are still searched (0 disables)")
     p.add_argument("--rescue-margin", type=int,
                    help="size window of the rescue passes (default twice -M)")
+    p.add_argument("--max-repeats", type=int, default=50,
+                   help="largest repeat number of the per-marker size window written from --markers "
+                        "(default 50)")
     p.add_argument("--rescue-indels", action="store_true",
                    help="for markers still missing, anchor on an exact match of one primer and align the other "
                         "with up to one indel")
@@ -132,6 +136,9 @@ def build_parser() -> argparse.ArgumentParser:
     search = sub.add_parser("search", help="search and extract amplicons only")
     search.add_argument("--outdir", required=True)
     _add_search_args(search)
+    search.add_argument("--markers", "--pattern", dest="markers",
+                        help="marker definition file; markers with ref_size and ref_repeats get a per-marker "
+                             "size window from 0 to --max-repeats repeats in place of -M")
     _add_align_args(search)
     search.add_argument("--clwclean", action="store_true", help="also align sequences without N")
 
@@ -216,6 +223,30 @@ def prepare_sts(sts_path: str, outdir: Path, skip_invalid: bool, iupac: bool,
     clean_sts = outdir / STS_USED
     write_sts(valid, clean_sts)
     return clean_sts, valid
+
+
+def size_windows_from_definitions(pairs: list[PrimerPair], defs: list[MarkerDef],
+                                  max_repeats: int) -> list[PrimerPair]:
+    """Give every pair with a callable definition the STS size range of 0 to max_repeats repeats.
+
+    merPCR then searches the reverse primer within that range for the marker
+    instead of within -M of the single expected size. The expected size of
+    such hits is the midpoint of the range, as merPCR reports it.
+    """
+    by_id = {d.primer_id: d for d in defs if d.can_call}
+    result = []
+    changed = 0
+    for pair in pairs:
+        d = by_id.get(pair.id)
+        if d is None:
+            result.append(pair)
+            continue
+        low = max(int(d.expected_size(0)), len(pair.forward) + len(pair.reverse))
+        high = int(d.expected_size(max_repeats))
+        result.append(replace(pair, expected_size=(low + high) // 2, size_low=low, size_high=high))
+        changed += 1
+    log.info("%d markers searched with a size window from their definitions (0 to %d repeats)", changed, max_repeats)
+    return result
 
 
 def _renumber(amplicons: list) -> list:
@@ -321,6 +352,9 @@ def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
 def do_search(args: argparse.Namespace, outdir: Path) -> None:
     fasta_files = resolve_samples(args.fasta)
     clean_sts, pairs = prepare_sts(args.sts, outdir, args.skip_invalid, args.iupac, args.fix_sts)
+    if getattr(args, "markers", None):
+        pairs = size_windows_from_definitions(pairs, read_markers(args.markers), args.max_repeats)
+        write_sts(pairs, clean_sts)
     searcher = MerPcrSearcher(clean_sts, margin=args.margin, mismatches=args.mismatches,
                               threads=args.threads, iupac_mode=int(args.iupac),
                               wordsize=args.wordsize, one_sided=int(args.one_sided),

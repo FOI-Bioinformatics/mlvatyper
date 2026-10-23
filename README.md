@@ -144,7 +144,10 @@ copies and score. The first is the primary and seeds the definition when its
 category is at least `--accept` (default B); markers whose primary is only
 category C keep their reference size. A marker with two or more
 non-overlapping A or B candidates is flagged as mixed in the report, so that
-the choice can be reviewed.
+the choice can be reviewed; when such candidates share the unit length,
+their units are all written as patterns of the definition, so the tandem
+counter accepts either unit, while `ref_repeats` counts the primary array
+alone.
 
 A single reference genome typically holds two or three copies of each unit,
 where a chance tandem scores like the true VNTR. The best evidence is
@@ -236,6 +239,10 @@ An aligner is optional: `conda install -c bioconda mafft` or `muscle`.
         --outdir results --prefix study -N 2 -M 500 \
         --markers markers.tsv --reference-sample ref_strain \
         --rounding intermediate --clwclean --skip-invalid -T 4
+
+`search --markers markers.tsv` gives every marker with `ref_size` and
+`ref_repeats` an STS size range from 0 to `--max-repeats` (50) repeats, so
+that the size window follows the locus instead of the global `-M`.
 
 Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
 `summarize` (rebuild tables and calls from an existing `results/hits.tsv`,

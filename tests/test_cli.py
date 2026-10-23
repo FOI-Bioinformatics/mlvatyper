@@ -112,3 +112,17 @@ def test_cli_passes_one_sided_and_wordsize(tmp_path):
     assert main(base + ["--outdir", str(tmp_path / "d")]) == 0  # the default rescue pass recovers it
     hits = pd.read_csv(tmp_path / "d" / "hits.tsv", sep="\t")
     assert len(hits) == 1 and hits.search_pass[0] == "rescue" and hits.fwd_mismatches[0] == 0
+
+
+def test_search_markers_writes_size_windows(fixture_dir):
+    (fixture_dir / "m.tsv").write_text("marker\tpatterns\tunit_length\tref_size\tref_repeats\n"
+                                       "VNTR1\tGATCGA\t6\t70\t5\n")
+    out = fixture_dir / "out"
+    assert main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+                 "--outdir", str(out), "--skip-invalid", "--align", "none", "-M", "5",
+                 "--markers", str(fixture_dir / "m.tsv"), "--max-repeats", "20"]) == 0
+    sts = (out / "primers_used.sts").read_text().splitlines()
+    assert sts[0].split("\t")[3] == "40-160" and sts[1].split("\t")[3] == "100"  # ABSENT keeps its size
+    hits = pd.read_csv(out / "hits.tsv", sep="\t")
+    assert sorted(hits.length) == [58, 70, 82]  # -M 5 alone would have missed the 7 and 3 repeat amplicons
+    assert set(hits.expected_size) == {100}

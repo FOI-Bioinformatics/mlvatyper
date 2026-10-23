@@ -3,7 +3,8 @@ from Bio.Seq import Seq
 from mlvatyper.cli import main
 from mlvatyper.discover import (
     Discovery, RawArray, Thresholds, array_score, builtin_arrays, canonical_rotation, canonical_unit, categorize,
-    discover_units, discoveries_to_definitions, is_mixed, make_discovery, merge_harmonics, rank_candidates,
+    discover_units, discoveries_to_definitions, finish_candidates, is_mixed, make_discovery, merge_harmonics,
+    rank_candidates,
     unit_entropy, write_candidates, write_report,
 )
 from mlvatyper.models import Amplicon, Hit
@@ -156,3 +157,22 @@ def test_discover_cli(fixture_dir):
                  "--markers", str(out / "marker_defs_discovered.tsv")]) == 0
     assert "7/3" in (out / "t_alleles.tsv").read_text()
     assert main(["discover", "--outdir", str(fixture_dir / "empty")]) == 1
+
+
+def test_mixed_marker_with_same_period_units_gets_both_patterns():
+    unit_a, unit_b = "GATCGA", "ACGTTG"
+    seq = FWD + random_dna(30, 44) + unit_a * 4 + random_dna(30, 45) + unit_b * 3 + random_dna(30, 46) + RC_REV
+    amps = [Amplicon(Hit("s", "c", 1, 1, "+", "m"), 1, seq)]
+    # the builtin engine keeps one array per period, so the two arrays are given as engine output here
+    raw = [RawArray(50, 74, 6, unit_a, 36, 4.0), RawArray(104, 122, 6, unit_b, 24, 3.0)]
+    cands = [make_discovery("m", "s", seq, r, "trf") for r in raw]
+    found = {"m": finish_candidates(cands, Thresholds(min_score=20))}
+    assert is_mixed(found["m"]) and [c.copies for c in found["m"]] == [4, 3]
+    d = discoveries_to_definitions(found, [], amps, "s", Thresholds(min_score=20))[0]
+    assert len(d.patterns) == 2 and set(d.patterns) == {canonical_rotation(unit_a), canonical_rotation(unit_b)}
+    assert d.ref_repeats == 4  # the primary array alone anchors the reference count
+    # a second unit below --accept, or of another period, is not combined
+    assert len(discoveries_to_definitions(found, [], amps, "s", Thresholds(accept="A", min_score=20))[0].patterns) == 1
+    other = make_discovery("m", "s", seq + "ACGTTGA" * 3, RawArray(172, 193, 7, "ACGTTGA", 28, 3.0), "trf")
+    mixed = {"m": finish_candidates([cands[0], other], Thresholds(min_score=20))}
+    assert len(discoveries_to_definitions(mixed, [], amps, "s", Thresholds(min_score=20))[0].patterns) == 1
