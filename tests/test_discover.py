@@ -173,7 +173,8 @@ def test_mixed_marker_with_same_period_units_gets_both_patterns():
     assert d.ref_repeats == 4  # the primary array alone anchors the reference count
     # a second unit below --accept, or of another period, is not combined
     strict = Thresholds(accept="A", min_score=20, strong_copies=4)  # the 3 copy array becomes B
-    assert len(discoveries_to_definitions({"m": finish_candidates(cands, strict)}, [], amps, "s", strict)[0].patterns) == 1
+    strict_found = {"m": finish_candidates(cands, strict)}
+    assert len(discoveries_to_definitions(strict_found, [], amps, "s", strict)[0].patterns) == 1
     other = make_discovery("m", "s", seq + "ACGTTGA" * 3, RawArray(172, 193, 7, "ACGTTGA", 28, 3.0), "trf")
     mixed = {"m": finish_candidates([cands[0], other], Thresholds(min_score=20))}
     assert len(discoveries_to_definitions(mixed, [], amps, "s", Thresholds(min_score=20))[0].patterns) == 1
