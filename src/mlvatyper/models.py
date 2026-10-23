@@ -99,6 +99,11 @@ class MarkerDef:
     ref_size: int | None = None
     ref_repeats: int | None = None
     offset: int | None = None
+    label: str | None = None  # locus name used in exports, for example the MLVAbank column name
+
+    @property
+    def display_name(self) -> str:
+        return self.label or self.primer_id
 
     @property
     def has_repeats(self) -> bool:

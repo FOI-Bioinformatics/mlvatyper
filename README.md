@@ -85,8 +85,9 @@ Marker definitions come from three sources, which are merged:
 
 - `--markers FILE`: tab separated with a header. Recognised columns are
   `marker`, `patterns` (repeat unit sequences in the amplicon orientation,
-  separated by `;`, or `N/A`), `unit_length`, `ref_size`, `ref_repeats` and
-  `offset`. Only `marker` is required; `unit_length` defaults to the length
+  separated by `;`, or `N/A`), `unit_length`, `ref_size`, `ref_repeats`,
+  `offset` and `label` (the locus name used in exports). Only `marker` is
+  required; `unit_length` defaults to the length
   of the first pattern. The older pattern file (`marker`, `pattern`,
   `length`, then ignored columns) is read by the same code, also without
   a header, in which case the first line counts as data (the legacy script
@@ -104,6 +105,44 @@ Marker definitions come from three sources, which are merged:
 
 Markers without unit length cannot be called. Without any definition only
 the lengths table is produced.
+
+### Schemes
+
+A scheme directory bundles `primers.sts`, `markers.tsv`, an optional
+`bins.tsv` and `scheme.yml`, flat `key: value` metadata (name, organism,
+reference, citation, url, notes) that may also set the calling defaults
+`rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
+and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
+`mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
+`--bins`; options given on the command line still win over the scheme
+defaults. One scheme, `testM`, is bundled as a template under
+`src/mlvatyper/schemes/`. Published schemes should be added only with
+reference values taken from their publications and a note in
+`scheme.yml` on how the values were obtained.
+
+`mlvatyper check-scheme --scheme NAME --outdir DIR` validates the files,
+compares marker and bin ids with the STS ids and lists primers that merPCR
+cannot hash at word size 11 or 6. With `--reference assembly.fasta` (or
+`--fetch ACCESSION --email ADDRESS` to download the record from NCBI) it
+also searches every marker and reports the number of products, the product
+length against `ref_size` and the tandem count against `ref_repeats` in
+`scheme_check.tsv`.
+
+### Exchange with MLVA databases
+
+`--mlvabank` (on `run` and `summarize`) writes `<prefix>_mlvabank.csv`:
+one row per sample, a `Strain` column and one column per marker in scheme
+order, named by the `label` column of the marker file when present.
+Cells without an integer allele keep the status code or value as
+reported, or are replaced by `--mlvabank-missing TOKEN`. Check the column
+names against the target database before uploading.
+
+`mlvatyper bins-from-table TABLE --output bins.tsv` converts a published
+allele size table (one row per locus, allele and size or size range; tab
+or comma separated; columns found by name, or given with
+`--locus-column`, `--allele-column`, `--size-column`) to the bin file
+format. `--markers FILE` maps the table's locus names to marker ids
+through the `label` column.
 
 ### Discovering repeat units
 
@@ -259,8 +298,9 @@ that the size window follows the locus instead of the global `-M`.
 Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
 `summarize` (rebuild tables and calls from an existing `results/hits.tsv`,
 for example with other rounding settings or an edited definition file),
-`discover` (seed a marker definition file from the amplicons) and `report`
-(write the HTML report from the tables of a run).
+`discover` (seed a marker definition file from the amplicons), `report`
+(write the HTML report from the tables of a run), `schemes`, `check-scheme`
+and `bins-from-table` (scheme handling, see above).
 
 ## Example
 

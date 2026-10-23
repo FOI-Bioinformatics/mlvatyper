@@ -27,6 +27,7 @@ COLUMN_ALIASES = {
     "pattern": "patterns", "patterns": "patterns", "unit": "patterns",
     "length": "unit_length", "unit_length": "unit_length", "pattern_length": "unit_length",
     "ref_size": "ref_size", "ref_repeats": "ref_repeats", "offset": "offset",
+    "label": "label", "name": "label", "mlvabank": "label", "locus_name": "label",
 }
 
 
@@ -104,7 +105,7 @@ def parse_marker_line(line: str, columns: dict[str, int], line_number: int) -> M
     if (ref_size is not None and ref_repeats is not None and offset is None and unit_length > 0
             and ref_size - ref_repeats * unit_length < 0):
         raise MarkerError(f"line {line_number} ({marker}): ref_repeats * unit_length exceeds ref_size")
-    return MarkerDef(marker, patterns, unit_length, ref_size, ref_repeats, offset)
+    return MarkerDef(marker, patterns, unit_length, ref_size, ref_repeats, offset, get("label").strip() or None)
 
 
 LEGACY_COLUMNS = {"marker": 0, "patterns": 1}  # the length column is checked, later columns are ignored
@@ -179,6 +180,7 @@ def merge_definitions(primary: list[MarkerDef], secondary: list[MarkerDef]) -> l
                 s.ref_size if d.ref_size is None else d.ref_size,
                 s.ref_repeats if d.ref_repeats is None else d.ref_repeats,
                 s.offset if d.offset is None else d.offset,
+                d.label or s.label,
             )
         merged.append(d)
         seen.add(d.primer_id)
@@ -198,8 +200,10 @@ def check_against_sts(defs: list[MarkerDef], sts_ids: set[str]) -> list[MarkerDe
 
 
 def write_markers(defs: list[MarkerDef], path: str | Path) -> None:
+    labels = any(d.label for d in defs)
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("marker\tunit_length\tref_size\tref_repeats\toffset\tpatterns\n")
+        handle.write("marker\tunit_length\tref_size\tref_repeats\toffset\tpatterns" + ("\tlabel" if labels else "")
+                     + "\n")
         for d in defs:
             handle.write("\t".join([
                 d.primer_id, str(d.unit_length),
@@ -207,4 +211,4 @@ def write_markers(defs: list[MarkerDef], path: str | Path) -> None:
                 "" if d.ref_repeats is None else str(d.ref_repeats),
                 "" if d.offset is None else str(d.offset),
                 ";".join(d.patterns) if d.patterns else "N/A",
-            ]) + "\n")
+            ] + ([d.label or ""] if labels else [])) + "\n")

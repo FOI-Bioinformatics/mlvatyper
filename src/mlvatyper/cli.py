@@ -6,6 +6,9 @@ Subcommands:
   summarize  rebuild summary tables and allele calls from an existing hits.tsv
   discover   find repeat units in the amplicons of one sample and write a marker definition file
   report     write a self-contained HTML report from the tables of a run
+  schemes    list the bundled schemes
+  check-scheme   check a scheme's files and, with an assembly, its reference values
+  bins-from-table   build a bin file from a published allele size table
 """
 
 import argparse
@@ -33,7 +36,10 @@ from .extract import (
 from .log import configure_logging, get_logger
 from .markers import check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
 from .models import MarkerDef, PrimerPair
+from .checkscheme import assembly_checks, fetch_assembly, file_checks, summary as check_summary
+from .mlvabank import bins_from_table, export_profiles
 from .report import write_report as write_html_report
+from .scheme import SchemeError, apply_scheme, list_schemes, load_scheme
 from .rescue import RescueOptions, find_with_indels, missing_reasons, read_missing, rescue_pass, write_missing
 from .search import MerPcrSearcher, SearchError, sample_name
 from .sts import is_degenerate, read_sts, write_invalid, write_sts
@@ -52,11 +58,16 @@ DISCOVERED_FILE = "marker_defs_discovered.tsv"
 DISCOVER_REPORT = "discover_report.tsv"
 DISCOVER_CANDIDATES = "discover_candidates.tsv"
 RUN_INFO = "run_info.json"
+SCHEME_CHECK = "scheme_check.tsv"
+# parser defaults that a scheme may override (see scheme.apply_scheme)
+CALLING_DEFAULTS = {"rounding": "intermediate", "allele_tolerance": 0.25, "unit_mismatches": 1, "margin": 500,
+                    "mismatches": 2, "max_array_length": None}
 
 
 def _add_search_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--sts", required=True,
-                   help="STS primer file (id, forward, reverse, expected size[, alias])")
+    p.add_argument("--sts", help="STS primer file (id, forward, reverse, expected size[, alias]); "
+                                 "not needed with --scheme")
+    _add_scheme_arg(p)
     p.add_argument("--fasta", required=True, nargs="+",
                    help="FASTA file(s) or glob pattern(s), one file per sample")
     p.add_argument("-M", "--margin", type=int, default=500,
@@ -97,8 +108,22 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
                         "with up to one indel")
 
 
+def _add_scheme_arg(p: argparse.ArgumentParser) -> None:
+    if not any(a.dest == "scheme" for a in p._actions):
+        p.add_argument("--scheme", help="bundled scheme name or scheme directory (primers.sts, markers.tsv, "
+                                        "bins.tsv, scheme.yml); provides --sts, --markers, --bins and the "
+                                        "calling defaults of the scheme")
+
+
 def _add_summary_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--prefix", required=True, help="prefix for summary file names")
+    _add_scheme_arg(p)
+    p.add_argument("--mlvabank", action="store_true",
+                   help="also write <prefix>_mlvabank.csv: one row per sample, one column per marker in scheme "
+                        "order under its label")
+    p.add_argument("--mlvabank-missing", metavar="TOKEN",
+                   help="token written in the MLVAbank file for cells without an integer allele "
+                        "(default: the status code or value as reported)")
     p.add_argument("--markers", "--pattern", dest="markers",
                    help="marker definition file: marker, patterns, unit_length, ref_size, ref_repeats, offset")
     p.add_argument("--reference-sample",
@@ -151,6 +176,26 @@ def build_parser() -> argparse.ArgumentParser:
     summ = sub.add_parser("summarize", help="rebuild tables and allele calls from hits.tsv")
     summ.add_argument("--outdir", required=True, help="directory containing hits.tsv and samples.txt")
     _add_summary_args(summ)
+
+    sub.add_parser("schemes", help="list the bundled schemes")
+
+    chk = sub.add_parser("check-scheme", help="check a scheme's files and reference values")
+    chk.add_argument("--scheme", required=True, help="bundled scheme name or scheme directory")
+    chk.add_argument("--outdir", required=True, help=f"directory for {SCHEME_CHECK} and fetched sequences")
+    chk.add_argument("--reference", help="reference assembly FASTA to search the primers in")
+    chk.add_argument("--fetch", metavar="ACCESSION", help="download the reference from NCBI nucleotide instead")
+    chk.add_argument("--email", help="e-mail address required by NCBI for --fetch")
+    chk.add_argument("-M", "--margin", type=int, default=500)
+    chk.add_argument("-N", "--mismatches", type=int, default=2)
+    chk.add_argument("--unit-mismatches", type=int, default=1)
+
+    bft = sub.add_parser("bins-from-table", help="build a bin file from a long allele size table")
+    bft.add_argument("table", help="tab or comma separated table with locus, allele and size columns")
+    bft.add_argument("--output", required=True, help="bin file to write (marker, size, allele)")
+    bft.add_argument("--locus-column")
+    bft.add_argument("--allele-column")
+    bft.add_argument("--size-column")
+    bft.add_argument("--markers", help="marker file whose labels map the table's locus names to marker ids")
 
     rep = sub.add_parser("report", help="write a self-contained HTML report from the tables of a run")
     rep.add_argument("--outdir", required=True, help="directory with the summarize outputs")
@@ -430,8 +475,14 @@ def load_definitions(args: argparse.Namespace, outdir: Path, sts_ids: list[str],
     return defs
 
 
-def write_calls(calls: list, samples: list[str], markers: list[str], outdir: Path, prefix: str) -> None:
-    write_table(allele_table(calls, samples, markers), outdir / f"{prefix}_alleles.tsv")
+def write_calls(calls: list, samples: list[str], markers: list[str], outdir: Path, prefix: str,
+                defs: list[MarkerDef] | None = None, mlvabank: bool = False,
+                mlvabank_missing: str | None = None) -> None:
+    alleles = allele_table(calls, samples, markers)
+    write_table(alleles, outdir / f"{prefix}_alleles.tsv")
+    if mlvabank:
+        export_profiles(alleles, defs or [MarkerDef(m) for m in markers], outdir / f"{prefix}_mlvabank.csv",
+                        missing=mlvabank_missing)
     write_table(status_table(calls, samples, markers), outdir / f"{prefix}_status.tsv")
     write_table(tandem_count_table(calls, samples, markers), outdir / f"{prefix}_tandem_counts.tsv")
     write_table(profile_table(calls, samples, markers), outdir / f"{prefix}_profile.tsv")
@@ -468,7 +519,8 @@ def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
     calls = call_all(amplicons, samples, defs, args.allele_tolerance, args.rounding, bins,
                      args.unit_mismatches, args.max_array_length, read_near_end(outdir / NEAR_END_FILE),
                      read_missing(outdir / MISSING_FILE))
-    write_calls(calls, samples, [d.primer_id for d in defs], outdir, args.prefix)
+    write_calls(calls, samples, [d.primer_id for d in defs], outdir, args.prefix, defs, args.mlvabank,
+                args.mlvabank_missing)
     write_run_info(outdir, args, "summarize")
 
 
@@ -550,32 +602,85 @@ def do_discover(args: argparse.Namespace, outdir: Path) -> None:
     write_run_info(outdir, args, "discover")
 
 
+def do_check_scheme(args: argparse.Namespace, outdir: Path) -> None:
+    scheme = load_scheme(args.scheme)
+    log.info("Checking scheme %s (%s)", scheme.name, scheme.path)
+    table, pairs, defs = file_checks(scheme)
+    fasta = Path(args.reference) if args.reference else None
+    if args.fetch:
+        if not args.email:
+            raise SystemExit("--fetch needs --email, which NCBI requires")
+        fasta = fetch_assembly(args.fetch, args.email, outdir / f"{args.fetch}.fasta")
+    if fasta is not None:
+        if not fasta.exists():
+            raise SystemExit(f"reference assembly {fasta} not found")
+        table = assembly_checks(table, pairs, defs, fasta, outdir, args.margin, args.mismatches,
+                                args.unit_mismatches)
+    table.to_csv(outdir / SCHEME_CHECK, sep="\t", index=False, na_rep="")
+    log.info("%s: %s; details in %s", scheme.name, check_summary(table, fasta is not None), outdir / SCHEME_CHECK)
+
+
+def do_bins_from_table(args: argparse.Namespace) -> None:
+    labels = {}
+    if args.markers:
+        labels = {d.label: d.primer_id for d in read_markers(args.markers) if d.label}
+    bins_from_table(args.table, args.output, args.locus_column, args.allele_column, args.size_column, labels)
+
+
+def _resolve_scheme(args: argparse.Namespace) -> None:
+    if getattr(args, "scheme", None):
+        apply_scheme(args, load_scheme(args.scheme), CALLING_DEFAULTS)
+    if args.command in ("run", "search") and not args.sts:
+        raise SystemExit("--sts or --scheme is required")
+
+
+def _dispatch(args: argparse.Namespace, outdir: Path) -> None:
+    _resolve_scheme(args)
+    if args.command == "check-scheme":
+        do_check_scheme(args, outdir)
+    elif args.command == "search":
+        do_search(args, outdir)
+    elif args.command == "summarize":
+        do_summarize(args, outdir)
+    elif args.command == "discover":
+        do_discover(args, outdir)
+    elif args.command == "report":
+        try:
+            write_html_report(outdir, args.prefix, args.title)
+        except FileNotFoundError as exc:
+            raise SystemExit(str(exc)) from exc
+    elif args.command == "run":
+        do_search(args, outdir)
+        do_summarize(args, outdir)
+        if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
+            write_html_report(outdir, args.prefix, args.title)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     configure_logging(args.verbose)
+    if args.command == "schemes":
+        for scheme in list_schemes():
+            print(f"{scheme.name}\t{scheme.meta.get('organism', '')}\t{scheme.path}")
+        return 0
+    if args.command == "bins-from-table":
+        try:
+            do_bins_from_table(args)
+        except (ValueError, FileNotFoundError) as exc:
+            log.error("%s", exc)
+            return 1
+        return 0
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     try:
-        if args.command == "search":
-            do_search(args, outdir)
-        elif args.command == "summarize":
-            do_summarize(args, outdir)
-        elif args.command == "discover":
-            do_discover(args, outdir)
-        elif args.command == "report":
-            try:
-                write_html_report(outdir, args.prefix, args.title)
-            except FileNotFoundError as exc:
-                raise SystemExit(str(exc)) from exc
-        elif args.command == "run":
-            do_search(args, outdir)
-            do_summarize(args, outdir)
-            if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
-                write_html_report(outdir, args.prefix, args.title)
+        _dispatch(args, outdir)
     except SystemExit as exc:
         if exc.code not in (None, 0):
             log.error("%s", exc.code)
             return 1
+    except SchemeError as exc:
+        log.error("%s", exc)
+        return 1
     return 0
 
 

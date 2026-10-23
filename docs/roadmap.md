@@ -24,7 +24,13 @@ files it touches so that it can be picked up as its own task.
    pipeline monitors; exit codes documented (0 ok, 1 input error,
    2 some samples failed).
 
-### B. Scheme and database support
+### B. Scheme and database support (done 2026-10-23)
+
+Implemented: scheme directories with `scheme.yml` defaults and `--scheme`,
+the bundled `testM` template, `--mlvabank` export with marker labels,
+`bins-from-table`, and `check-scheme` with optional NCBI fetch. Published
+schemes are not bundled yet; they need reference values from their
+publications. The original items follow for reference.
 
 1. Scheme bundles under `src/mlvatyper/schemes/<name>/` with `primers.sts`,
    `markers.tsv`, optional `bins.tsv` and a `scheme.yml` (name, organism,

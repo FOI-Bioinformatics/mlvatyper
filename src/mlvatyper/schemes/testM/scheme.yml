@@ -1,0 +1,8 @@
+# Example scheme bundled with mlvatyper. Replace the values below for a published scheme.
+name: testM
+organism: test organism
+reference: design strain of the primers (expected sizes are its product sizes)
+citation: none; internal test scheme
+notes: markers.tsv gives the repeat units only; use --reference-sample to anchor the calls
+rounding: intermediate
+allele_tolerance: 0.25
