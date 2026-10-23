@@ -134,6 +134,21 @@ Bundled schemes:
   that the single unit formula cannot express; it is reported by length
   and its allele has to be assigned by hand.
 
+- `Lpn_MLVA12`: the 12 locus MLVA panel of Orsay for *Legionella
+  pneumophila* (Sobral et al., Table 1; it contains the MLVA-8 markers of
+  Pourcel et al. 2007, but the source does not say which eight). Reference
+  sizes and copy numbers are those of Philadelphia-1 (AE017354); all 12
+  products match the source sizes exactly with no primer mismatches. No
+  unit sequences are shipped, so alleles are called from amplicon length
+  alone and the tandem count is not a cross-check; the arrays in
+  Philadelphia-1 are diverged and a counter requiring near perfect units
+  gives fewer copies than the scheme counts. In the genomes Paris, Lens and
+  Corby the other 11 loci give whole repeat numbers, while Lpms31 gives
+  numbers ending in .4 to .6 (INTERMEDIATE) because its length differences
+  to Philadelphia-1 are not whole multiples of 45 bp; read that locus
+  against the published allele table. The `url` of the scheme still has to
+  be filled in with the DOI.
+
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`
 (where the file came from) and `reference` (the strain or accession the

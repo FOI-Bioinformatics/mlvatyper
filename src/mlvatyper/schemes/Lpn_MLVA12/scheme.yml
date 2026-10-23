@@ -1,0 +1,10 @@
+# Legionella pneumophila, the 12 locus MLVA panel of Orsay (the 8 locus scheme of Pourcel et al. is a subset).
+name: Lpn_MLVA12
+organism: Legionella pneumophila
+citation: Sobral et al., Table 1 (primers, repeat unit lengths and Philadelphia-1 sizes and copy numbers, as supplied by the maintainer); Pourcel C, Visca P, Afshar B, D'Arezzo S, Vergnaud G, Fry NK. J Clin Microbiol 2007;45:1190-1199 (the MLVA-8 markers that the panel contains)
+url: not recorded; the table was supplied by the maintainer from Sobral et al., Table 1, and the DOI has to be added here
+reference: Legionella pneumophila subsp. pneumophila str. Philadelphia 1, GenBank AE017354; ref_size is the in silico product in that genome, which equals the size in the source for all 12 loci, and ref_repeats is the copy number given in the source
+retrieved: 2026-10-23
+notes: Calls are made from amplicon length alone (no unit sequences are shipped), as ref_repeats plus the length difference to Philadelphia-1 divided by the unit length. The tandem array count is not used as a cross-check because the arrays in Philadelphia-1 are diverged and a counter that requires near perfect units gives fewer copies than the scheme counts at most loci. Lpms33 and Lpms34 have a single 125 bp unit in Philadelphia-1, so their alleles are the number of additional 125 bp units. The source does not say which 8 of the 12 loci form MLVA-8; use Pourcel et al. 2007 for the reduced panel. Dyes of the source are not recorded. In the genomes Paris, Lens and Corby the other 11 loci give whole repeat numbers, but Lpms31 gives repeat numbers ending in .4 to .6 (INTERMEDIATE) because its length differences to Philadelphia-1 are not whole multiples of 45 bp; read that locus against the published allele table. Lpms39 was not found in Corby (one primer matches). Products run from 79 to 1043 bp; the search window follows the definitions (0 to --max-repeats repeats), and the 125 bp units exceed the discovery default of --max-unit 100.
+rounding: intermediate
+allele_tolerance: 0.25

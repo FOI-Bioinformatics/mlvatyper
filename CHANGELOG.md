@@ -10,9 +10,14 @@ is below 1.0, so the output tables may still change between minor versions.
 - Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
   Salmonella Typhimurium, with reference values verified against strain
   LT2 and a committed fixture of the LT2 amplicon regions that CI checks.
+- Bundled scheme `Lpn_MLVA12`, the 12 locus MLVA panel for Legionella
+  pneumophila, verified against Philadelphia-1 and called from length
+  alone; a fixture of the twelve amplicon regions is checked in CI.
 
 ### Changed
 
+- A file that is not FASTA now fails only its own sample instead of
+  stopping the run with a traceback.
 - An explicit size range in the STS file is kept when `--markers` derives
   size windows, and hits keep the STS expected size rather than the
   midpoint of a derived window.

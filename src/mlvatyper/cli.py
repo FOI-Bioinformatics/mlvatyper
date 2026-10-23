@@ -369,8 +369,8 @@ def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: lis
     for fasta in fasta_files:
         try:
             amps, sample_reasons = search_sample(searcher, fasta, pairs, margin, dedup, rescue, wordsize, one_sided)
-        except SearchError as exc:
-            log.error("%s: %s", fasta, exc)
+        except (SearchError, ValueError) as exc:  # ValueError: Biopython rejects a file that is not FASTA
+            log.error("%s: %s", fasta, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
             failed += 1
             continue
         amplicons.extend(amps)

@@ -132,3 +132,13 @@ def test_search_markers_writes_size_windows(fixture_dir):
     assert main(["search", "--sts", str(sts), "--fasta", str(fixture_dir / "sampleA.fasta"),
                  "--outdir", str(fixture_dir / "r"), "--align", "none", "--markers", str(fixture_dir / "m.tsv")]) == 0
     assert (fixture_dir / "r" / "primers_used.sts").read_text().split("\t")[3].strip() == "60-80"  # explicit range kept
+
+
+def test_non_fasta_input_fails_only_that_sample(fixture_dir, caplog):
+    (fixture_dir / "notes.fasta").write_text("<!doctype html>\n<html></html>\n")
+    out = fixture_dir / "out"
+    rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+               "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"])
+    assert rc == 1 and "1 samples failed" in caplog.text
+    hits = pd.read_csv(out / "hits.tsv", sep="\t")
+    assert set(hits["sample"]) == {"sampleA", "sampleB"}  # the valid samples were still processed and written
