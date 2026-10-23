@@ -110,19 +110,29 @@ the lengths table is produced.
 
 A scheme directory bundles `primers.sts`, `markers.tsv`, an optional
 `bins.tsv` and `scheme.yml`, flat `key: value` metadata (name, organism,
-reference, citation, url, notes) that may also set the calling defaults
+reference, citation, url, retrieved, notes) that may also set the calling defaults
 `rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
 and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
 `mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
 `--bins`; options given on the command line still win over the scheme
 defaults. One scheme, `testM`, is bundled as a template under
 `src/mlvatyper/schemes/`. Published schemes should be added only with
-reference values taken from their publications and a note in
-`scheme.yml` on how the values were obtained.
+reference values taken from their publications, the provenance fields
+filled in, and the output of `check-scheme --reference` against the
+strain the publication used.
 
-`mlvatyper check-scheme --scheme NAME --outdir DIR` validates the files,
-compares marker and bin ids with the STS ids and lists primers that merPCR
-cannot hash at word size 11 or 6. With `--reference assembly.fasta` (or
+`mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
+provenance of the scheme: `citation` (who published the values), `url`
+(where the file came from) and `reference` (the strain or accession the
+reference sizes and repeat numbers describe). Allele numbers are only
+comparable with a database when their source is recorded, so an empty
+field or a placeholder such as `none` or `TBD` fails the check; the
+remaining checks still run and are written, and
+`--allow-missing-provenance` turns the failure into a warning while a
+scheme is being prepared. `organism` and `retrieved` are reported as
+warnings only. The command then validates the files, compares marker and
+bin ids with the STS ids and lists primers that merPCR cannot hash at
+word size 11 or 6. With `--reference assembly.fasta` (or
 `--fetch ACCESSION --email ADDRESS` to download the record from NCBI) it
 also searches every marker and reports the number of products, the product
 length against `ref_size` and the tandem count against `ref_repeats` in

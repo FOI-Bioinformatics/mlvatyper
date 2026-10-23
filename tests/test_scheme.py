@@ -5,7 +5,7 @@ from mlvatyper.cli import main
 from mlvatyper.markers import read_markers, write_markers
 from mlvatyper.mlvabank import bins_from_table, export_profiles
 from mlvatyper.models import MarkerDef
-from mlvatyper.scheme import SchemeError, list_schemes, load_scheme, parse_flat_yaml
+from mlvatyper.scheme import SchemeError, is_placeholder, list_schemes, load_scheme, parse_flat_yaml
 from tests.conftest import FWD, REV, UNIT
 
 
@@ -16,6 +16,7 @@ def test_bundled_scheme_and_metadata():
     assert scheme.sts.name == "primers.sts" and scheme.markers is not None and scheme.bins is None
     assert scheme.meta["organism"] == "test organism" and scheme.calling_defaults()["rounding"] == "intermediate"
     assert scheme.calling_defaults()["allele_tolerance"] == 0.25
+    assert scheme.missing_provenance() == [] and scheme.missing_recommended() == []
     with pytest.raises(SchemeError):
         load_scheme("does-not-exist")
 
@@ -36,7 +37,9 @@ def _scheme_dir(fixture_dir, rounding="nearest"):
     (d / "markers.tsv").write_text(f"marker\tpatterns\tunit_length\tref_size\tref_repeats\tlabel\n"
                                    f"VNTR1\t{UNIT}\t6\t70\t5\tLocus_1\n")
     (d / "bins.tsv").write_text("marker\tsize\tallele\nVNTR1\t82\t9\n")
-    (d / "scheme.yml").write_text(f"name: mini\norganism: synthetic\nrounding: {rounding}\nallele_tolerance: 0.1\n")
+    (d / "scheme.yml").write_text(f"name: mini\norganism: synthetic\nrounding: {rounding}\nallele_tolerance: 0.1\n"
+                                  "citation: Example et al. J Test 2026;1:1-2\nurl: https://example.test/mini\n"
+                                  "reference: strain MINI-1\nretrieved: 2026-10-23\n")
     return d
 
 
@@ -94,6 +97,32 @@ def test_label_round_trip(tmp_path):
     write_markers(defs, tmp_path / "m.tsv")
     back = read_markers(tmp_path / "m.tsv")
     assert back[0].label == "Locus_1" and back[1].label is None and back[0].display_name == "Locus_1"
+
+
+def test_is_placeholder_and_missing_provenance(fixture_dir):
+    for value in ("", "  ", "none", "None.", "N/A", "unknown", "TBD", "to be added", "-"):
+        assert is_placeholder(value)
+    for value in ("Example et al. 2026", "https://example.test/x", "strain MINI-1", "0"):
+        assert not is_placeholder(value)
+    d = _scheme_dir(fixture_dir)
+    (d / "scheme.yml").write_text("name: mini\ncitation: none\nurl:\nreference: strain MINI-1\n")
+    scheme = load_scheme(d)
+    assert scheme.missing_provenance() == ["citation", "url"]
+    assert scheme.missing_recommended() == ["organism", "retrieved"]
+    assert scheme.provenance["reference"] == "strain MINI-1"
+
+
+def test_check_scheme_requires_provenance(fixture_dir, caplog):
+    d = _scheme_dir(fixture_dir)
+    out = fixture_dir / "chk"
+    (d / "scheme.yml").write_text("name: mini\ncitation: TBD\nreference: strain MINI-1\n")
+    assert main(["check-scheme", "--scheme", str(d), "--outdir", str(out)]) == 1
+    assert "must state citation, url" in caplog.text
+    assert (out / "scheme_check.tsv").exists()  # the other checks still ran and were written
+    caplog.clear()
+    assert main(["check-scheme", "--scheme", str(d), "--outdir", str(out), "--allow-missing-provenance"]) == 0
+    assert "cannot be traced without citation, url" in caplog.text
+    assert not [r for r in caplog.records if r.levelname == "ERROR"]
 
 
 def test_check_scheme(fixture_dir):

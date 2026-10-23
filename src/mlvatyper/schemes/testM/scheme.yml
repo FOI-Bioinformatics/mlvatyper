@@ -1,8 +1,11 @@
-# Example scheme bundled with mlvatyper. Replace the values below for a published scheme.
+# Example scheme distributed with mlvatyper. Copy this file for a published
+# scheme and replace every value; citation, url and reference are required.
 name: testM
 organism: test organism
-reference: design strain of the primers (expected sizes are its product sizes)
-citation: none; internal test scheme
-notes: markers.tsv gives the repeat units only; use --reference-sample to anchor the calls
+reference: the strain the primers were designed on; the expected sizes in primers.sts are its product sizes
+citation: Example scheme distributed with mlvatyper; not taken from a publication
+url: https://github.com/FOI-Bioinformatics/mlvatyper/tree/main/examples/testM
+retrieved: 2026-10-23
+notes: markers.tsv gives the repeat units only, without reference repeat numbers; anchor the calls with --reference-sample
 rounding: intermediate
 allele_tolerance: 0.25

@@ -1,5 +1,10 @@
 """Consistency check of a scheme, optionally against its reference assembly.
 
+The scheme must state its provenance: citation, url and reference. A
+scheme whose allele numbers cannot be traced to a source is not usable
+for comparison with a database, so a missing or placeholder value is an
+error rather than a warning.
+
 Without an assembly the check covers the files: STS entries are validated,
 marker and bin ids are compared with the STS ids, and primers that merPCR
 cannot hash at the default and at the rescue word size are listed. With an
@@ -19,7 +24,7 @@ from .log import get_logger
 from .markers import read_markers
 from .models import MarkerDef, PrimerPair
 from .rescue import RescueOptions, find_with_indels, rescue_pass
-from .scheme import Scheme
+from .scheme import PROVENANCE_FIELDS, Scheme
 from .search import MerPcrSearcher
 from .sts import has_hash_word, read_sts, write_sts
 from .tandem import count_tandem_array
@@ -30,6 +35,25 @@ CHECK_COLUMNS = [
     "marker", "sts_ok", "in_markers", "in_bins", "hash_word_11", "hash_word_6", "n_products", "length",
     "ref_size", "size_ok", "tandem_copies", "ref_repeats", "repeats_ok", "search_pass", "note",
 ]
+
+
+def provenance_checks(scheme: Scheme, strict: bool = True) -> list[str]:
+    """Log the provenance of the scheme; returns the fields that are missing.
+
+    Missing fields are errors unless the caller accepts them, in which case
+    they are warnings like the recommended fields.
+    """
+    missing = scheme.missing_provenance()
+    for field in PROVENANCE_FIELDS:
+        if field not in missing:
+            log.info("%s: %s: %s", scheme.name, field, scheme.meta[field])
+    report = log.error if strict else log.warning
+    for field in missing:
+        report("%s: scheme.yml gives no %s", scheme.name, field)
+    recommended = scheme.missing_recommended()
+    if recommended:
+        log.warning("%s: scheme.yml gives no %s", scheme.name, " or ".join(recommended))
+    return missing
 
 
 def file_checks(scheme: Scheme) -> tuple[pd.DataFrame, list[PrimerPair], dict[str, MarkerDef]]:

@@ -28,9 +28,17 @@ files it touches so that it can be picked up as its own task.
 
 Implemented: scheme directories with `scheme.yml` defaults and `--scheme`,
 the bundled `testM` template, `--mlvabank` export with marker labels,
-`bins-from-table`, and `check-scheme` with optional NCBI fetch. Published
-schemes are not bundled yet; they need reference values from their
-publications. The original items follow for reference.
+`bins-from-table`, and `check-scheme` with optional NCBI fetch, which
+requires the provenance fields citation, url and reference.
+
+Published schemes are not bundled yet. Each needs reference values from
+its publication, the provenance fields filled in, and a verification run
+of `check-scheme --reference` against the strain the publication used, so
+that a transcription error shows up as a marker that misses its stated
+size or repeat count. A CI job that repeats that check for every bundled
+scheme against a committed reference slice is still to be added, so that
+later changes to the search or calling code cannot shift a published
+scheme's alleles unnoticed. The original items follow for reference.
 
 1. Scheme bundles under `src/mlvatyper/schemes/<name>/` with `primers.sts`,
    `markers.tsv`, optional `bins.tsv` and a `scheme.yml` (name, organism,

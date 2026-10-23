@@ -36,7 +36,9 @@ from .extract import (
 from .log import configure_logging, get_logger
 from .markers import check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
 from .models import MarkerDef, PrimerPair
-from .checkscheme import assembly_checks, fetch_assembly, file_checks, summary as check_summary
+from .checkscheme import (
+    assembly_checks, fetch_assembly, file_checks, provenance_checks, summary as check_summary,
+)
 from .mlvabank import bins_from_table, export_profiles
 from .report import write_report as write_html_report
 from .scheme import SchemeError, apply_scheme, list_schemes, load_scheme
@@ -188,6 +190,9 @@ def build_parser() -> argparse.ArgumentParser:
     chk.add_argument("-M", "--margin", type=int, default=500)
     chk.add_argument("-N", "--mismatches", type=int, default=2)
     chk.add_argument("--unit-mismatches", type=int, default=1)
+    chk.add_argument("--allow-missing-provenance", action="store_true",
+                     help="report missing citation, url or reference as a warning instead of failing; "
+                          "for a scheme still being prepared")
 
     bft = sub.add_parser("bins-from-table", help="build a bin file from a long allele size table")
     bft.add_argument("table", help="tab or comma separated table with locus, allele and size columns")
@@ -605,6 +610,7 @@ def do_discover(args: argparse.Namespace, outdir: Path) -> None:
 def do_check_scheme(args: argparse.Namespace, outdir: Path) -> None:
     scheme = load_scheme(args.scheme)
     log.info("Checking scheme %s (%s)", scheme.name, scheme.path)
+    missing = provenance_checks(scheme, strict=not args.allow_missing_provenance)
     table, pairs, defs = file_checks(scheme)
     fasta = Path(args.reference) if args.reference else None
     if args.fetch:
@@ -618,6 +624,12 @@ def do_check_scheme(args: argparse.Namespace, outdir: Path) -> None:
                                 args.unit_mismatches)
     table.to_csv(outdir / SCHEME_CHECK, sep="\t", index=False, na_rep="")
     log.info("%s: %s; details in %s", scheme.name, check_summary(table, fasta is not None), outdir / SCHEME_CHECK)
+    if missing:
+        if not args.allow_missing_provenance:
+            raise SystemExit(f"{scheme.name}: scheme.yml must state {', '.join(missing)}; the allele numbers of a "
+                             f"scheme are only comparable when their source is recorded "
+                             f"(--allow-missing-provenance to continue anyway)")
+        log.warning("%s: the allele numbers cannot be traced without %s", scheme.name, ", ".join(missing))
 
 
 def do_bins_from_table(args: argparse.Namespace) -> None:

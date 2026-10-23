@@ -8,10 +8,16 @@ A scheme directory holds
   scheme.yml    flat key: value metadata (optional)
 
 Recognised metadata keys: name, organism, reference (strain or accession
-the reference values come from), citation, url, rounding, allele_tolerance,
-unit_mismatches, margin, mismatches, max_array_length, notes. The calling
-keys become the defaults of the corresponding options when the scheme is
-used; options given on the command line still win.
+the reference values come from), citation, url, retrieved, rounding,
+allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
+notes. The calling keys become the defaults of the corresponding options
+when the scheme is used; options given on the command line still win.
+
+citation, url and reference are the provenance of the values: who
+published them, where the file came from, and which strain or accession
+the reference sizes and repeat numbers describe. Allele numbers are only
+comparable with a database when these are known, so check-scheme refuses
+a scheme that leaves them empty or fills them with a placeholder.
 
 Bundled schemes live under mlvatyper/schemes/<name>. `--scheme` accepts a
 bundled name or a directory path.
@@ -31,6 +37,11 @@ BINS_FILE = "bins.tsv"
 META_FILE = "scheme.yml"
 NUMERIC_KEYS = {"allele_tolerance": float, "unit_mismatches": int, "margin": int, "mismatches": int,
                 "max_array_length": int}
+PROVENANCE_FIELDS = ("citation", "url", "reference")
+RECOMMENDED_FIELDS = ("organism", "retrieved")
+# values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
+PLACEHOLDERS = frozenset({"", "-", "?", "na", "n/a", "none", "unknown", "tbd", "todo", "fixme", "xxx",
+                          "to be added", "to be determined", "see publication", "see paper"})
 
 
 class SchemeError(ValueError):
@@ -51,10 +62,26 @@ class Scheme:
         organism = self.meta.get("organism", "")
         return f"{self.name}: {organism}" if organism else self.name
 
+    @property
+    def provenance(self) -> dict:
+        return {k: self.meta.get(k, "") for k in PROVENANCE_FIELDS}
+
+    def missing_provenance(self) -> list[str]:
+        """Provenance fields that are absent or hold a placeholder."""
+        return [k for k, v in self.provenance.items() if is_placeholder(v)]
+
+    def missing_recommended(self) -> list[str]:
+        return [k for k in RECOMMENDED_FIELDS if is_placeholder(self.meta.get(k, ""))]
+
     def calling_defaults(self) -> dict:
         """Metadata values that apply as option defaults."""
         keys = ("rounding", *NUMERIC_KEYS)
         return {k: self.meta[k] for k in keys if k in self.meta}
+
+
+def is_placeholder(value) -> bool:
+    """Whether a metadata value states nothing: empty, or one of the placeholder words."""
+    return str(value).strip().rstrip(".!,;:").lower() in PLACEHOLDERS
 
 
 def parse_flat_yaml(text: str) -> dict:
