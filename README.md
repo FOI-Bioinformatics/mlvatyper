@@ -280,8 +280,10 @@ misses it whatever `-N` allows. testM25 has six mismatches in its reverse
 primer in this assembly and stays ONE_PRIMER_ONLY; testM25_2, a second
 primer pair for the same locus, is found. testM05 and testM14 occur twice
 in the assembly and are reported as MULTIPLE. The expected sizes in
-`testM.sts` are one base shorter than the products (end minus start
-without the inclusive base), which the reference sample absorbs.
+`testM.sts` are the products of the design strain; the test assembly
+differs from it by whole units at testM03 (two 9 bp units fewer),
+testM06 (one 21 bp unit fewer) and testM25_2 (four 2 bp units more),
+by 40 bp at testM26 and by one base at testM22.
 
 With the assembly as reference every allele is its own tandem count, so
 the run mainly checks that the length based and the array based numbers
@@ -295,7 +297,7 @@ candidate table, missing markers) are kept under `examples/testM/`.
 First columns of `hits.tsv`:
 
     sample  marker   copy  contig  start   end     strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
-    test    testM01  1     test    148691  149000  +       310     0      309            0               0               0               148690              0           0           main
+    test    testM01  1     test    148691  149000  +       310     0      310            0               0               0               148690              0           0           main
 
 ## Markers without hits
 
