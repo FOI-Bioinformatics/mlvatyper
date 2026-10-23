@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ data.title }}</title>
+<style>
+  :root { --accent: #1f5f8b; --rule: #d0d0d0; --muted: #666666; }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #222; margin: 0 auto;
+         max-width: 1200px; padding: 16px 24px; line-height: 1.45; font-size: 14px; }
+  h1 { font-size: 22px; margin: 0 0 4px 0; }
+  h2 { font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--rule); padding-bottom: 3px;
+       margin-top: 32px; }
+  h3 { font-size: 14px; margin: 16px 0 6px 0; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .meta span { margin-right: 18px; }
+  table { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th, td { border: 1px solid var(--rule); padding: 2px 6px; text-align: left; white-space: nowrap; }
+  th { background: #f4f4f4; font-weight: 600; }
+  .scroll { overflow-x: auto; max-width: 100%; }
+  details summary { cursor: pointer; color: var(--accent); margin: 6px 0; }
+  code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; }
+  pre { background: #f7f7f7; border: 1px solid var(--rule); padding: 8px; overflow-x: auto; white-space: pre-wrap;
+        word-break: break-all; }
+  figure { margin: 12px 0; }
+  figure svg { max-width: 100%; height: auto; }
+  figcaption { font-size: 12px; color: var(--muted); }
+  .methods { max-width: 900px; text-align: justify; }
+  ul.failures li { margin-bottom: 4px; }
+  @media print { details { display: block; } details > *:not(summary) { display: block; }
+                 h2 { page-break-after: avoid; } table, figure { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>{{ data.title }}</h1>
+<p class="meta">
+  <span>generated {{ generated }}</span>
+  <span>mlvatyper {{ version }}</span>
+  <span>merPCR {{ merpcr_version }}</span>
+  <span>{{ data.samples | length }} samples</span>
+  <span>{{ data.markers | length }} markers</span>
+  <span>{{ data.n_amplicons }} amplicons</span>
+</p>
+<pre>{{ command }}</pre>
+
+<h2>1. Summary</h2>
+<p>Status codes per sample. OK counts markers with an amplicon and an allele within tolerance of an integer;
+the other codes are explained in the glossary at the end.</p>
+<div class="scroll">{{ counts_table | safe }}</div>
+{% if failures %}
+<ul class="failures">
+{% for code, explanation, items in failures %}
+  <li><strong>{{ code }}</strong> ({{ items | length }}): {{ explanation }}.
+      <span class="meta">{{ items[:12] | join(", ") }}{% if items | length > 12 %}, ...{% endif %}</span></li>
+{% endfor %}
+</ul>
+{% else %}
+<p>Every marker was found in every sample without flags.</p>
+{% endif %}
+
+<h2>2. Allele profiles</h2>
+<p>Alleles as repeat numbers in STS order; several amplicons for one marker are joined with a slash. Cells are
+shaded by their status code. The profile string per sample is the input format for MLVAbank.</p>
+<div class="scroll">{{ alleles_table | safe }}</div>
+<details><summary>Profile strings</summary><div class="scroll">{{ profile_table | safe }}</div></details>
+
+<h2>3. Figures</h2>
+<figure>{{ data.figures.lengths | safe }}
+<figcaption>Amplicon length per marker (points) and the expected size from the STS file (grey tick).</figcaption>
+</figure>
+<figure>{{ data.figures.residuals | safe }}
+<figcaption>Residual between the amplicon length and the expected size of the called allele. Values other than
+zero indicate flanking indels, primer indels or a wrong unit length.</figcaption></figure>
+<figure>{{ data.figures.status | safe }}
+<figcaption>Status per sample and marker: white OK, grey missing, yellow several or ambiguous loci, orange
+intermediate repeat number or count disagreement, blue primer indel or N, red outside the bin table or
+censored.</figcaption></figure>
+
+<h2>4. Evidence per amplicon</h2>
+<p>One row per amplicon: coordinates, length, expected size, residual, primer mismatches and indels, the search
+pass that found it (main, rescue, aligned), the allele and the tandem array count with exact and variant
+windows.</p>
+{% for sample in data.samples %}
+<details{% if loop.first %} open{% endif %}><summary>{{ sample }}</summary>
+<div class="scroll">{{ evidence[sample] | safe }}</div></details>
+{% endfor %}
+
+<h2>5. Markers without amplicon</h2>
+{% if missing_table %}
+<div class="scroll">{{ missing_table | safe }}</div>
+{% else %}
+<p>None.</p>
+{% endif %}
+
+{% if discovery_table %}
+<h2>6. Repeat unit discovery</h2>
+<p>Primary candidate per marker from <code>mlvatyper discover</code>, with its category (A strong, B plausible,
+C weak), the number of candidates, the mixed flag and the cross-sample evidence when several samples were used.</p>
+<details><summary>Discovery report</summary><div class="scroll">{{ discovery_table | safe }}</div></details>
+{% endif %}
+
+<h2>{{ "7" if discovery_table else "6" }}. Methods</h2>
+<p class="methods">{{ methods }}</p>
+{% if inputs %}
+<h3>Input files</h3>
+<table><thead><tr><th>file</th><th>size (bytes)</th><th>MD5</th></tr></thead><tbody>
+{% for item in inputs %}
+<tr><td>{{ item.path }}</td><td>{{ item.size }}</td><td><code>{{ item.md5 }}</code></td></tr>
+{% endfor %}
+</tbody></table>
+{% endif %}
+<details><summary>Recorded parameters (run_info.json)</summary><pre>{{ parameters }}</pre></details>
+
+<h2>{{ "8" if discovery_table else "7" }}. Appendix</h2>
+{% if definitions_table %}
+<h3>Marker definitions used</h3>
+<details><summary>Definitions</summary><div class="scroll">{{ definitions_table | safe }}</div></details>
+{% endif %}
+<h3>Status codes</h3>
+<table><thead><tr><th>code</th><th>meaning</th></tr></thead><tbody>
+{% for code, meaning in glossary.items() %}
+<tr><td>{{ code }}</td><td>{{ meaning }}</td></tr>
+{% endfor %}
+</tbody></table>
+
+</body>
+</html>

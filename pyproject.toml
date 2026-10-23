@@ -13,6 +13,8 @@ dependencies = [
     "merpcr @ git+https://github.com/FOI-Bioinformatics/merpcr@v1.0.5",
     "biopython>=1.80",
     "pandas>=2.0",
+    "jinja2>=3.0",
+    "matplotlib>=3.5",
 ]
 
 [project.urls]
@@ -26,6 +28,9 @@ mlvatyper = "mlvatyper.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+mlvatyper = ["templates/*.j2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

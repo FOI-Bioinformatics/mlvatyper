@@ -5,10 +5,12 @@ Subcommands:
   search     search and extract only (writes hits.tsv and sequences/)
   summarize  rebuild summary tables and allele calls from an existing hits.tsv
   discover   find repeat units in the amplicons of one sample and write a marker definition file
+  report     write a self-contained HTML report from the tables of a run
 """
 
 import argparse
 import glob
+import hashlib
 import json
 import sys
 from dataclasses import replace
@@ -31,6 +33,7 @@ from .extract import (
 from .log import configure_logging, get_logger
 from .markers import check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
 from .models import MarkerDef, PrimerPair
+from .report import write_report as write_html_report
 from .rescue import RescueOptions, find_with_indels, missing_reasons, read_missing, rescue_pass, write_missing
 from .search import MerPcrSearcher, SearchError, sample_name
 from .sts import is_degenerate, read_sts, write_invalid, write_sts
@@ -133,6 +136,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_search_args(run)
     _add_align_args(run)
     _add_summary_args(run)
+    run.add_argument("--no-report", dest="report", action="store_false", help="do not write the HTML report")
+    run.add_argument("--title", help="report title (default: MLVA typing report and the STS file name)")
 
     search = sub.add_parser("search", help="search and extract amplicons only")
     search.add_argument("--outdir", required=True)
@@ -146,6 +151,11 @@ def build_parser() -> argparse.ArgumentParser:
     summ = sub.add_parser("summarize", help="rebuild tables and allele calls from hits.tsv")
     summ.add_argument("--outdir", required=True, help="directory containing hits.tsv and samples.txt")
     _add_summary_args(summ)
+
+    rep = sub.add_parser("report", help="write a self-contained HTML report from the tables of a run")
+    rep.add_argument("--outdir", required=True, help="directory with the summarize outputs")
+    rep.add_argument("--prefix", required=True, help="prefix used by summarize")
+    rep.add_argument("--title", help="report title (default: MLVA typing report and the STS file name)")
 
     disc = sub.add_parser("discover", help="find repeat units in the amplicons of one or more samples")
     disc.add_argument("--outdir", required=True, help="directory containing hits.tsv")
@@ -331,6 +341,15 @@ def read_near_end(path: Path) -> set[tuple[str, str]]:
     return {tuple(line.split("\t")[:2]) for line in lines if line.strip()}
 
 
+def file_record(path: Path) -> dict:
+    """Name, size and MD5 of an input file for the run record."""
+    digest = hashlib.md5()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return {"path": str(path), "size": path.stat().st_size, "md5": digest.hexdigest()}
+
+
 def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
     """Record versions and parameters so a run can be reproduced."""
     path = outdir / RUN_INFO
@@ -342,6 +361,8 @@ def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
         merpcr_version = "unknown"
     info["mlvatyper_version"] = __version__
     info["merpcr_version"] = merpcr_version
+    if stage == "search":
+        info["inputs"] = [file_record(Path(p)) for p in [args.sts, *resolve_samples(args.fasta)]]
     info[stage] = {
         "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
         "parameters": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()
@@ -541,9 +562,16 @@ def main(argv: list[str] | None = None) -> int:
             do_summarize(args, outdir)
         elif args.command == "discover":
             do_discover(args, outdir)
+        elif args.command == "report":
+            try:
+                write_html_report(outdir, args.prefix, args.title)
+            except FileNotFoundError as exc:
+                raise SystemExit(str(exc)) from exc
         elif args.command == "run":
             do_search(args, outdir)
             do_summarize(args, outdir)
+            if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
+                write_html_report(outdir, args.prefix, args.title)
     except SystemExit as exc:
         if exc.code not in (None, 0):
             log.error("%s", exc.code)

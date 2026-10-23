@@ -203,8 +203,17 @@ read assemblies, so L should be the assembly k-mer or read length.
   repeat number, allele, residual
   in bp between the length and the expected size of the called allele,
   tandem array count, and status.
-- `run_info.json`: versions and all parameters of the search and summary
-  steps.
+- `run_info.json`: versions, all parameters of the search and summary
+  steps, and the size and MD5 sum of every input file.
+- `<prefix>_report.html`: a self-contained report written by `run` (or by
+  `mlvatyper report --outdir DIR --prefix P`) with a status summary, the
+  allele profile table shaded by status, figures of amplicon lengths,
+  residuals and status per sample and marker, the evidence per amplicon,
+  the missing markers with their reasons, the discovery report when
+  present, a methods paragraph generated from the recorded parameters,
+  the input checksums and the marker definitions. Styles and figures
+  (SVG) are embedded, so the file opens offline and prints to PDF from a
+  browser. `--no-report` skips it.
 
 Status codes: OK, NOT_DETECTED (no hit), NEAR_CONTIG_END (no hit but a primer
 within the size window of a contig end), NOT_SEARCHED and ONE_PRIMER_ONLY
@@ -249,8 +258,9 @@ that the size window follows the locus instead of the global `-M`.
 
 Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
 `summarize` (rebuild tables and calls from an existing `results/hits.tsv`,
-for example with other rounding settings or an edited definition file) and
-`discover` (seed a marker definition file from the amplicons).
+for example with other rounding settings or an edited definition file),
+`discover` (seed a marker definition file from the amplicons) and `report`
+(write the HTML report from the tables of a run).
 
 ## Example
 
@@ -266,6 +276,7 @@ repository; four slices of it around six of the markers are kept under
         --outdir out_testM --prefix testM --markers examples/testM/testM_markers.tsv \
         --reference-sample test --rescue-indels
     mlvatyper discover --outdir out_testM
+    mlvatyper report --outdir out_testM --prefix testM
 
 Log excerpt:
 
@@ -296,7 +307,8 @@ pattern file, for 2 it has the right length but another sequence (one or
 two copies only), 3 are other units, and 3 markers with one copy or a
 2 bp unit give nothing. The outputs (allele, status, tandem count and
 long tables, derived and discovered definitions, discovery report and
-candidate table, missing markers) are kept under `examples/testM/`.
+candidate table, missing markers) and the HTML report are kept under
+`examples/testM/`.
 First columns of `hits.tsv`:
 
     sample  marker   copy  contig  start   end     strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
