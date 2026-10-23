@@ -273,21 +273,103 @@ def _command_line(run_info: dict) -> str:
     return "mlvatyper run " + " ".join(items)
 
 
-def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | None = None) -> str:
-    """Plain HTML table; colour gives a background per cell when present."""
+EVIDENCE_COLUMNS = {
+    "marker": "Marker", "copy": "Copy", "contig": "Contig", "start": "Start", "end": "End", "strand": "Strand",
+    "length": "Length (bp)", "expected_size": "Expected (bp)", "residual_bp": "Residual (bp)",
+    "fwd_mismatches": "Fwd mism.", "rev_mismatches": "Rev mism.", "fwd_indels": "Fwd indels",
+    "rev_indels": "Rev indels", "search_pass": "Search pass", "allele": "Allele", "tandem_copies": "Tandem copies",
+    "tandem_exact": "Exact", "tandem_variant": "Variant", "status": "Status",
+}
+
+
+def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | None = None,
+                headers: dict[str, str] | None = None, row_status: str | None = None) -> str:
+    """Plain HTML table.
+
+    colour gives a background per cell from a status table of the same
+    shape; row_status names a column whose status shades the whole row;
+    headers renames columns for display.
+    """
     cols = list(df.columns)
+    names = headers or {}
     rows = ["<table>", "<thead><tr>" + ("<th></th>" if index else "")
-            + "".join(f"<th>{html.escape(str(c))}</th>" for c in cols) + "</tr></thead>", "<tbody>"]
+            + "".join(f"<th>{html.escape(str(names.get(c, c)))}</th>" for c in cols) + "</tr></thead>", "<tbody>"]
     for idx, row in df.iterrows():
         cells = []
+        row_style = ""
+        if row_status is not None:
+            shade = cell_colour(row[row_status])
+            row_style = f' style="background:{shade}"' if shade != STATUS_COLOURS["OK"] else ""
         for c in cols:
             style = ""
             if colour is not None:
                 style = f' style="background:{cell_colour(colour.loc[idx, c])}"'
             cells.append(f"<td{style}>{html.escape(str(row[c]))}</td>")
-        rows.append("<tr>" + (f"<th>{html.escape(str(idx))}</th>" if index else "") + "".join(cells) + "</tr>")
+        rows.append(f"<tr{row_style}>" + (f"<th>{html.escape(str(idx))}</th>" if index else "")
+                    + "".join(cells) + "</tr>")
     rows.extend(["</tbody>", "</table>"])
     return "\n".join(rows)
+
+
+def _integer_text(value: str) -> str:
+    """'0.0' as '0', other text unchanged."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    return str(int(number)) if number == int(number) else str(value)
+
+
+def legend_html() -> str:
+    """Colour swatches for the flagged status codes."""
+    groups = [
+        ("several or ambiguous loci", "MULTIPLE"), ("intermediate or count disagreement", "INTERMEDIATE"),
+        ("primer indel or N", "PRIMER_INDEL"), ("binned", "BINNED"), ("missing or no definition", "NOT_DETECTED"),
+        ("outside bins, negative or censored", "OFF_TABLE"),
+    ]
+    items = "".join(
+        f'<span class="swatch" style="background:{STATUS_COLOURS[code]}"></span>{html.escape(label)}'
+        for label, code in groups
+    )
+    return f'<p class="legend"><span class="swatch" style="background:#ffffff"></span>OK {items}</p>'
+
+
+SOFTWARE = [
+    ("mlvatyper", "https://github.com/FOI-Bioinformatics/mlvatyper", "this report"),
+    ("merPCR", "https://github.com/FOI-Bioinformatics/merpcr",
+     "reimplementation of me-PCR: Schuler GD. Sequence mapping by electronic PCR. Genome Res 1997;7:541-550"),
+    ("Tandem Repeats Finder", "https://tandem.bu.edu/trf/trf.html",
+     "Benson G. Nucleic Acids Res 1999;27:573-580 (only when discover used the trf engine)"),
+    ("MAFFT", "https://mafft.cbrc.jp/alignment/software/",
+     "Katoh K, Standley DM. Mol Biol Evol 2013;30:772-780 (only when alignments were produced)"),
+]
+
+
+def _summary_table(data: ReportData) -> pd.DataFrame:
+    """Per sample: markers typed (integer allele), flagged and missing, then the status counts."""
+    counts = status_counts(data)
+    typed = []
+    missing = []
+    for sample in data.samples:
+        row = data.alleles.loc[sample]
+        typed.append(int(sum(str(v).lstrip("-").isdigit() for v in row)))
+        missing.append(int(sum(str(v) in STATUS_GLOSSARY for v in row)))
+    counts.insert(0, "markers typed", typed)
+    counts.insert(1, "missing", missing)
+    return counts
+
+
+def _discovery_summary(discovery: pd.DataFrame | None) -> str:
+    if discovery is None or "category" not in discovery.columns:
+        return ""
+    found = discovery[discovery["category"] != ""]
+    cats = found["category"].value_counts().to_dict()
+    mixed = int(pd.to_numeric(discovery.get("mixed", pd.Series(dtype=str)), errors="coerce").fillna(0).sum())
+    parts = [f"{len(found)} of {len(discovery)} markers have a candidate unit"]
+    parts.append(", ".join(f"{cats.get(c, 0)} in category {c}" for c in ("A", "B", "C")))
+    if mixed:
+        parts.append(f"{mixed} mixed")
+    return "; ".join(parts) + "."
 
 
 def render(data: ReportData) -> str:
@@ -297,25 +379,39 @@ def render(data: ReportData) -> str:
     template = env.get_template("report.html.j2")
     if not data.figures:
         data.figures = figures(data)
-    counts = status_counts(data)
-    evidence_cols = ["marker", "copy", "contig", "start", "end", "strand", "length", "expected_size", "residual_bp",
-                     "fwd_mismatches", "rev_mismatches", "fwd_indels", "rev_indels", "search_pass", "allele",
-                     "tandem_copies", "tandem_exact", "tandem_variant", "status"]
-    found = data.calls[data.calls["copy"] != ""]
-    evidence = {s: _table_html(found[found["sample"] == s][evidence_cols], index=False) for s in data.samples}
+    evidence_cols = list(EVIDENCE_COLUMNS)
+    found = data.calls[data.calls["copy"] != ""].copy()
+    found["residual_bp"] = found["residual_bp"].map(_integer_text)
+    evidence = {s: _table_html(found[found["sample"] == s][evidence_cols], index=False, headers=EVIDENCE_COLUMNS,
+                               row_status="status") for s in data.samples}
     missing = data.missing.copy()
     if len(missing):
         missing["explanation"] = missing["reason"].map(lambda r: STATUS_GLOSSARY.get(r, ""))
-    inputs = data.run_info.get("inputs", [])
+    transposed = len(data.markers) > len(data.samples)
+    alleles, status = (data.alleles.T, data.status.T) if transposed else (data.alleles, data.status)
+    search = data.run_info.get("search", {}).get("parameters", {}) or {}
+    summ = data.run_info.get("summarize", {}).get("parameters", {}) or {}
+    meta = [
+        ("Scheme", Path(search.get("sts", "")).stem or data.prefix),
+        ("Samples", str(len(data.samples))), ("Markers", str(len(data.markers))),
+        ("Amplicons", str(data.n_amplicons)),
+        ("Reference sample", summ.get("reference_sample") or search.get("reference_sample") or "none"),
+        ("Marker definitions", Path(str(summ.get("markers") or search.get("markers") or "")).name or "none"),
+        ("Search date", (data.run_info.get("search", {}).get("timestamp") or "")[:16].replace("T", " ")),
+        ("Output directory", str(data.outdir)),
+    ]
     return template.render(
         data=data, generated=datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"), version=__version__,
         merpcr_version=data.run_info.get("merpcr_version", "unknown"), command=_command_line(data.run_info),
-        counts_table=_table_html(counts), alleles_table=_table_html(data.alleles, colour=data.status),
+        meta=meta, summary_table=_table_html(_summary_table(data)),
+        alleles_table=_table_html(alleles, colour=status), transposed=transposed, legend=legend_html(),
         profile_table=_table_html(data.profile[["profile"]]), evidence=evidence, failures=failures(data),
         missing_table=_table_html(missing, index=False) if len(missing) else "",
         discovery_table=_table_html(data.discovery, index=False) if data.discovery is not None else "",
+        discovery_summary=_discovery_summary(data.discovery),
         definitions_table=_table_html(data.definitions, index=False) if data.definitions is not None else "",
-        methods=methods_text(data.run_info), inputs=inputs, glossary=STATUS_GLOSSARY,
+        methods=methods_text(data.run_info), inputs=data.run_info.get("inputs", []), glossary=STATUS_GLOSSARY,
+        software=SOFTWARE, prefix=data.prefix,
         parameters=json.dumps({k: v for k, v in data.run_info.items() if k not in ("inputs",)}, indent=2,
                               sort_keys=True),
     )

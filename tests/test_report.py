@@ -29,6 +29,8 @@ def test_run_writes_report_with_all_sections(fixture_dir):
     assert not re.search(r'(src|href)="https?://', html)
     assert "merPCR" in html and "mlvatyper" in html
     assert "NOT_DETECTED" in html and STATUS_GLOSSARY["NOT_DETECTED"] in html
+    assert 'class="legend"' in html and "Table 1." in html and "Figure 3." in html and "Software" in html
+    assert "markers as rows" not in html  # two samples, two markers: no transposition
     info = json.loads((out / "run_info.json").read_text())
     assert len(info["inputs"]) == 3 and all(len(i["md5"]) == 32 and i["size"] > 0 for i in info["inputs"])
     assert any(i["path"].endswith("primers.sts") for i in info["inputs"])

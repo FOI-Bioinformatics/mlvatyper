@@ -7,47 +7,59 @@
 <style>
   :root { --accent: #1f5f8b; --rule: #d0d0d0; --muted: #666666; }
   body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #222; margin: 0 auto;
-         max-width: 1200px; padding: 16px 24px; line-height: 1.45; font-size: 14px; }
+         max-width: 1200px; padding: 16px 24px 40px 24px; line-height: 1.45; font-size: 14px; }
   h1 { font-size: 22px; margin: 0 0 4px 0; }
   h2 { font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--rule); padding-bottom: 3px;
-       margin-top: 32px; }
-  h3 { font-size: 14px; margin: 16px 0 6px 0; }
+       margin-top: 36px; }
+  h3 { font-size: 14px; margin: 18px 0 6px 0; }
   .meta { color: var(--muted); font-size: 13px; }
-  .meta span { margin-right: 18px; }
+  nav { font-size: 13px; margin: 10px 0 0 0; }
+  nav a { margin-right: 14px; color: var(--accent); text-decoration: none; }
   table { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
   th, td { border: 1px solid var(--rule); padding: 2px 6px; text-align: left; white-space: nowrap; }
   th { background: #f4f4f4; font-weight: 600; }
+  table.kv th { width: 160px; }
   .scroll { overflow-x: auto; max-width: 100%; }
   details summary { cursor: pointer; color: var(--accent); margin: 6px 0; }
   code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; }
   pre { background: #f7f7f7; border: 1px solid var(--rule); padding: 8px; overflow-x: auto; white-space: pre-wrap;
         word-break: break-all; }
-  figure { margin: 12px 0; }
+  figure { margin: 14px 0 22px 0; }
   figure svg { max-width: 100%; height: auto; }
-  figcaption { font-size: 12px; color: var(--muted); }
+  figcaption, .caption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .caption b, figcaption b { color: #222; }
   .methods { max-width: 900px; text-align: justify; }
   ul.failures li { margin-bottom: 4px; }
-  @media print { details { display: block; } details > *:not(summary) { display: block; }
+  .legend { font-size: 12px; color: var(--muted); }
+  .swatch { display: inline-block; width: 12px; height: 12px; border: 1px solid var(--rule); margin: 0 4px 0 12px;
+            vertical-align: middle; }
+  footer { margin-top: 40px; border-top: 1px solid var(--rule); padding-top: 8px; font-size: 12px;
+           color: var(--muted); }
+  @media print { details { display: block; } details > *:not(summary) { display: block; } nav { display: none; }
                  h2 { page-break-after: avoid; } table, figure { page-break-inside: avoid; } }
 </style>
 </head>
 <body>
 
 <h1>{{ data.title }}</h1>
-<p class="meta">
-  <span>generated {{ generated }}</span>
-  <span>mlvatyper {{ version }}</span>
-  <span>merPCR {{ merpcr_version }}</span>
-  <span>{{ data.samples | length }} samples</span>
-  <span>{{ data.markers | length }} markers</span>
-  <span>{{ data.n_amplicons }} amplicons</span>
-</p>
-<pre>{{ command }}</pre>
+<p class="meta">Generated {{ generated }} by mlvatyper {{ version }} with merPCR {{ merpcr_version }}.</p>
+<table class="kv">
+{% for key, value in meta %}
+<tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+{% endfor %}
+</table>
+<nav>
+  <a href="#summary">Summary</a><a href="#alleles">Allele profiles</a><a href="#figures">Figures</a>
+  <a href="#evidence">Evidence</a><a href="#missing">Missing markers</a>
+  {% if discovery_table %}<a href="#discovery">Discovery</a>{% endif %}
+  <a href="#methods">Methods</a><a href="#appendix">Appendix</a>
+</nav>
 
-<h2>1. Summary</h2>
-<p>Status codes per sample. OK counts markers with an amplicon and an allele within tolerance of an integer;
-the other codes are explained in the glossary at the end.</p>
-<div class="scroll">{{ counts_table | safe }}</div>
+<h2 id="summary">1. Summary</h2>
+<p>Markers typed are those with an integer repeat number; missing markers have no amplicon. The remaining
+columns count status codes per sample; a marker can carry several codes.</p>
+<div class="scroll">{{ summary_table | safe }}</div>
+<p class="caption"><b>Table 1.</b> Typing completeness and status codes per sample.</p>
 {% if failures %}
 <ul class="failures">
 {% for code, explanation, items in failures %}
@@ -59,49 +71,63 @@ the other codes are explained in the glossary at the end.</p>
 <p>Every marker was found in every sample without flags.</p>
 {% endif %}
 
-<h2>2. Allele profiles</h2>
-<p>Alleles as repeat numbers in STS order; several amplicons for one marker are joined with a slash. Cells are
-shaded by their status code. The profile string per sample is the input format for MLVAbank.</p>
+<h2 id="alleles">2. Allele profiles</h2>
+<p>Repeat numbers per marker in STS order{% if transposed %}, markers as rows because they outnumber the
+samples{% endif %}. Several amplicons for one marker are joined with a slash. Cells are shaded by status code.</p>
+{{ legend | safe }}
 <div class="scroll">{{ alleles_table | safe }}</div>
-<details><summary>Profile strings</summary><div class="scroll">{{ profile_table | safe }}</div></details>
+<p class="caption"><b>Table 2.</b> Allele profiles. Codes in place of a number are explained in the appendix.</p>
+<details><summary>Profile strings (hyphen joined, the MLVAbank input format)</summary>
+<div class="scroll">{{ profile_table | safe }}</div></details>
 
-<h2>3. Figures</h2>
+<h2 id="figures">3. Figures</h2>
 <figure>{{ data.figures.lengths | safe }}
-<figcaption>Amplicon length per marker (points) and the expected size from the STS file (grey tick).</figcaption>
-</figure>
+<figcaption><b>Figure 1.</b> Amplicon length per marker (points, one per amplicon) and the expected size from
+the STS file (grey tick).</figcaption></figure>
 <figure>{{ data.figures.residuals | safe }}
-<figcaption>Residual between the amplicon length and the expected size of the called allele. Values other than
-zero indicate flanking indels, primer indels or a wrong unit length.</figcaption></figure>
+<figcaption><b>Figure 2.</b> Residual between the amplicon length and the expected size of the called allele.
+Values other than zero indicate flanking indels, primer indels or a wrong unit length.</figcaption></figure>
 <figure>{{ data.figures.status | safe }}
-<figcaption>Status per sample and marker: white OK, grey missing, yellow several or ambiguous loci, orange
-intermediate repeat number or count disagreement, blue primer indel or N, red outside the bin table or
-censored.</figcaption></figure>
+<figcaption><b>Figure 3.</b> Status per sample and marker, with the colours of the legend above.</figcaption>
+</figure>
 
-<h2>4. Evidence per amplicon</h2>
-<p>One row per amplicon: coordinates, length, expected size, residual, primer mismatches and indels, the search
-pass that found it (main, rescue, aligned), the allele and the tandem array count with exact and variant
-windows.</p>
+<h2 id="evidence">4. Evidence per amplicon</h2>
+<p>One row per amplicon: coordinates on the contig, length, expected size and residual in bp, primer mismatches
+and indels, the search pass that found it (main, rescue, aligned), the allele and the tandem array count with
+its exact and variant windows. Rows with a flag are shaded.</p>
 {% for sample in data.samples %}
 <details{% if loop.first %} open{% endif %}><summary>{{ sample }}</summary>
 <div class="scroll">{{ evidence[sample] | safe }}</div></details>
 {% endfor %}
+<p class="caption"><b>Table 3.</b> Evidence per amplicon, one table per sample.</p>
 
-<h2>5. Markers without amplicon</h2>
+<h2 id="missing">5. Markers without amplicon</h2>
 {% if missing_table %}
 <div class="scroll">{{ missing_table | safe }}</div>
+<p class="caption"><b>Table 4.</b> Markers without an amplicon and the reason established by the search.</p>
 {% else %}
 <p>None.</p>
 {% endif %}
 
 {% if discovery_table %}
-<h2>6. Repeat unit discovery</h2>
-<p>Primary candidate per marker from <code>mlvatyper discover</code>, with its category (A strong, B plausible,
-C weak), the number of candidates, the mixed flag and the cross-sample evidence when several samples were used.</p>
-<details><summary>Discovery report</summary><div class="scroll">{{ discovery_table | safe }}</div></details>
+<h2 id="discovery">6. Repeat unit discovery</h2>
+<p>{{ discovery_summary }} Categories: A strong (unit of 5 bp or more, 3 or more copies, score and entropy
+above threshold), B plausible (2 copies), C weak (short unit, low score or overlap with a primer). Mixed
+markers hold two or more non-overlapping A or B candidates.</p>
+<details><summary>Discovery report, primary candidate per marker</summary>
+<div class="scroll">{{ discovery_table | safe }}</div></details>
 {% endif %}
 
-<h2>{{ "7" if discovery_table else "6" }}. Methods</h2>
+<h2 id="methods">{{ "7" if discovery_table else "6" }}. Methods</h2>
 <p class="methods">{{ methods }}</p>
+<h3>Software</h3>
+<table><thead><tr><th>software</th><th>reference</th></tr></thead><tbody>
+{% for name, url, reference in software %}
+<tr><td>{{ name }} ({{ url }})</td><td>{{ reference }}</td></tr>
+{% endfor %}
+</tbody></table>
+<h3>Command line</h3>
+<pre>{{ command }}</pre>
 {% if inputs %}
 <h3>Input files</h3>
 <table><thead><tr><th>file</th><th>size (bytes)</th><th>MD5</th></tr></thead><tbody>
@@ -112,7 +138,7 @@ C weak), the number of candidates, the mixed flag and the cross-sample evidence 
 {% endif %}
 <details><summary>Recorded parameters (run_info.json)</summary><pre>{{ parameters }}</pre></details>
 
-<h2>{{ "8" if discovery_table else "7" }}. Appendix</h2>
+<h2 id="appendix">{{ "8" if discovery_table else "7" }}. Appendix</h2>
 {% if definitions_table %}
 <h3>Marker definitions used</h3>
 <details><summary>Definitions</summary><div class="scroll">{{ definitions_table | safe }}</div></details>
@@ -124,5 +150,7 @@ C weak), the number of candidates, the mixed flag and the cross-sample evidence 
 {% endfor %}
 </tbody></table>
 
+<footer>Report written by mlvatyper {{ version }} from the tables in {{ data.outdir }}; regenerate with
+<code>mlvatyper report --outdir {{ data.outdir }} --prefix {{ prefix }}</code>.</footer>
 </body>
 </html>
