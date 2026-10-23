@@ -107,10 +107,19 @@ def load_report_data(outdir: Path, prefix: str, title: str | None = None) -> Rep
             except Exception:  # pragma: no cover - a legacy file without header
                 definitions = None
     discovery = _read(outdir / "discover_report.tsv")
-    sts_name = (run_info.get("search", {}).get("parameters", {}) or {}).get("sts", "")
-    scheme = Path(sts_name).stem if sts_name else prefix
+    scheme = scheme_name(run_info) or prefix
     return ReportData(outdir, prefix, title or f"MLVA typing report: {scheme}", run_info, samples, markers,
                       alleles, status, profile, calls, missing, definitions, discovery)
+
+
+def scheme_name(run_info: dict) -> str:
+    """The scheme used: its --scheme name, else the STS file stem."""
+    search = run_info.get("search", {}).get("parameters", {}) or {}
+    scheme = search.get("scheme")
+    if scheme:
+        return Path(str(scheme)).name
+    sts = search.get("sts")
+    return Path(str(sts)).stem if sts else ""
 
 
 def status_counts(data: ReportData) -> pd.DataFrame:
@@ -392,10 +401,11 @@ def render(data: ReportData) -> str:
     search = data.run_info.get("search", {}).get("parameters", {}) or {}
     summ = data.run_info.get("summarize", {}).get("parameters", {}) or {}
     meta = [
-        ("Scheme", Path(search.get("sts", "")).stem or data.prefix),
+        ("Scheme", scheme_name(data.run_info) or data.prefix),
         ("Samples", str(len(data.samples))), ("Markers", str(len(data.markers))),
         ("Amplicons", str(data.n_amplicons)),
         ("Reference sample", summ.get("reference_sample") or search.get("reference_sample") or "none"),
+        ("Primers", Path(str(search.get("sts", ""))).name or "unknown"),
         ("Marker definitions", Path(str(summ.get("markers") or search.get("markers") or "")).name or "none"),
         ("Search date", (data.run_info.get("search", {}).get("timestamp") or "")[:16].replace("T", " ")),
         ("Output directory", str(data.outdir)),

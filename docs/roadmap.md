@@ -88,11 +88,12 @@ allele table with the calls, reports per-marker agreement, systematic
 offsets (capillary sizing) and the list of discordant samples; feeds the
 report as a section when present.
 
-### E. Housekeeping before the next release
+### E. Housekeeping before the next release (done 2026-10-23)
 
-- Version 0.3.0 with a CHANGELOG.md; GitHub release from the tag.
-- README: move the method description into `docs/method.md` and keep
-  the README as usage; add `docs/report.md` with a screenshot.
-- CI: add a job that runs the testM example end to end and uploads the
-  report as an artifact.
+Implemented: version 0.3.0 with `CHANGELOG.md` and a release from the tag;
+the method description moved to `docs/method.md` with `docs/report.md`
+alongside it, leaving the README as usage; and a CI job that checks every
+bundled scheme, runs the testM example end to end on the committed
+assembly slices, verifies the alleles and the report, and uploads the
+outputs as an artifact.
 

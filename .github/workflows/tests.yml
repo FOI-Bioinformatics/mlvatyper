@@ -23,3 +23,68 @@ jobs:
           ruff check src tests
       - name: Test
         run: pytest -q --cov=mlvatyper --cov-report=term
+
+  example:
+    # End to end run of the bundled testM scheme on the committed assembly
+    # slices, so that a change in the search or calling code shows up as a
+    # changed allele, status or report before it reaches a release.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          activate-environment: mlvatyper
+      - name: Check the bundled schemes
+        run: |
+          mlvatyper schemes
+          for scheme in $(mlvatyper schemes | cut -f1); do
+            mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
+          done
+      - name: Run the testM example end to end
+        run: |
+          mlvatyper run --scheme testM --fasta tests/data/mini.fasta \
+            --outdir example_out --prefix testM --reference-sample mini \
+            --rescue-indels --mlvabank --align none
+          mlvatyper discover --outdir example_out --sample mini
+          mlvatyper report --outdir example_out --prefix testM
+      - name: Check the outputs
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          import pandas as pd
+
+          out = Path("example_out")
+          expected = ["testM_report.html", "testM_alleles.tsv", "testM_status.tsv", "testM_mlvabank.csv",
+                      "missing_markers.tsv", "discover_report.tsv", "run_info.json"]
+          missing = [name for name in expected if not (out / name).exists()]
+          if missing:
+              sys.exit(f"missing outputs: {missing}")
+          alleles = pd.read_csv(out / "testM_alleles.tsv", sep="\t", index_col=0, dtype=str)
+          # the six markers that lie inside the committed slices must be typed
+          typed = {m: alleles.loc["mini", m] for m in
+                   ("testM01", "testM02", "testM03", "testM06", "testM3a", "testM3b")}
+          if typed != {"testM01": "5", "testM02": "3", "testM03": "11", "testM06": "4",
+                       "testM3a": "11", "testM3b": "11"}:
+              sys.exit(f"unexpected alleles: {typed}")
+          report = (out / "testM_report.html").read_text()
+          for section in ("Summary", "Allele profiles", "Evidence per amplicon", "Methods"):
+              if section not in report:
+                  sys.exit(f"report has no {section} section")
+          print(f"report {len(report) // 1024} kB, {len(alleles.columns)} markers")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: testM-example
+          path: |
+            example_out/*.tsv
+            example_out/*.csv
+            example_out/*.html
+            example_out/run_info.json
+          retention-days: 14
