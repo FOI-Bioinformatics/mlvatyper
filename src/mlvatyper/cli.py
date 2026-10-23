@@ -291,20 +291,21 @@ def size_windows_from_definitions(pairs: list[PrimerPair], defs: list[MarkerDef]
     """Give every pair with a callable definition the STS size range of 0 to max_repeats repeats.
 
     merPCR then searches the reverse primer within that range for the marker
-    instead of within -M of the single expected size. The expected size of
-    such hits is the midpoint of the range, as merPCR reports it.
+    instead of within -M of the single expected size. Hits keep the STS
+    expected size rather than the midpoint of the window. A pair whose STS
+    size is already a range keeps it.
     """
     by_id = {d.primer_id: d for d in defs if d.can_call}
     result = []
     changed = 0
     for pair in pairs:
         d = by_id.get(pair.id)
-        if d is None:
+        if d is None or pair.size_low is not None:  # an explicit range in the STS file is kept
             result.append(pair)
             continue
         low = max(int(d.expected_size(0)), len(pair.forward) + len(pair.reverse))
         high = int(d.expected_size(max_repeats))
-        result.append(replace(pair, expected_size=(low + high) // 2, size_low=low, size_high=high))
+        result.append(replace(pair, size_low=low, size_high=high))  # expected_size stays the STS value
         changed += 1
     log.info("%d markers searched with a size window from their definitions (0 to %d repeats)", changed, max_repeats)
     return result

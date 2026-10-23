@@ -3,6 +3,7 @@ import json
 import pandas as pd
 
 from mlvatyper.cli import main
+from tests.conftest import FWD, REV
 
 
 def read(path):
@@ -125,4 +126,9 @@ def test_search_markers_writes_size_windows(fixture_dir):
     assert sts[0].split("\t")[3] == "40-160" and sts[1].split("\t")[3] == "100"  # ABSENT keeps its size
     hits = pd.read_csv(out / "hits.tsv", sep="\t")
     assert sorted(hits.length) == [58, 70, 82]  # -M 5 alone would have missed the 7 and 3 repeat amplicons
-    assert set(hits.expected_size) == {100}
+    assert set(hits.expected_size) == {70}  # the STS size is kept, not the midpoint of the window
+    sts = (fixture_dir / "range.sts")
+    sts.write_text(f"VNTR1\t{FWD}\t{REV}\t60-80\n")
+    assert main(["search", "--sts", str(sts), "--fasta", str(fixture_dir / "sampleA.fasta"),
+                 "--outdir", str(fixture_dir / "r"), "--align", "none", "--markers", str(fixture_dir / "m.tsv")]) == 0
+    assert (fixture_dir / "r" / "primers_used.sts").read_text().split("\t")[3].strip() == "60-80"  # explicit range kept

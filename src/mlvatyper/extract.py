@@ -62,7 +62,7 @@ def annotate_hit(hit: Hit, fragment: str, contig_length: int, pair: PrimerPair |
         rev = primer_mismatches(fragment[len(fragment) - len(rev_rc) :], rev_rc)
     return replace(
         hit,
-        expected_size=pair.expected_size if hit.expected_size < 0 else hit.expected_size,
+        expected_size=pair.expected_size,  # the STS value, not merPCR's midpoint of a derived window
         fwd_mismatches=fwd,
         rev_mismatches=rev,
         dist_to_contig_end=dist,

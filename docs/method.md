@@ -118,6 +118,22 @@ reference values taken from their publications, the provenance fields
 filled in, and the output of `check-scheme --reference` against the
 strain the publication used.
 
+Bundled schemes:
+
+- `testM`: the example scheme of this repository, without reference
+  repeat numbers.
+- `STm_ECDC`: the five locus scheme for *Salmonella* Typhimurium
+  harmonised in the EU (Lindstedt et al. 2004; nomenclature of Larsson et
+  al. 2009; ECDC SOP). Reference sizes are the in silico products in strain
+  LT2 (AE006468 and pSLT AE006471) and equal the LT2 sizes of the SOP;
+  reference repeat numbers were derived from the SOP size ranges and
+  confirmed by exact tandem counts in the LT2 amplicons, which the CI job
+  repeats on the committed LT2 regions under `tests/data`. Units are
+  counted exactly (`unit_mismatches: 0`) because the nomenclature counts
+  complete repeats. STTR3 is a compound locus of 27 bp and 33 bp units
+  that the single unit formula cannot express; it is reported by length
+  and its allele has to be assigned by hand.
+
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`
 (where the file came from) and `reference` (the strain or accession the

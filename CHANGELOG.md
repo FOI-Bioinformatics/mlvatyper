@@ -3,6 +3,20 @@
 Dates are the release dates. Versions follow semantic versioning; the tool
 is below 1.0, so the output tables may still change between minor versions.
 
+## Unreleased
+
+### Added
+
+- Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
+  Salmonella Typhimurium, with reference values verified against strain
+  LT2 and a committed fixture of the LT2 amplicon regions that CI checks.
+
+### Changed
+
+- An explicit size range in the STS file is kept when `--markers` derives
+  size windows, and hits keep the STS expected size rather than the
+  midpoint of a derived window.
+
 ## 0.3.0 - 2026-10-23
 
 ### Added

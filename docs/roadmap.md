@@ -31,7 +31,14 @@ the bundled `testM` template, `--mlvabank` export with marker labels,
 `bins-from-table`, and `check-scheme` with optional NCBI fetch, which
 requires the provenance fields citation, url and reference.
 
-Published schemes are not bundled yet. Each needs reference values from
+The Salmonella Typhimurium scheme `STm_ECDC` is bundled, verified against
+LT2 and checked in CI. Its STTR3 locus shows a limit of the data model:
+compound loci with two unit lengths (27 and 33 bp here) cannot be called
+by the single unit formula and are reported by length only. Supporting a
+second unit per marker, counted separately and named as the nomenclature
+does, is a candidate item.
+
+Other published schemes are not bundled yet. Each needs reference values from
 its publication, the provenance fields filled in, and a verification run
 of `check-scheme --reference` against the strain the publication used, so
 that a transcription error shows up as a marker that misses its stated

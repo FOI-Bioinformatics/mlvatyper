@@ -43,7 +43,12 @@ jobs:
         run: |
           mlvatyper schemes
           for scheme in $(mlvatyper schemes | cut -f1); do
-            mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
+            reference="tests/data/${scheme}_reference.fasta"
+            if [ -f "$reference" ]; then
+              mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme" --reference "$reference"
+            else
+              mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
+            fi
           done
       - name: Run the testM example end to end
         run: |
