@@ -1,0 +1,26 @@
+# Bacillus anthracis MLVA-15 of Van Ert et al. 2007, in the order of the published primer
+# table, which is by multiplex reaction: 7-1 (BaVNTR12, 19, 35), 7-2 (BaVNTR16, 23), 7-3
+# (BaVNTR17, 32), 8-1 (vrrA, vrrB1, CG3), 8-2 (pXO1-aat, pXO2-at, vrrB2), 8-3 (vrrC1) and
+# 8-4 (vrrC2). The eight MLVA-8 loci therefore do not appear in the Keim order used by
+# bacillus_mlva8_keim_2000, so the two profile strings are not aligned with each other.
+# Fluorescent label prefixes in the source primer table are not part of the oligonucleotides
+# and are not included here; scheme.yml records which primer carries which dye. Every reverse
+# primer of the seven BaVNTR loci carries a 5' G that is not in the genome, which is kept
+# because it is part of the published oligonucleotide; see markers.tsv. The expected size is a
+# search window around the reference product, not the product itself; it only bounds the
+# search and does not affect allele calls.
+BaVNTR12	CGTACGAAGTAGAAGTCATTAA	GCATATAATTGCACCTCATCTAG	80-220
+BaVNTR19	GTGATGAAATCGGACAAGTTAGGAG	GAAATATTTTATTAAACATGCTTTCCATCC	70-220
+BaVNTR35	AAATAATATGTTCCTTTTGCTG	GTCCTGAAATAAATGCTGAAT	80-240
+BaVNTR16	CTCTTGAAAATATAAAACGCA	GAATAATAAGGGTTCTCATGGTAT	200-420
+BaVNTR23	TTTAGAAACGTTATCACGCTTA	GTAATACGTATGGTTCATTCCC	140-340
+BaVNTR17	TAGGTAAACAAATTTTCGTAATC	GATCGTACAACAGCAATTATCAT	300-540
+BaVNTR32	AACTGGATCCAGGAGATTATA	GAAACAAGAGCAAACCCAAT	440-760
+vrrA	CACAACTACCACCGATGGCACA	GCGCGTTTCGTTTGATTCATAC	250-450
+vrrB1	ATAGGTGGTTTTCCGCAAGTTATTC	GATGAGTTTGATAAAGAATAGCCTGTG	180-350
+CG3	TGTCGTTTTACTTCTCTCTCCAATAC	AGTCATTGTTCTGTATAAAGGGCAT	110-250
+pXO1-aat	CAATTTATTAACGATCAGATTAAGTTCA	TCTAGAATTAGTTGCTTCATAATGGC	90-220
+pXO2-at	TCATCCTCTTTTAAGTCTTGGGT	GTGTGATGAACTCCGACGACA	100-220
+vrrB2	CACAGGCTATTCTTTATCAAACTCATC	CCCAAGGTGAAGATTGTTGTTGA	100-280
+vrrC1	GAAGCAAGAAAGTGATGTAGTGGAC	CATTTCCTCAAGTGCTACAGGTTC	450-800
+vrrC2	CCAGAAGAAGTGGAACCTGTAGCAC	GTCTTTCCATTAATCGCGCTCTATC	450-700

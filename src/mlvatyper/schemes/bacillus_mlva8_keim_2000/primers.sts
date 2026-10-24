@@ -1,0 +1,15 @@
+# Bacillus anthracis MLVA-8 of Keim et al. 2000, in the published marker order: the six
+# chromosomal loci vrrA, vrrB1, vrrB2, vrrC1, vrrC2 and CG3, then the two plasmid loci
+# pXO1-aat and pXO2-at. Fluorescent label prefixes in the source primer table are not part
+# of the oligonucleotides and are not included here; scheme.yml records which primer carries
+# which dye. The expected size is a search window around the reference product wide enough
+# for the published allele ranges, not the product itself; markers.tsv holds the reference
+# size. It only bounds the search and does not affect allele calls.
+vrrA	CACAACTACCACCGATGGCACA	GCGCGTTTCGTTTGATTCATAC	250-450
+vrrB1	ATAGGTGGTTTTCCGCAAGTTATTC	GATGAGTTTGATAAAGAATAGCCTGTG	180-350
+vrrB2	CACAGGCTATTCTTTATCAAACTCATC	CCCAAGGTGAAGATTGTTGTTGA	100-280
+vrrC1	GAAGCAAGAAAGTGATGTAGTGGAC	CATTTCCTCAAGTGCTACAGGTTC	450-800
+vrrC2	CCAGAAGAAGTGGAACCTGTAGCAC	GTCTTTCCATTAATCGCGCTCTATC	450-700
+CG3	TGTCGTTTTACTTCTCTCTCCAATAC	AGTCATTGTTCTGTATAAAGGGCAT	110-250
+pXO1-aat	CAATTTATTAACGATCAGATTAAGTTCA	TCTAGAATTAGTTGCTTCATAATGGC	90-220
+pXO2-at	TCATCCTCTTTTAAGTCTTGGGT	GTGTGATGAACTCCGACGACA	100-220

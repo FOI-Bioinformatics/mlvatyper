@@ -11,6 +11,18 @@ is below 1.0, so the output tables may still change between minor versions.
   in a partial unit and is numbered `n.5`. The alleles of such a marker
   lie on a half-integer grid, and a call on that grid is reported as `n.5`
   rather than flagged INTERMEDIATE. Whole numbers are unaffected.
+- Bundled scheme `bacillus_mlva15_vanert_2007`, the MLVA-15 panel of Van
+  Ert et al. for Bacillus anthracis, anchored on Ames Ancestor. It carries
+  the eight MLVA-8 loci forward with the same primers and adds seven
+  BaVNTR loci; its published repeat motifs and locations also corroborate
+  the units and reference sizes of `bacillus_mlva8_keim_2000`. The copy
+  numbers are still derived from the reference, because neither paper
+  gives allele definitions.
+- Bundled scheme `bacillus_mlva8_keim_2000`, the eight locus MLVA-8 panel
+  of Keim et al. for Bacillus anthracis, anchored on Ames Ancestor. The
+  source table gives primers only, so the copy numbers are derived from
+  the reference; confirm them against the published allele table before
+  comparing a profile with published MLVA-8 genotypes.
 - Bundled schemes `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`,
   the standardised MIRU-VNTR set for Mycobacterium tuberculosis and its
   discriminatory subset, anchored on H37Rv. The source table gives no
