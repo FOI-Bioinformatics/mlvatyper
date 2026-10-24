@@ -1,0 +1,38 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+424	51	639	2	AACGGCGCAGTTGGCACCAGCCGGTGAGCGAGCGCGCGTAGCGGGGGAGCG	Mtub04
+577	58	382	3	AAGGAGTTGGGCGGTTAGGTCGAGCCCGACGACGATGCAGAGCGCGCAGCGCGATGAG	ETRC
+580	77	353	3	ACCACCCGCTTGCGGGGGAGAGTGGCGCTGATGACCTGCGCCGACGACGATGCAGAGCGTAGCGATGAGGTGGGGGC	MIRU4
+802	54	408	1	N/A	MIRU40
+960	53	643	3	AATGGCGCCGCTCCTCCTCATCGCTGCGCTCTGCATCGTCGCCGGCGGTAGTC	MIRU10
+1644	53	671	2	ACGAGCGCCGCTCCTCCTCATCGCTTCGCTCTGCATCGTCGTCGGCGCGGTTC	MIRU16
+1955	57	206	1	N/A	Mtub21
+2163b	69	412	5	AACGGAATACCAGGAATAGTAATATCCGGCACCACAATCGGACCGACACCACCCAGCGCGTTCAGGCTC	QUB-11b
+2165	75	420	3	AATCCCGTTGGGTATTGATGTGGGCGGAGGGTTAGGCCCGTTTACGGTGTTCCCGGATGGCTACTCACTTCCGGC	ETRA
+2401	58	363	2	N/A	Mtub30
+2996	51	438	3	ACCTCCGCCGGCGACGATGCAGAGCGCAGCGATGAGGAGGAGCGGCGCTTG	MIRU26
+3192	53	651	3	AACCATCTGCGCCGCTCCTCCTCATCGCTGCGCTCTGCATCGTCGCCGGCGCC	MIRU31
+3690	58	388	2	N/A	Mtub39
+4052	111	718	5	ACCCGCTGCACCCGGCTCTGGGGTGATTGCCTGGCTCCTCCTCGGCCCGTTTTGCGGGCCGCATTGTCGCCAGGCGCGGGGTTTGCGATCGCCACGGGGCTGATGGTGGCG	QUB-26
+4156	59	681	2	AACGCGGGCGACCCGCCGCACCCGGCGACAAGCGCCGAGCTTGCGATCGCCCTGAATCC	QUB-4156
+# ref_size is the product length measured in the H37Rv assembly GCA_000195955.2 (AL123456.3) by in
+# silico PCR with these primers, outer primer edge to outer primer edge. Every locus gives exactly
+# one product there. The publication's table gives no amplicon sizes, so there is nothing to
+# compare it with.
+#
+# IMPORTANT: MIRU-VNTR alleles are canonically assigned from amplicon size with the published allele
+# calling table, which is not part of the table this scheme was built from. The copy numbers below
+# are derived from the reference assembly, not published, so one may be offset from the canonical
+# allele. Confirm them against that table, or supply it as bins.tsv, before a profile from this
+# scheme is compared with published MIRU codes.
+#
+# unit_length is the published repeat unit length for every locus. Copy numbers were established
+# three ways, all against the H37Rv amplicon:
+#   repeat detection, which also reproduced the published unit length: 424 x2; 577 x3; 580 x3; 960 x3; 1644 x2; 2163b x5; 2165 x3; 2996 x3; 3192 x3; 4052 x5; 4156 x2
+#   two adjacent copies of the published unit length that differ by a few bases, which the detector
+#     skipped; counted with an allowance of 3 mismatches: 2401 x2; 3690 x2
+#   no pair of adjacent windows of the published unit length anywhere in the amplicon reaches
+#     85 per cent identity, so the array is a single unit: 802 x1; 1955 x1
+# Neither the single copy loci nor the imperfect ones carry a pattern: one unit forms no array to
+# cross-check, and counting an imperfect array needs a mismatch allowance that inflates the count
+# at other loci. Their copy numbers rest on the measurements above. The tandem cross-check is
+# therefore active on the loci resolved by the detector and skipped on the rest.

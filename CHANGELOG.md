@@ -11,6 +11,12 @@ is below 1.0, so the output tables may still change between minor versions.
   in a partial unit and is numbered `n.5`. The alleles of such a marker
   lie on a half-integer grid, and a call on that grid is reported as `n.5`
   rather than flagged INTERMEDIATE. Whole numbers are unaffected.
+- Bundled schemes `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`,
+  the standardised MIRU-VNTR set for Mycobacterium tuberculosis and its
+  discriminatory subset, anchored on H37Rv. The source table gives no
+  copy numbers, so these are derived from the reference; confirm them
+  against the published allele calling table before comparing a profile
+  with published MIRU codes.
 - Bundled scheme `brucella_mlva15_lefleche_2006`, the Brucella MLVA-15
   panel, anchored on B. melitensis 16M. Every locus reproduces the
   published reference size and copy number on the stated chromosome.
