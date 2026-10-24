@@ -13,6 +13,8 @@ single-file script (`vntr_searcher_9.py`).
   every output table, the status codes, the limitations and the differences
   from the legacy script.
 - [Run report](docs/report.md): the HTML report written for each run.
+- [Building a scheme from a publication](docs/schemes.md): step by step
+  from the primer table to a verified scheme directory.
 - [Roadmap](docs/roadmap.md): planned work.
 - [Audit](docs/audit_2026-10-22.md): comparison with other MLVA tools and the
   evaluation runs behind the current defaults.

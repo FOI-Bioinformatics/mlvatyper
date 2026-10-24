@@ -7,6 +7,7 @@ Subcommands:
   discover   find repeat units in the amplicons of one sample and write a marker definition file
   report     write a self-contained HTML report from the tables of a run
   schemes    list the bundled schemes
+  new-scheme   create a scheme directory with annotated template files
   check-scheme   check a scheme's files and, with an assembly, its reference values
   bins-from-table   build a bin file from a published allele size table
 """
@@ -41,7 +42,7 @@ from .checkscheme import (
 )
 from .mlvabank import bins_from_table, export_profiles
 from .report import write_report as write_html_report
-from .scheme import SchemeError, apply_scheme, list_schemes, load_scheme
+from .scheme import SchemeError, apply_scheme, list_schemes, load_scheme, scaffold_scheme
 from .rescue import RescueOptions, find_with_indels, missing_reasons, read_missing, rescue_pass, write_missing
 from .search import MerPcrSearcher, SearchError, sample_name
 from .sts import is_degenerate, read_sts, write_invalid, write_sts
@@ -180,6 +181,10 @@ def build_parser() -> argparse.ArgumentParser:
     _add_summary_args(summ)
 
     sub.add_parser("schemes", help="list the bundled schemes")
+
+    new = sub.add_parser("new-scheme", help="create a scheme directory with annotated template files")
+    new.add_argument("directory", help="directory to create")
+    new.add_argument("--name", help="scheme name (default: the directory name)")
 
     chk = sub.add_parser("check-scheme", help="check a scheme's files and reference values")
     chk.add_argument("--scheme", required=True, help="bundled scheme name or scheme directory")
@@ -675,6 +680,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "schemes":
         for scheme in list_schemes():
             print(f"{scheme.name}\t{scheme.meta.get('organism', '')}\t{scheme.path}")
+        return 0
+    if args.command == "new-scheme":
+        try:
+            scaffold_scheme(args.directory, args.name)
+        except SchemeError as exc:
+            log.error("%s", exc)
+            return 1
         return 0
     if args.command == "bins-from-table":
         try:

@@ -22,6 +22,12 @@ is below 1.0, so the output tables may still change between minor versions.
   size windows, and hits keep the STS expected size rather than the
   midpoint of a derived window.
 
+## Unreleased
+
+- `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
+  template files, and `docs/schemes.md` describes how to build a scheme
+  from a publication and verify it against the reference strain.
+
 ## 0.3.0 - 2026-10-23
 
 ### Added

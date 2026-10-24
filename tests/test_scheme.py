@@ -142,3 +142,24 @@ def test_check_scheme(fixture_dir):
     assert int(table.loc["ABSENT", "n_products"]) == 0 and "not found" in table.loc["ABSENT", "note"]
     assert main(["check-scheme", "--scheme", str(d), "--outdir", str(out), "--fetch", "X"]) == 1  # needs --email
     assert main(["check-scheme", "--scheme", str(d), "--outdir", str(out), "--reference", "missing.fa"]) == 1
+
+
+def test_new_scheme_scaffold(tmp_path, caplog):
+    d = tmp_path / "organism_2015"
+    assert main(["new-scheme", str(d)]) == 0
+    assert sorted(p.name for p in d.iterdir()) == ["bins.tsv", "markers.tsv", "primers.sts", "scheme.yml"]
+    scheme = load_scheme(d)
+    assert scheme.name == "organism_2015" and scheme.calling_defaults()["rounding"] == "intermediate"
+    assert scheme.missing_provenance() == ["citation", "url", "reference"]
+    assert read_markers(d / "markers.tsv") == []  # header and comments only
+    from mlvatyper.calling import read_bins
+    from mlvatyper.sts import read_sts
+    assert read_bins(d / "bins.tsv") == {} and read_sts(d / "primers.sts") == ([], [])
+    # the template is usable as soon as the files are filled in
+    (d / "primers.sts").write_text(f"L1\t{FWD}\t{REV}\t70\n")
+    (d / "markers.tsv").write_text("marker\tunit_length\tref_size\tref_repeats\tpatterns\tlabel\n"
+                                   f"L1\t6\t70\t5\t{UNIT}\tL1\n")
+    assert read_markers(d / "markers.tsv")[0].ref_repeats == 5
+    assert main(["new-scheme", str(d)]) == 1 and "already holds a scheme" in caplog.text
+    assert main(["new-scheme", str(tmp_path / "other"), "--name", "named"]) == 0
+    assert load_scheme(tmp_path / "other").name == "named"

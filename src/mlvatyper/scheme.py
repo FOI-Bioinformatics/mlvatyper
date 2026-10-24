@@ -145,3 +145,57 @@ def apply_scheme(args, scheme: Scheme, parser_defaults: dict) -> None:
             applied.append(f"{key}={value}")
     log.info("Scheme %s: %s%s", scheme.name, scheme.description,
              f" (defaults {', '.join(applied)})" if applied else "")
+
+
+STS_TEMPLATE = """# {name}: primer pairs, one per line, tab separated: id, forward primer, reverse primer, expected size
+# - the id is the marker name used in every table; keep it short and without spaces
+# - primers 5' to 3' as published; IUPAC codes are accepted
+# - the expected size is the product of the reference strain in bp, outer primer edge to outer primer edge,
+#   or a low-high range when the publication gives one; a wrong size only narrows the search window
+# - delete these comment lines or keep them, lines starting with # are ignored
+"""
+
+MARKERS_TEMPLATE = """marker\tunit_length\tref_size\tref_repeats\tpatterns\tlabel
+# one line per marker; patterns are repeat unit sequences in the orientation of the forward primer,
+# several variants separated by ; or N/A when the unit is unknown
+# ref_size and ref_repeats describe the reference strain named in scheme.yml; leave them empty when the
+# publication gives none and anchor the calls with --reference-sample instead
+# label is the locus name used in exports, for example the column name in MLVAbank
+"""
+
+BINS_TEMPLATE = """marker\tsize\tallele
+# optional: one line per allele with its amplicon size or low-high range; delete this file when the
+# scheme numbers alleles by the formula only. mlvatyper bins-from-table builds it from a published table
+"""
+
+META_TEMPLATE = """# {name}: scheme metadata, one key: value per line. citation, url and reference are required by
+# check-scheme because allele numbers are only comparable when their source is recorded.
+name: {name}
+organism:
+citation:
+url:
+reference:
+retrieved: {today}
+notes:
+# calling defaults applied with --scheme unless the option is given on the command line
+rounding: intermediate
+allele_tolerance: 0.25
+"""
+
+
+def scaffold_scheme(path: str | Path, name: str | None = None) -> Path:
+    """Create a scheme directory with annotated template files; refuses to overwrite an existing scheme."""
+    from datetime import date
+
+    path = Path(path)
+    if (path / STS_FILE).exists():
+        raise SchemeError(f"{path} already holds a scheme ({STS_FILE} exists)")
+    path.mkdir(parents=True, exist_ok=True)
+    name = name or path.name
+    (path / STS_FILE).write_text(STS_TEMPLATE.format(name=name), encoding="utf-8")
+    (path / MARKERS_FILE).write_text(MARKERS_TEMPLATE, encoding="utf-8")
+    (path / BINS_FILE).write_text(BINS_TEMPLATE, encoding="utf-8")
+    (path / META_FILE).write_text(META_TEMPLATE.format(name=name, today=date.today().isoformat()), encoding="utf-8")
+    log.info("Scheme template written to %s; fill primers.sts, markers.tsv and scheme.yml, then run check-scheme",
+             path)
+    return path

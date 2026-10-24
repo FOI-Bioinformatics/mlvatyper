@@ -111,7 +111,9 @@ reference, citation, url, retrieved, notes) that may also set the calling defaul
 `rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
 and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
 `mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
-`--bins`; options given on the command line still win over the scheme
+`--bins`; `mlvatyper new-scheme DIR` writes the four files as annotated
+templates, and [schemes.md](schemes.md) describes how to fill them from a
+publication; options given on the command line still win over the scheme
 defaults. One scheme, `testM`, is bundled as a template under
 `src/mlvatyper/schemes/`. Published schemes should be added only with
 reference values taken from their publications, the provenance fields
