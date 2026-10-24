@@ -13,8 +13,15 @@ accession, GCA_ or GCF_, which check-scheme downloads from NCBI into a
 local cache; assemblies are never stored in a scheme directory),
 citation, url, retrieved, rounding,
 allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
-notes. The calling keys become the defaults of the corresponding options
-when the scheme is used; options given on the command line still win.
+known_multiple, notes. The calling keys become the defaults of the
+corresponding options when the scheme is used; options given on the command
+line still win.
+
+known_multiple lists the markers whose primers give more than one product in
+the reference assembly, separated by commas, because the locus is duplicated
+there rather than because the primers are wrong. The reason belongs in notes.
+Checks that require one product per marker skip these, so a known duplication
+does not have to be hidden by removing a published locus from the scheme.
 
 citation, url and reference are the provenance of the values: who
 published them, where the file came from, and which strain or accession
@@ -93,6 +100,14 @@ class Scheme:
         """The reference assembly accession, or None when not given."""
         value = str(self.meta.get("assembly", "")).strip()
         return None if is_placeholder(value) else value
+
+    @property
+    def known_multiple(self) -> tuple[str, ...]:
+        """Markers that give more than one product in the reference, as declared by the scheme."""
+        value = str(self.meta.get("known_multiple", "")).strip()
+        if is_placeholder(value):
+            return ()
+        return tuple(m.strip() for m in value.split(",") if m.strip())
 
     def calling_defaults(self) -> dict:
         """Metadata values that apply as option defaults."""

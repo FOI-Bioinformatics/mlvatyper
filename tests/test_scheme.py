@@ -227,3 +227,18 @@ def test_read_bins_header_after_comments_and_dashes(tmp_path, caplog):
     bins = read_bins(path)
     assert [(b.low, b.high, b.allele) for b in bins["L1"]] == [(100, 110, "1"), (130, 130, "3")]
     assert "line 4: no allele" in caplog.text and "size 'size'" not in caplog.text
+
+
+def test_known_multiple_declares_duplicated_loci(tmp_path):
+    """A scheme may declare markers that give more than one product in its reference."""
+    path = tmp_path / "s"
+    path.mkdir()
+    (path / "primers.sts").write_text("M1\tACGT\tTGCA\t100\n")
+    (path / "scheme.yml").write_text("name: s\nknown_multiple: Ft-M14, Ft-M3\n")
+    assert load_scheme(path).known_multiple == ("Ft-M14", "Ft-M3")
+    (path / "scheme.yml").write_text("name: s\nknown_multiple:\n")
+    assert load_scheme(path).known_multiple == ()
+    (path / "scheme.yml").write_text("name: s\nknown_multiple: none\n")  # a placeholder states nothing
+    assert load_scheme(path).known_multiple == ()
+    (path / "scheme.yml").write_text("name: s\n")
+    assert load_scheme(path).known_multiple == ()

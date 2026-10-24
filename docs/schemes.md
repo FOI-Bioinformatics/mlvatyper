@@ -138,7 +138,7 @@ order:
 |---|---|---|
 | `sts_ok` | 1 | the STS line is invalid; the note says why |
 | `hash_word_11` | 1 | the primer has IUPAC codes in every 11-mer; it is still found by the rescue pass |
-| `n_products` | 1 | 0: a primer is wrong, or the strain is not the one the primers were designed on; 2 or more: the locus is duplicated |
+| `n_products` | 1 | 0: a primer is wrong, or the strain is not the one the primers were designed on; 2 or more: the locus is duplicated, and if that is real rather than a primer fault, list the marker in `known_multiple` |
 | `size_ok` | 1 | the product differs from `ref_size`: a size convention mismatch (section 2) or a transcription error |
 | `repeats_ok` | 1 | the tandem count differs from `ref_repeats`: the unit is wrong, in the wrong orientation, or the reference strain holds variant units |
 
@@ -177,11 +177,20 @@ rest against the paper.
     reference: strain XYZ, chromosome CP000000.1
     assembly: GCA_000000000.1
     retrieved: 2026-10-24
+    known_multiple: Locus_7
     notes: sizes in the paper exclude the reverse primer; corrected by 21 bp. Locus_7 is duplicated in CP000000.1.
 
 Write in `notes` every correction made in sections 2 to 5. The next
 person to use the scheme, including you a year later, can then tell a
 deliberate change from a mistake.
+
+`known_multiple` lists the markers that give more than one product in the
+reference because the locus really is duplicated there, separated by
+commas. Checks that require one product per marker skip them, so a
+published locus can be kept with its ambiguity recorded rather than
+dropped from the scheme. Calls for such a marker are flagged MULTIPLE.
+Use it only when the duplication is established, not to silence a primer
+that matches the wrong place.
 
 A value is one line. `#` after a space starts a comment, so write a URL
 fragment without a space before it (`page#table2`). `check-scheme` fails

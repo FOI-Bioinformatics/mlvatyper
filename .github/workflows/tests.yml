@@ -78,9 +78,13 @@ jobs:
                   continue
               products = pd.to_numeric(table["n_products"], errors="coerce")
               size_ok = pd.to_numeric(table["size_ok"], errors="coerce")
-              wrong = table[(products != 1) | (size_ok == 0)]
-              print(f"{scheme.name}: {len(table)} markers, {int((products == 1).sum())} with one product, "
-                    f"{int((size_ok == 1).sum())} with the reference size")
+              repeats_ok = pd.to_numeric(table["repeats_ok"], errors="coerce")
+              # a locus the scheme declares as duplicated in its reference may give more than one product
+              declared = table["marker"].isin(scheme.known_multiple)
+              wrong = table[(~declared & (products != 1)) | (size_ok == 0) | (repeats_ok == 0)]
+              print(f"{scheme.name}: {len(table)} markers, {int((products == 1).sum())} with one product "
+                    f"({int(declared.sum())} declared duplicated), {int((size_ok == 1).sum())} with the "
+                    f"reference size, {int((repeats_ok == 1).sum())} with the reference repeats")
               if len(wrong):
                   bad.append(f"{scheme.name}: {', '.join(wrong['marker'])}")
           if bad:
