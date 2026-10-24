@@ -7,6 +7,19 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ### Added
 
+- Bundled scheme `burkholderia_uren_2007`, the 32 locus VNTR panel of
+  U'Ren et al. for Burkholderia pseudomallei, with reference sizes and
+  repeat counts measured in strain K96243 because the publication's copy
+  numbers could not be reproduced there.
+- Bundled schemes `francisella_johansson_2004` and
+  `francisella_vogler_2008` for Francisella tularensis, anchored on SCHU S4
+  and LVS. The Johansson panel calls 16 of its 25 markers and sizes the
+  rest, because the repeat units of the remaining loci are not in the
+  source table and the arrays in the reference are too weak to derive.
+- `known_multiple` in `scheme.yml` lists markers whose primers give more
+  than one product in the reference because the locus is duplicated there.
+  Checks that require one product per marker skip them, so a published
+  locus with a known duplication does not have to be dropped.
 - Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
   Salmonella Typhimurium, with reference values verified against strain
   LT2, whose assembly CI downloads by accession and checks.
