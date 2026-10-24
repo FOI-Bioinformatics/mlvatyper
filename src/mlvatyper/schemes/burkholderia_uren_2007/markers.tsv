@@ -1,0 +1,48 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+933k	12	262	9	CGGCGAGGGAAA	933 k
+2065k	8	283	8	TCGAGTCA	2065 k
+2971k	7	248	8	CGTGCTT	2971 k
+3145k	9	271	7	CCTTCCTCG	3145 k
+2666k	9	309	6	CTTTCGCTA	2666 k
+3671k	7	301	18	CTTGGAC	3671 k
+2115k	8	359	4	CGCCGGTT	2115 k
+2341k	9	172	7	TTCGTGCGC	2341 k
+1500k	11	365	4	GGGAAAGTGCG	1500 k
+3091k	7	263	12	TCACGGC	3091 k
+3152k	6	232	17	GACTCG	3152 k
+3652k	8	358	8	CCGTAGTC	3652 k
+3564k	15	626	2	GCAGCCTTCTTCGCG	3564 k
+20k	7	287	8	CGCCTCA	20 k
+857k	9	259	7	CGAACGAGC;CGAATGAGC	857 k
+1690k	8	344	9	CGTCGATA	1690 k
+2445k	8	339	19	GGCACTTC	2445 k
+1367k	9	612	23	CGCATCGAA;CGCGTCGAA	1367 k
+1764k	12	379	13	GCCGCTGAAGTT	1764 k
+2815k	9	273	7	TGGCGTCTT	2815 k
+2170k	9	406	24	ATGCCGTGG	2170 k
+389k	8	263	6	GACGAACC	389 k
+1788k	16	301	4	GTCGTGCGATCCTGCT	1788 k
+1217k	10	472	10	CGGACCTAGG	1217 k
+397k	8	307	12	GCCCGAGA	397 k
+2050k	9	439	12	CGATGCGGT;GCACCCAAC	2050 k
+2862k	10	341	7	CTCGCCTTTG	2862 k
+140k	8	478	15	GCGCCGAA	140 k
+2356k	8	290	13	CTTGGCGA	2356 k
+2518k	7	417	16	CCGCGAT	2518 k
+2124k	8	415	15	CCTTCGCG	2124 k
+1934k	13	355	7	CGAGTCGGCGGTT	1934 k
+# ref_size and ref_repeats were measured in the K96243 assembly GCA_000011545.1 by in silico PCR with
+# these primers: ref_size is the product length, ref_repeats the tandem array count in that product
+# using the patterns of this file. TRF agrees with the count for 28 of the 32 markers.
+# The copy numbers read from the publication's locus characteristics table differ for 20 of 32
+# markers, always higher, which suggests a column other than the K96243 copy number. They are kept
+# here for review and are not used: for each marker the published value, and where it differs the
+# measured count and the TRF count.
+#   933k 10 (now 9, TRF 9); 2065k 8; 2971k 9 (now 8, TRF 8); 3145k 8 (now 7, TRF 7)
+#   2666k 7 (now 6, TRF 6); 3671k 21 (now 18, TRF 18); 2115k 15 (now 4, TRF 2); 2341k 7
+#   1500k 6 (now 4, TRF 4); 3091k 12; 3152k 17; 3652k 8
+#   3564k 30 (now 2, TRF 2); 20k 10 (now 8, TRF 8); 857k 11 (now 7, TRF 7); 1690k 13 (now 9, TRF 9)
+#   2445k 19; 1367k 24 (now 23, TRF 21); 1764k 20 (now 13, TRF 13); 2815k 7
+#   2170k 24; 389k 6; 1788k 8 (now 4, TRF 4); 1217k 15 (now 10, TRF 10)
+#   397k 12; 2050k 16 (now 12, TRF 8); 2862k 8 (now 7, TRF 7); 140k 15
+#   2356k 13; 2518k 31 (now 16, TRF 16); 2124k 23 (now 15, TRF 15); 1934k 16 (now 7, TRF 7)
