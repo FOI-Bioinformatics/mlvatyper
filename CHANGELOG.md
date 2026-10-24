@@ -7,6 +7,16 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ### Added
 
+- `ref_repeats` may be fractional, for schemes whose reference array ends
+  in a partial unit and is numbered `n.5`. The alleles of such a marker
+  lie on a half-integer grid, and a call on that grid is reported as `n.5`
+  rather than flagged INTERMEDIATE. Whole numbers are unaffected.
+- Bundled scheme `brucella_mlva15_lefleche_2006`, the Brucella MLVA-15
+  panel, anchored on B. melitensis 16M. Every locus reproduces the
+  published reference size and copy number on the stated chromosome.
+- Bundled scheme `yersinia_klevytska_2001`, the 42 locus VNTR survey of
+  Klevytska et al. for Yersinia pestis, anchored on CO92. Three of its
+  loci are numbered with a half copy.
 - Bundled scheme `burkholderia_uren_2007`, the 32 locus VNTR panel of
   U'Ren et al. for Burkholderia pseudomallei, with reference sizes and
   repeat counts measured in strain K96243 because the publication's copy
