@@ -5,6 +5,10 @@ scheme whose allele numbers cannot be traced to a source is not usable
 for comparison with a database, so a missing or placeholder value is an
 error rather than a warning.
 
+The reference assembly is the FASTA given with --reference, or else the
+GCA_ or GCF_ accession given with --assembly or named by `assembly` in
+scheme.yml, downloaded from NCBI into a local cache on first use.
+
 Without an assembly the check covers the files: STS entries are validated,
 marker and bin ids are compared with the STS ids, and primers that merPCR
 cannot hash at the default and at the rescue word size are listed. With an
@@ -18,6 +22,7 @@ from pathlib import Path
 import pandas as pd
 from Bio.Seq import Seq
 
+from .assemblies import download_assembly
 from .calling import read_bins
 from .extract import load_fasta
 from .log import get_logger
@@ -142,8 +147,25 @@ def assembly_checks(table: pd.DataFrame, pairs: list[PrimerPair], defs: dict[str
     return table.reset_index()
 
 
+def resolve_reference(scheme: Scheme, reference: str | None, assembly: str | None, download: bool,
+                      cache: str | None) -> Path | None:
+    """The reference FASTA to search: a given path, else the assembly accession given or named by the scheme."""
+    if reference:
+        path = Path(reference)
+        if not path.exists():
+            raise FileNotFoundError(f"reference assembly {path} not found")
+        return path
+    accession = assembly or scheme.assembly
+    if accession is None:
+        return None
+    if not download:
+        log.info("%s: reference assembly %s not downloaded (--no-download)", scheme.name, accession)
+        return None
+    return download_assembly(accession, cache)
+
+
 def fetch_assembly(accession: str, email: str, out: Path) -> Path:
-    """Download a nucleotide record from NCBI as FASTA."""
+    """Download a nucleotide record (not an assembly) from NCBI as FASTA."""
     from Bio import Entrez
 
     Entrez.email = email

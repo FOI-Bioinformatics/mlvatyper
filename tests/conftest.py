@@ -1,3 +1,4 @@
+import os
 import random
 from pathlib import Path
 
@@ -44,3 +45,19 @@ def fixture_dir(tmp_path: Path) -> Path:
         "ABSENT\tN/A\n"
     )
     return tmp_path
+
+
+def reference_assembly(accession: str) -> Path:
+    """Path of a cached NCBI assembly for tests that need a real reference.
+
+    The file is never committed. It is used when already in the cache, downloaded when MLVATYPER_ONLINE is
+    set (as in CI), and the test is skipped otherwise.
+    """
+    from mlvatyper.assemblies import cached_path, download_assembly
+
+    path = cached_path(accession)
+    if path.exists():
+        return path
+    if os.environ.get("MLVATYPER_ONLINE"):
+        return download_assembly(accession)
+    pytest.skip(f"reference assembly {accession} not in the cache; set MLVATYPER_ONLINE=1 to download it")

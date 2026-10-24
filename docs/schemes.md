@@ -104,14 +104,24 @@ nearest`, `up`, `down` or `intermediate` (the default, which reports
 
 ## 5. Verify against the reference strain
 
-Download the assembly of the strain the paper used as reference and run
+Find the assembly accession of the strain the paper used as reference (a
+GenBank `GCA_` or RefSeq `GCF_` accession with its version, from the NCBI
+Assembly or Datasets pages) and write it into `scheme.yml`:
 
-    mlvatyper check-scheme --scheme schemes/organism_2015 --reference ref.fasta --outdir check
+    assembly: GCF_000006945.2
 
-or let the command fetch it from NCBI:
+Then run
 
-    mlvatyper check-scheme --scheme schemes/organism_2015 --fetch CP000000.1 \
-        --email you@example.org --outdir check
+    mlvatyper check-scheme --scheme schemes/organism_2015 --outdir check
+
+The assembly is downloaded from NCBI into `~/.cache/mlvatyper/assemblies`
+(or the directory in `MLVATYPER_CACHE`, or `--cache-dir`) the first time
+and read from there afterwards. The sequence is never copied into the
+scheme directory, so a scheme carries an accession and not a genome, and
+the repository stays small. `--assembly GCF_...` checks against another
+accession, `--reference ref.fasta` against a local file, `--no-download`
+checks the files only, and `--fetch CP000000.1 --email you@example.org`
+fetches a single nucleotide record for strains without an assembly entry.
 
 `check/scheme_check.tsv` has one row per marker. Read the columns in this
 order:
@@ -155,7 +165,8 @@ rest against the paper.
     organism: Organism species
     citation: Author A, Author B. Title. Journal 2015;12:345-356. doi:10.0000/example
     url: https://doi.org/10.0000/example (supplementary table S2)
-    reference: strain XYZ, assembly CP000000.1
+    reference: strain XYZ, chromosome CP000000.1
+    assembly: GCA_000000000.1
     retrieved: 2026-10-24
     notes: sizes in the paper exclude the reverse primer; corrected by 21 bp. Locus_7 is duplicated in CP000000.1.
 
@@ -185,9 +196,11 @@ does not reproduce.
 - allele numbering decided: formula or `bins.tsv`, rounding stated
 - `check-scheme --reference` run, every marker with one product of the
   stated size and repeat count, exceptions noted
-- citation, url, reference and retrieval date in `scheme.yml`
+- citation, url, reference, assembly accession and retrieval date in
+  `scheme.yml`; no FASTA file in the scheme directory
 - agreement with conventional MLVA checked on isolates with known profiles
 
 Schemes that pass this list can be contributed to the repository under
-`src/mlvatyper/schemes/`; the CI job then runs `check-scheme` on every
-bundled scheme at each change.
+`src/mlvatyper/schemes/`; the CI job then downloads the assembly of every
+bundled scheme by its accession and requires one product of the reference
+size for every marker at each change.

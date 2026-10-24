@@ -162,11 +162,14 @@ remaining checks still run and are written, and
 scheme is being prepared. `organism` and `retrieved` are reported as
 warnings only. The command then validates the files, compares marker and
 bin ids with the STS ids and lists primers that merPCR cannot hash at
-word size 11 or 6. With `--reference assembly.fasta` (or
-`--fetch ACCESSION --email ADDRESS` to download the record from NCBI) it
-also searches every marker and reports the number of products, the product
-length against `ref_size` and the tandem count against `ref_repeats` in
-`scheme_check.tsv`.
+word size 11 or 6. When `scheme.yml` names the reference assembly by its `GCA_` or `GCF_`
+accession (`assembly`), or `--assembly` or `--reference assembly.fasta`
+is given, it also searches every marker and reports the number of
+products, the product length against `ref_size` and the tandem count
+against `ref_repeats` in `scheme_check.tsv`. Assemblies are downloaded
+from NCBI once into `~/.cache/mlvatyper/assemblies` (or `MLVATYPER_CACHE`)
+and are never stored with the scheme; `--no-download` checks the files
+only.
 
 ### Exchange with MLVA databases
 

@@ -16,7 +16,7 @@ def test_bundled_scheme_and_metadata():
     assert scheme.sts.name == "primers.sts" and scheme.markers is not None and scheme.bins is None
     assert scheme.meta["organism"] == "test organism" and scheme.calling_defaults()["rounding"] == "intermediate"
     assert scheme.calling_defaults()["allele_tolerance"] == 0.25
-    assert scheme.missing_provenance() == [] and scheme.missing_recommended() == []
+    assert scheme.missing_provenance() == [] and scheme.missing_recommended() == ["assembly"]  # private genome
     with pytest.raises(SchemeError):
         load_scheme("does-not-exist")
 
@@ -108,7 +108,7 @@ def test_is_placeholder_and_missing_provenance(fixture_dir):
     (d / "scheme.yml").write_text("name: mini\ncitation: none\nurl:\nreference: strain MINI-1\n")
     scheme = load_scheme(d)
     assert scheme.missing_provenance() == ["citation", "url"]
-    assert scheme.missing_recommended() == ["organism", "retrieved"]
+    assert scheme.missing_recommended() == ["organism", "retrieved", "assembly"]
     assert scheme.provenance["reference"] == "strain MINI-1"
 
 
@@ -163,3 +163,14 @@ def test_new_scheme_scaffold(tmp_path, caplog):
     assert main(["new-scheme", str(d)]) == 1 and "already holds a scheme" in caplog.text
     assert main(["new-scheme", str(tmp_path / "other"), "--name", "named"]) == 0
     assert load_scheme(tmp_path / "other").name == "named"
+
+
+def test_assembly_accession_in_metadata(tmp_path):
+    d = _scheme_dir(tmp_path)
+    (d / "scheme.yml").write_text("name: x\nassembly: GCF_000006945.2\n")
+    assert load_scheme(d).assembly == "GCF_000006945.2"
+    (d / "scheme.yml").write_text("name: x\nassembly: AE006468\n")
+    with pytest.raises(SchemeError):
+        load_scheme(d)
+    (d / "scheme.yml").write_text("name: x\nassembly: none\n")
+    assert load_scheme(d).assembly is None

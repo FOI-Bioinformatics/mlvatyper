@@ -11,3 +11,8 @@ htmlcov/
 .DS_Store
 test.fasta
 testID.sts
+# reference assemblies are downloaded by accession, never committed
+*.fna
+*.fna.gz
+src/mlvatyper/schemes/**/*.fasta
+src/mlvatyper/schemes/**/*.fa

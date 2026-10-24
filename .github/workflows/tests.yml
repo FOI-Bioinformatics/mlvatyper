@@ -17,17 +17,26 @@ jobs:
           miniforge-version: latest
           environment-file: environment.yml
           activate-environment: mlvatyper
+      - name: Cache the reference assemblies named by the bundled schemes
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mlvatyper/assemblies
+          key: assemblies-${{ hashFiles('src/mlvatyper/schemes/*/scheme.yml') }}
       - name: Lint
         run: |
           pip install ruff
           ruff check src tests
       - name: Test
+        env:
+          MLVATYPER_ONLINE: "1"
         run: pytest -q --cov=mlvatyper --cov-report=term
 
   example:
-    # End to end run of the bundled testM scheme on the committed assembly
-    # slices, so that a change in the search or calling code shows up as a
-    # changed allele, status or report before it reaches a release.
+    # Every bundled scheme is checked against the reference assembly named by
+    # its GCA_ or GCF_ accession, downloaded from NCBI and cached, and the
+    # testM scheme is run end to end on the committed slices, so that a change
+    # in the search or calling code shows up as a changed allele, size or
+    # repeat count before it reaches a release. No assembly is kept in git.
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,17 +48,44 @@ jobs:
           miniforge-version: latest
           environment-file: environment.yml
           activate-environment: mlvatyper
-      - name: Check the bundled schemes
+      - name: Cache the reference assemblies named by the bundled schemes
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mlvatyper/assemblies
+          key: assemblies-${{ hashFiles('src/mlvatyper/schemes/*/scheme.yml') }}
+      - name: Check the bundled schemes against their reference assemblies
         run: |
           mlvatyper schemes
           for scheme in $(mlvatyper schemes | cut -f1); do
-            reference="tests/data/${scheme}_reference.fasta"
-            if [ -f "$reference" ]; then
-              mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme" --reference "$reference"
-            else
-              mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
-            fi
+            mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
           done
+      - name: Every marker of a scheme with an assembly must give one product of the reference size
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          import pandas as pd
+
+          from mlvatyper.scheme import list_schemes
+
+          bad = []
+          for scheme in list_schemes():
+              table = pd.read_csv(Path("example_out") / f"check_{scheme.name}" / "scheme_check.tsv", sep="\t",
+                                  keep_default_na=False)
+              if scheme.assembly is None:
+                  print(f"{scheme.name}: no assembly, files checked only")
+                  continue
+              products = pd.to_numeric(table["n_products"], errors="coerce")
+              size_ok = pd.to_numeric(table["size_ok"], errors="coerce")
+              wrong = table[(products != 1) | (size_ok == 0)]
+              print(f"{scheme.name}: {len(table)} markers, {int((products == 1).sum())} with one product, "
+                    f"{int((size_ok == 1).sum())} with the reference size")
+              if len(wrong):
+                  bad.append(f"{scheme.name}: {', '.join(wrong['marker'])}")
+          if bad:
+              sys.exit("markers that do not reproduce the reference: " + "; ".join(bad))
+          PY
       - name: Run the testM example end to end
         run: |
           mlvatyper run --scheme testM --fasta tests/data/mini.fasta \

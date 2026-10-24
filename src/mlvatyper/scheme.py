@@ -7,8 +7,11 @@ A scheme directory holds
   bins.tsv      bin table (optional)
   scheme.yml    flat key: value metadata (optional)
 
-Recognised metadata keys: name, organism, reference (strain or accession
-the reference values come from), citation, url, retrieved, rounding,
+Recognised metadata keys: name, organism, reference (the strain the
+reference values describe), assembly (its GenBank or RefSeq assembly
+accession, GCA_ or GCF_, which check-scheme downloads from NCBI into a
+local cache; assemblies are never stored in a scheme directory),
+citation, url, retrieved, rounding,
 allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
 notes. The calling keys become the defaults of the corresponding options
 when the scheme is used; options given on the command line still win.
@@ -26,6 +29,7 @@ bundled name or a directory path.
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .assemblies import ASSEMBLY_RE
 from .log import get_logger
 
 log = get_logger()
@@ -38,7 +42,7 @@ META_FILE = "scheme.yml"
 NUMERIC_KEYS = {"allele_tolerance": float, "unit_mismatches": int, "margin": int, "mismatches": int,
                 "max_array_length": int}
 PROVENANCE_FIELDS = ("citation", "url", "reference")
-RECOMMENDED_FIELDS = ("organism", "retrieved")
+RECOMMENDED_FIELDS = ("organism", "retrieved", "assembly")
 # values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
 PLACEHOLDERS = frozenset({"", "-", "?", "na", "n/a", "none", "unknown", "tbd", "todo", "fixme", "xxx",
                           "to be added", "to be determined", "see publication", "see paper"})
@@ -73,6 +77,12 @@ class Scheme:
     def missing_recommended(self) -> list[str]:
         return [k for k in RECOMMENDED_FIELDS if is_placeholder(self.meta.get(k, ""))]
 
+    @property
+    def assembly(self) -> str | None:
+        """The reference assembly accession, or None when not given."""
+        value = str(self.meta.get("assembly", "")).strip()
+        return None if is_placeholder(value) else value
+
     def calling_defaults(self) -> dict:
         """Metadata values that apply as option defaults."""
         keys = ("rounding", *NUMERIC_KEYS)
@@ -102,6 +112,9 @@ def parse_flat_yaml(text: str) -> dict:
             except ValueError as exc:
                 raise SchemeError(f"scheme.yml line {number}: {key} must be a number") from exc
         meta[key] = value
+    assembly = str(meta.get("assembly", "")).strip()
+    if assembly and not is_placeholder(assembly) and not ASSEMBLY_RE.match(assembly):
+        raise SchemeError(f"scheme.yml: assembly {assembly!r} is not a GCA_ or GCF_ accession with version")
     return meta
 
 
@@ -175,6 +188,9 @@ organism:
 citation:
 url:
 reference:
+# GenBank or RefSeq accession of the reference strain's assembly (GCA_ or GCF_ with version); check-scheme
+# downloads it from NCBI into ~/.cache/mlvatyper/assemblies, so no FASTA is kept in the scheme directory
+assembly:
 retrieved: {today}
 notes:
 # calling defaults applied with --scheme unless the option is given on the command line

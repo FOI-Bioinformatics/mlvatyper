@@ -5,6 +5,12 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+- Schemes name their reference assembly by a GenBank or RefSeq accession
+  (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
+  NCBI Datasets into a local cache instead of needing a FASTA file, and the
+  reference assemblies that were committed under `tests/data` are removed.
+  The two bundled published schemes now carry their accessions.
+
 ### Added
 
 - Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
@@ -23,6 +29,12 @@ is below 1.0, so the output tables may still change between minor versions.
   midpoint of a derived window.
 
 ## Unreleased
+
+- Schemes name their reference assembly by a GenBank or RefSeq accession
+  (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
+  NCBI Datasets into a local cache instead of needing a FASTA file, and the
+  reference assemblies that were committed under `tests/data` are removed.
+  The two bundled published schemes now carry their accessions.
 
 - `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
   template files, and `docs/schemes.md` describes how to build a scheme

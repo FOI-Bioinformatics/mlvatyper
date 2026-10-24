@@ -38,7 +38,7 @@ from .log import configure_logging, get_logger
 from .markers import check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
 from .models import MarkerDef, PrimerPair
 from .checkscheme import (
-    assembly_checks, fetch_assembly, file_checks, provenance_checks, summary as check_summary,
+    assembly_checks, fetch_assembly, file_checks, provenance_checks, resolve_reference, summary as check_summary,
 )
 from .mlvabank import bins_from_table, export_profiles
 from .report import write_report as write_html_report
@@ -189,8 +189,17 @@ def build_parser() -> argparse.ArgumentParser:
     chk = sub.add_parser("check-scheme", help="check a scheme's files and reference values")
     chk.add_argument("--scheme", required=True, help="bundled scheme name or scheme directory")
     chk.add_argument("--outdir", required=True, help=f"directory for {SCHEME_CHECK} and fetched sequences")
-    chk.add_argument("--reference", help="reference assembly FASTA to search the primers in")
-    chk.add_argument("--fetch", metavar="ACCESSION", help="download the reference from NCBI nucleotide instead")
+    chk.add_argument("--reference", help="reference assembly FASTA to search the primers in (default: the "
+                                         "assembly accession of the scheme, downloaded from NCBI)")
+    chk.add_argument("--assembly", metavar="GCF_or_GCA", help="assembly accession to download instead of the "
+                                                             "one named in scheme.yml")
+    chk.add_argument("--no-download", dest="download", action="store_false",
+                     help="do not download the scheme's assembly; check the files only")
+    chk.add_argument("--cache-dir", help="where downloaded assemblies are kept (default $MLVATYPER_CACHE or "
+                                         "~/.cache/mlvatyper/assemblies)")
+    chk.add_argument("--fetch", metavar="ACCESSION",
+                     help="download a nucleotide record (for example a chromosome accession) from NCBI "
+                          "instead of an assembly")
     chk.add_argument("--email", help="e-mail address required by NCBI for --fetch")
     chk.add_argument("-M", "--margin", type=int, default=500)
     chk.add_argument("-N", "--mismatches", type=int, default=2)
@@ -618,14 +627,16 @@ def do_check_scheme(args: argparse.Namespace, outdir: Path) -> None:
     log.info("Checking scheme %s (%s)", scheme.name, scheme.path)
     missing = provenance_checks(scheme, strict=not args.allow_missing_provenance)
     table, pairs, defs = file_checks(scheme)
-    fasta = Path(args.reference) if args.reference else None
-    if args.fetch:
-        if not args.email:
-            raise SystemExit("--fetch needs --email, which NCBI requires")
-        fasta = fetch_assembly(args.fetch, args.email, outdir / f"{args.fetch}.fasta")
+    try:
+        if args.fetch:
+            if not args.email:
+                raise SystemExit("--fetch needs --email, which NCBI requires")
+            fasta = fetch_assembly(args.fetch, args.email, outdir / f"{args.fetch}.fasta")
+        else:
+            fasta = resolve_reference(scheme, args.reference, args.assembly, args.download, args.cache_dir)
+    except (FileNotFoundError, ValueError, RuntimeError, OSError) as exc:
+        raise SystemExit(f"{scheme.name}: reference assembly: {exc}") from exc
     if fasta is not None:
-        if not fasta.exists():
-            raise SystemExit(f"reference assembly {fasta} not found")
         table = assembly_checks(table, pairs, defs, fasta, outdir, args.margin, args.mismatches,
                                 args.unit_mismatches)
     table.to_csv(outdir / SCHEME_CHECK, sep="\t", index=False, na_rep="")
