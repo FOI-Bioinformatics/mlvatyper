@@ -1,0 +1,67 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+M02	1	210	11	N/A	M02
+M06	2	148	6	N/A	M06
+M09	3	109	6	N/A	M09
+M12	4	224	10	N/A	M12
+M15	5	203	2	N/A	M15
+M18	6	139	6	N/A	M18
+M2	7	179	5	N/A	M2
+M22	7	235	12	N/A	M22
+M23	7	169	6.5	N/A	M23
+M25	7	335	20	N/A	M25
+M26	8	333	2	N/A	M26
+M27	8	245	6	N/A	M27
+M28	8	212	7	N/A	M28
+M29	8	231	8	N/A	M29
+M31	8	326	8	N/A	M31
+M33	9	357	22	N/A	M33
+M34	9	225	6	N/A	M34
+M36	10	241	1	N/A	M36
+M37	10	329	6	N/A	M37
+M41	12	230	2	N/A	M41
+M42	12	231	3	N/A	M42
+M43	12	269	5	N/A	M43
+M49	14	305	3	N/A	M49
+M51	15	277	3	N/A	M51
+M52	15	202	4	N/A	M52
+M54	16	309	3	N/A	M54
+M55	16	395	2	N/A	M55
+M56	17	309	2	N/A	M56
+M58	17	395	7.5	N/A	M58
+M59	17	296	8	N/A	M59
+M61	18	356	5	N/A	M61
+M65	19	316	2.5	N/A	M65
+M66	20	415	2	N/A	M66
+M68	20	394	3	N/A	M68
+M69	21	406	2	N/A	M69
+M71	21	446	2	N/A	M71
+M72	22	372	2	N/A	M72
+M73	30	349	2	N/A	M73
+M74	36	489	2	N/A	M74
+M76	41	393	2	N/A	M76
+M77	45	591	4	N/A	M77
+M79	8	252	10	N/A	M79
+# ref_size is the product length measured in the CO92 assembly GCA_000009065.1 (chromosome AL590842.1)
+# by in silico PCR with these primers, outer primer edge to outer primer edge. All 42 primer pairs give
+# exactly one product there. The publication gives no product sizes, so there is nothing to compare it
+# with; it anchors the allele formula on CO92 together with the published copy numbers.
+#
+# unit_length and ref_repeats are read from the publication's CO92 array column, in which '1 by 11'
+# means a 1 bp unit at 11 copies. Repeat detection in the CO92 amplicons confirms 40 of 42
+# published unit lengths independently. The exceptions are:
+#   M33 published 9 bp, found 18 bp
+#   M36 published 10 bp, found 8 bp
+# M33 holds 9 copies of a 9 bp unit rather than the published 22, and its strongest signal is a higher
+# order 18 bp period; M36 is published as a single copy, so there is no array in the reference at all.
+#
+# The number of whole units in the amplicon differs from the published copy number for several markers,
+# in both directions, so the column was not misread: the published values are most likely counted on
+# the draft sequence available in 2001 or by different criteria. They are kept, because they define the
+# published allele numbering and there is no better source, and ref_size is measured here so that the
+# two are consistent for CO92. Marker, published copies and units found:
+#   M02 11/10; M15 2/4; M22 12/13; M23 6.5/7; M25 20/14; M27 6/19; M33 22/2; M36 1/4; M37 6/7; M43 5/4; M52 4/3; M58 7.5/6; M59 8/6; M61 5/4; M66 2/3; M68 3/2; M77 4/5
+#
+# patterns are left N/A because the publication gives no consensus repeat sequences. The tandem array
+# cross-check is therefore skipped for every marker and alleles rest on amplicon length alone.
+# ref_repeats is fractional for M23, M58 and M65, as published; the alleles of those markers lie on a
+# half-integer grid and mlvatyper numbers them on that grid rather than treating n.5 as intermediate.
