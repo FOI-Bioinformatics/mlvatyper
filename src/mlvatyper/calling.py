@@ -20,7 +20,7 @@ from pathlib import Path
 import pandas as pd
 
 from .log import get_logger
-from .models import Amplicon, MarkerDef
+from .models import Amplicon, MarkerDef, format_allele
 from .tandem import EMPTY, TandemArray, count_tandem_array
 
 log = get_logger()
@@ -134,24 +134,31 @@ def read_bins(path: str | Path) -> dict[str, list[Bin]]:
     return dict(bins)
 
 
-def round_repeats(raw: float, tolerance: float, policy: str) -> tuple[str, bool]:
+def round_repeats(raw: float, tolerance: float, policy: str, grid_offset: float = 0.0) -> tuple[str, bool]:
     """Return (allele text, is_intermediate).
 
-    Halves round up (2.5 to 3), not to the even neighbour as Python's round
-    does. The intermediate value is floor(raw) + 0.5, so -0.4 gives -0.5.
+    Alleles lie on the marker's own grid. That grid is the integers unless the
+    scheme numbers the reference array with a partial unit, in which case it is
+    offset by that fraction and a half-copy allele is a name, not an uncertain
+    value. grid_offset of zero reproduces plain integer rounding.
+
+    Halves round up on that grid (2.5 to 3), not to the even neighbour as
+    Python's round does. The intermediate value is floor(raw) + 0.5, so -0.4
+    gives -0.5.
     """
-    nearest = math.floor(raw + 0.5)
+    shifted = raw - grid_offset
+    nearest = math.floor(shifted + 0.5)
     # strict comparison as in MLVA_finder: a value exactly tolerance away is intermediate
-    if abs(raw - nearest) < tolerance:
-        return str(nearest), False
+    if abs(shifted - nearest) < tolerance:
+        return format_allele(nearest + grid_offset), False
     if policy == "nearest":
-        return str(nearest), True
+        return format_allele(nearest + grid_offset), True
     if policy == "up":
-        return str(math.ceil(raw)), True
+        return format_allele(math.ceil(shifted) + grid_offset), True
     if policy == "down":
-        return str(math.floor(raw)), True
+        return format_allele(math.floor(shifted) + grid_offset), True
     if policy == "intermediate":
-        return str(math.floor(raw) + 0.5), True
+        return format_allele(math.floor(shifted) + 0.5 + grid_offset), True
     raise ValueError(f"unknown rounding policy {policy}")
 
 
@@ -175,7 +182,7 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
         call.allele = binned
         call.status.append(BINNED)
     else:
-        call.allele, intermediate = round_repeats(call.raw, tolerance, policy)
+        call.allele, intermediate = round_repeats(call.raw, tolerance, policy, d.grid_offset)
         if intermediate:
             call.status.append(INTERMEDIATE)
     if call.raw < 0:

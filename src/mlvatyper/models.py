@@ -1,6 +1,13 @@
 """Data classes shared across the package."""
 
+import math
 from dataclasses import dataclass, field
+
+
+def format_allele(value: float) -> str:
+    """Repeat count as text: a whole number without a decimal part, otherwise as given."""
+    value = round(value, 3)
+    return str(int(value)) if float(value).is_integer() else f"{value:g}"
 
 
 @dataclass(frozen=True)
@@ -91,13 +98,18 @@ class MarkerDef:
     (outer primer edge to outer primer edge, as merPCR reports it). They are
     None when unknown. offset is the non-repeat part of the amplicon; when not
     given it is derived from ref_size - ref_repeats * unit_length.
+
+    ref_repeats may be fractional, because some published schemes number an
+    array that ends in a partial unit as n.5. The alleles of such a marker then
+    lie on a grid offset from the integers by that fraction, which grid_offset
+    reports, and a call on that grid is exact rather than intermediate.
     """
 
     primer_id: str
     patterns: tuple[str, ...] = field(default_factory=tuple)
     unit_length: int = 0
     ref_size: int | None = None
-    ref_repeats: int | None = None
+    ref_repeats: float | None = None
     offset: int | None = None
     label: str | None = None  # locus name used in exports, for example the MLVAbank column name
 
@@ -119,7 +131,14 @@ class MarkerDef:
         return self.unit_length > 0 and self.ref_size is not None and self.ref_repeats is not None
 
     @property
-    def flanking(self) -> int | None:
+    def grid_offset(self) -> float:
+        """Fractional part of ref_repeats, which the marker's allele grid is offset by."""
+        if self.ref_repeats is None:
+            return 0.0
+        return float(self.ref_repeats) - math.floor(self.ref_repeats)
+
+    @property
+    def flanking(self) -> float | None:
         if self.offset is not None:
             return self.offset
         if self.can_call:

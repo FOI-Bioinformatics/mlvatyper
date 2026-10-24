@@ -17,6 +17,7 @@ searched and the number of products, the product size against ref_size
 and the tandem array count against ref_repeats are reported per marker.
 """
 
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -116,7 +117,9 @@ def _product_row(h, contigs: dict[str, str], d: MarkerDef | None, n_hits: int, u
         copies = count_tandem_array(seq, d.patterns, unit_mismatches).copies
         row["tandem_copies"] = copies
         if d.ref_repeats is not None:
-            row["repeats_ok"] = int(copies == d.ref_repeats)
+            # a count of whole units cannot equal a fractional ref_repeats; n.5 means n whole
+            # units and a partial one, so the count is compared with the whole part
+            row["repeats_ok"] = int(copies == math.floor(d.ref_repeats))
     notes = []
     if n_hits > 1:
         notes.append(f"{n_hits} products")

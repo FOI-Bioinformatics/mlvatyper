@@ -85,3 +85,27 @@ def test_unit_column_with_a_length_and_bad_units(tmp_path):
     path.write_text("marker\tpatterns\tunit_length\nm1\t9bp\t3\n")
     with pytest.raises(MarkerError, match="not DNA"):
         read_markers(path)
+
+
+def test_fractional_ref_repeats(tmp_path):
+    """A published array that ends in a partial unit is numbered n.5 and kept as given."""
+    path = tmp_path / "m.tsv"
+    path.write_text("marker\tunit_length\tref_size\tref_repeats\tpatterns\n"
+                    "M23\t7\t169\t6.5\tN/A\n"
+                    "M59\t17\t296\t8\tN/A\n")
+    defs = {d.primer_id: d for d in read_markers(path)}
+    assert defs["M23"].ref_repeats == 6.5 and defs["M23"].grid_offset == 0.5
+    # a whole number stays an int, so nothing is written back as 8.0
+    assert defs["M59"].ref_repeats == 8 and isinstance(defs["M59"].ref_repeats, int)
+    assert defs["M59"].grid_offset == 0.0
+    out = tmp_path / "out.tsv"
+    write_markers(list(defs.values()), out)
+    text = out.read_text()
+    assert "\t6.5\t" in text and "\t8\t" in text and "8.0" not in text
+
+
+def test_ref_repeats_must_be_a_number(tmp_path):
+    path = tmp_path / "m.tsv"
+    path.write_text("marker\tunit_length\tref_size\tref_repeats\tpatterns\nM1\t7\t169\tsome\tN/A\n")
+    with pytest.raises(MarkerError, match="is not a number"):
+        read_markers(path)

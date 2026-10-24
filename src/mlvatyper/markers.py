@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 from .log import get_logger
-from .models import MarkerDef
+from .models import MarkerDef, format_allele
 
 log = get_logger()
 
@@ -55,6 +55,24 @@ def _parse_int(value: str, field: str, marker: str, line_number: int) -> int | N
 
 
 UNIT_RE = re.compile(r"^[ACGTRYSWKMBDHVN]+$")
+
+
+def _parse_count(value: str, field: str, marker: str, line_number: int) -> float | None:
+    """A repeat count, which may be fractional.
+
+    Some published schemes number an array that ends in a partial unit as n.5,
+    for example the Yersinia pestis loci of Klevytska et al. Rounding such a
+    value to a whole copy would shift every allele of that marker by half a
+    repeat, so it is kept as given. A whole number is returned as an int.
+    """
+    value = value.strip()
+    if not value or value.upper() in {"NA", "N/A"}:
+        return None
+    try:
+        number = float(value)
+    except ValueError as exc:
+        raise MarkerError(f"line {line_number} ({marker}): {field} {value!r} is not a number") from exc
+    return int(number) if number.is_integer() else number
 
 
 def _parse_patterns(value: str, marker: str = "", line_number: int = 0) -> tuple[str, ...]:
@@ -105,7 +123,7 @@ def parse_marker_line(line: str, columns: dict[str, int], line_number: int) -> M
     if unit_length is None:
         unit_length = len(patterns[0]) if patterns else 0
     ref_size = _parse_int(get("ref_size"), "ref_size", marker, line_number)
-    ref_repeats = _parse_int(get("ref_repeats"), "ref_repeats", marker, line_number)
+    ref_repeats = _parse_count(get("ref_repeats"), "ref_repeats", marker, line_number)
     offset = _parse_int(get("offset"), "offset", marker, line_number)
     from_name = parse_marker_name(marker)
     if from_name is not None:
@@ -230,7 +248,7 @@ def write_markers(defs: list[MarkerDef], path: str | Path) -> None:
             handle.write("\t".join([
                 d.primer_id, str(d.unit_length),
                 "" if d.ref_size is None else str(d.ref_size),
-                "" if d.ref_repeats is None else str(d.ref_repeats),
+                "" if d.ref_repeats is None else format_allele(d.ref_repeats),
                 "" if d.offset is None else str(d.offset),
                 ";".join(d.patterns) if d.patterns else "N/A",
             ] + ([d.label or ""] if labels else [])) + "\n")

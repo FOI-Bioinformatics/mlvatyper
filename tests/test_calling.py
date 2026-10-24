@@ -161,3 +161,36 @@ def test_profile_puts_negative_alleles_in_parentheses():
              Call("s", "m3", None, allele="-0.5"), Call("s", "m4", None, status=["NOT_DETECTED"])]
     pt = profile_table(calls, ["s"], ["m1", "m2", "m3", "m4"])
     assert pt.loc["s", "profile"] == "5-(-1)-(-0.5)-NOT_DETECTED" and pt.loc["s", "m2"] == "-1"
+
+
+@pytest.mark.parametrize("raw, policy, expected", [
+    (6.5, "intermediate", ("6.5", False)),   # exactly on the half-integer grid
+    (7.5, "intermediate", ("7.5", False)),
+    (6.6, "intermediate", ("6.5", False)),   # within tolerance of the grid point
+    (6.3, "intermediate", ("6.5", False)),
+    (6.8, "intermediate", ("7", True)),      # midway between the alleles 6.5 and 7.5
+    (6.8, "nearest", ("6.5", True)),
+    (6.8, "up", ("7.5", True)),
+    (6.8, "down", ("6.5", True)),
+])
+def test_round_repeats_on_a_half_integer_grid(raw, policy, expected):
+    """A scheme that numbers its reference array as n.5 has half-integer alleles, not intermediates."""
+    assert round_repeats(raw, 0.25, policy, grid_offset=0.5) == expected
+
+
+def test_grid_offset_zero_matches_plain_rounding():
+    for raw in (0.0, 1.1, 2.5, 3.9, 12.26, 7.75):
+        for policy in ("nearest", "up", "down", "intermediate"):
+            assert round_repeats(raw, 0.25, policy) == round_repeats(raw, 0.25, policy, grid_offset=0.0)
+
+
+def test_fractional_reference_shifts_the_whole_marker():
+    """With ref_repeats 6.5, an amplicon one unit longer is allele 7.5."""
+    d = MarkerDef("M23", (), 7, 169, 6.5)
+    assert d.grid_offset == 0.5 and d.can_call
+    for extra_units, expected in ((0, "6.5"), (1, "7.5"), (-1, "5.5"), (3, "9.5")):
+        call = call_amplicon(amp("s", "M23", 1, 0, extra="A" * (169 - 40 + extra_units * 7)),
+                             d, 0.25, "intermediate")
+        assert call.allele == expected, extra_units
+        assert "INTERMEDIATE" not in call.status
+        assert call.residual == 0

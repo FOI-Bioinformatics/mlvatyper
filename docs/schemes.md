@@ -69,7 +69,12 @@ One line per marker with the same id:
   either shifts every allele of that marker by a constant. Leave them
   empty when the paper does not give them, and anchor the calls on an
   assembly of the reference strain with `--reference-sample` instead
-  (section 5).
+  (section 5). `ref_repeats` may be fractional when the reference array
+  ends in a partial unit and the paper numbers it `n.5`, as several
+  Yersinia pestis loci are. The alleles of such a marker then lie on a
+  half-integer grid, and a call on that grid is reported as `n.5` without
+  being flagged INTERMEDIATE. Do not round these to whole copies: that
+  would shift every allele of the marker by half a repeat.
 - `label`: the locus name used by the target database, for example the
   MLVAbank column name, when it differs from the id.
 
