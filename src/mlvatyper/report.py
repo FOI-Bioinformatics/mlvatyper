@@ -23,7 +23,7 @@ log = get_logger()
 STATUS_GLOSSARY = {
     "OK": "amplicon found and allele within tolerance of an integer",
     "NOT_DETECTED": "no amplicon; neither primer matched exactly",
-    "NEAR_CONTIG_END": "no amplicon, but a primer lies within the size window of a contig end",
+    "NEAR_CONTIG_END": "no amplicon, but a primer lies within the marker's expected size plus -M of a contig end",
     "NOT_SEARCHED": "no primer holds a hash word of the word size used, so merPCR did not search the marker",
     "ONE_PRIMER_ONLY": "one primer matches exactly, the other exceeds the mismatch limit or has an indel",
     "NOT_FOUND": "no amplicon and neither primer matches exactly; reported as NOT_DETECTED in the allele tables",

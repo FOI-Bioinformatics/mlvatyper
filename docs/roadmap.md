@@ -31,21 +31,23 @@ the bundled `testM` template, `--mlvabank` export with marker labels,
 `bins-from-table`, and `check-scheme` with optional NCBI fetch, which
 requires the provenance fields citation, url and reference.
 
-The Salmonella Typhimurium scheme `STm_ECDC` is bundled, verified against
-LT2 and checked in CI. Its STTR3 locus shows a limit of the data model:
+The Salmonella Typhimurium scheme `STm_ECDC` and the Legionella
+pneumophila scheme `Lpn_MLVA12` are bundled, verified against LT2 and
+Philadelphia-1, and checked in CI against those assemblies, downloaded by
+accession. The STTR3 locus of `STm_ECDC` shows a limit of the data model:
 compound loci with two unit lengths (27 and 33 bp here) cannot be called
 by the single unit formula and are reported by length only. Supporting a
 second unit per marker, counted separately and named as the nomenclature
 does, is a candidate item.
 
-Other published schemes are not bundled yet. Each needs reference values from
-its publication, the provenance fields filled in, and a verification run
-of `check-scheme --reference` against the strain the publication used, so
-that a transcription error shows up as a marker that misses its stated
-size or repeat count. A CI job that repeats that check for every bundled
-scheme against a committed reference slice is still to be added, so that
-later changes to the search or calling code cannot shift a published
-scheme's alleles unnoticed. The original items follow for reference.
+Further published schemes need reference values from their publication,
+the provenance fields filled in, and a passing `check-scheme` against the
+assembly of the strain the publication used, so that a transcription
+error shows up as a marker that misses its stated size or repeat count
+([schemes.md](schemes.md) describes the steps). The CI job checks every
+bundled scheme against its assembly at each change, so later changes to
+the search or calling code cannot shift a published scheme's alleles
+unnoticed. The original items follow for reference.
 
 1. Scheme bundles under `src/mlvatyper/schemes/<name>/` with `primers.sts`,
    `markers.tsv`, optional `bins.tsv` and a `scheme.yml` (name, organism,

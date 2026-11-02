@@ -5,7 +5,12 @@ Every run writes `<prefix>_report.html` next to the tables, unless
 directory, so it can be rebuilt after editing marker definitions or
 changing the rounding settings without a new search:
 
+    mlvatyper summarize --outdir out_testM --prefix testM --rounding nearest ...
     mlvatyper report --outdir out_testM --prefix testM
+
+Several prefixes can share an output directory: each report shows the
+tables, parameters and marker definitions (`<prefix>_definitions.tsv`) of
+its own prefix. `--title` replaces the default title.
 
 Styles and figures are embedded and nothing is loaded over the network, so
 the file opens on a machine without internet access and prints to PDF from
@@ -20,11 +25,14 @@ profile table](images/report.png)
    primer and definition files, search date and output directory, with
    links to the sections. Versions of mlvatyper and merPCR are in the line
    above.
-2. **Summary**: markers typed and missing per sample, then the status code
-   counts, followed by one line per flagged code naming the markers.
+2. **Summary**: per sample, the markers typed (an integer allele) and
+   missing (no amplicon; a marker without definition is not missing), then
+   the status code counts, followed by one line per flagged code naming
+   the markers.
 3. **Allele profiles**: repeat numbers in STS order, shaded by status with
    a colour legend. The table is transposed when markers outnumber samples.
-   The hyphen joined profile strings for MLVAbank are in a collapsed block.
+   The hyphen joined profile strings are in a collapsed block; a negative
+   allele appears there in parentheses, `5-(-1)-3`.
 4. **Figures**: amplicon length per marker against the expected size,
    residual per marker, and a status matrix of samples by markers.
 5. **Evidence per amplicon**: one collapsible table per sample with
@@ -39,7 +47,8 @@ profile table](images/report.png)
    to adapt for a manuscript, a table of software with citations, the
    command line, the input files with sizes and MD5 sums, and the full
    `run_info.json`.
-9. **Appendix**: the marker definitions used and the status code glossary.
+9. **Appendix**: the marker definitions used for this prefix and the status
+   code glossary.
 
 ## Reading the colours
 

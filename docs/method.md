@@ -13,17 +13,35 @@ How mlvatyper locates amplicons, calls alleles and reports them. The
    removal. The size may be a range `low-high`, which merPCR uses as a
    per-marker size window in place of `-M`.
    Both the STS file and the FASTA files may be gzip, bzip2 or xz compressed
-   (recognised by the `.gz`, `.bz2` or `.xz` suffix). This requires merPCR 1.0.4
-   or newer.
+   (recognised by the `.gz`, `.bz2` or `.xz` suffix). Text inputs (STS,
+   marker, bin and scheme files) may start with the byte-order mark that
+   Excel and Windows editors write.
 2. Each FASTA file is treated as one sample, named after the file stem with
-   any compression suffix removed (`sampleA.fasta.gz` gives `sampleA`).
+   any compression suffix removed (`sampleA.fasta.gz` gives `sampleA`);
+   whitespace in the name becomes `_`, since FASTA record ids end at the
+   first space. `--fasta` takes files and glob patterns; a file that does
+   not exist stops the run, and a pattern that matches nothing is warned
+   about. A sample whose file cannot be read (not FASTA, or a corrupt
+   compressed file) fails on its own: the other samples are processed and
+   typed, the failed one is left out of the results, and the command exits
+   with status 1.
    Primer pairs are searched with merPCR, allowing `-N` mismatches per primer
-   outside the protected 3' bases (`--three-prime-match`). The reverse primer
+   outside the protected 3' bases (`--three-prime-match`), with a hash word
+   of `-W` bases (default 11) that must match exactly. The reverse primer
    is only searched within `-M` bp of the STS expected size, so the expected
    size and the margin together define the allowed amplicon size window.
-   IUPAC codes in primers are honoured unless `--no-iupac` is given.
+   With `--markers`, a marker with `ref_size` and `ref_repeats` is searched
+   in a window from the size of 0 to `--max-repeats` (50) repeats instead,
+   unless the STS file gives a range. IUPAC codes in primers are honoured
+   unless `--no-iupac` is given. merPCR drops a marker when one of its
+   primers has no hash word, as me-PCR does; `--one-sided` searches it from
+   the primer that has one instead.
 3. Amplicons are extracted from the assemblies (reverse complemented for
-   minus-strand hits). Primer mismatches are taken from merPCR, which counts
+   minus-strand hits). Like merPCR, the extraction upper-cases the sequence
+   and keeps only `GATCNBDHKMRSVWY` and `-`, dropping for example `X`
+   masking, before coordinates are counted, so that the coordinates in
+   `hits.tsv` refer to the sequence without them; a warning gives the
+   number dropped. Primer mismatches are taken from merPCR, which counts
    them with the rule the search applied, and the distance to the nearest
    contig end is recorded. Hits for one
    marker that share the forward primer position or overlap by more than a
@@ -41,14 +59,17 @@ How mlvatyper locates amplicons, calls alleles and reports them. The
    Hits record their origin in the `search_pass` column (`main`, `rescue`,
    `aligned`) and the indel counts. Markers that stay missing are listed in
    `missing_markers.tsv` with a reason: NOT_SEARCHED (no primer holds a
-   hash word), NEAR_CONTIG_END (a primer within the size window of a contig
-   end, so the locus is more likely split than deleted), ONE_PRIMER_ONLY
+   hash word), NEAR_CONTIG_END (a primer within the marker's expected size
+   plus `-M` of a contig end, so the locus is more likely split than
+   deleted), ONE_PRIMER_ONLY
    (one primer matches exactly somewhere) or NOT_FOUND.
 5. If MAFFT or MUSCLE is on PATH, amplicons per marker are aligned and written
-   as aligned FASTA and CLUSTAL (`.clw`) using Biopython.
+   as aligned FASTA and CLUSTAL (`.clw`) with the full sequence names;
+   `--align mafft`, `muscle` or `none` overrides the automatic choice.
 6. Summary tables, one row per sample and one column per marker, are written
    with the given prefix. `<prefix>_lengths_summary.tsv` holds amplicon
-   lengths, several copies joined by `/`. With `--clwclean` the same table is
+   lengths, several copies joined by `/`, with a column for every STS
+   marker. With `--clwclean` the same table is
    also produced from amplicons without N (`*_clean.tsv`), and clean
    alignments are written.
 7. Alleles are called when marker definitions are available (see Allele calling).
@@ -65,16 +86,19 @@ number in that strain. This is the convention of MLVAbank and of MLVA_finder.
 A raw value closer than `--allele-tolerance` (default 0.25) to an integer is
 that integer; a value exactly at the tolerance is not, as in MLVA_finder.
 Other values depend on `--rounding`: `intermediate` (default)
-reports `n.5` as MLVA_finder does, `nearest`, `up` and `down` round as named.
-In all cases the call is flagged INTERMEDIATE. Rounding conventions differ
+reports `n.5` as MLVA_finder does (floor plus one half, so -0.4 gives
+-0.5), `nearest` rounds halves up (2.5 gives 3), and `up` and `down` round
+as named. In all cases the call is flagged INTERMEDIATE. Rounding conventions differ
 between laboratories, so the policy is recorded in `run_info.json`.
 
 Independently of the length, the longest tandem array of the repeat unit is
 counted in each amplicon, allowing `--unit-mismatches` differences per unit
 (default 1), in either orientation and at any rotation of the unit. The
 count is reported next to the length based allele, and a difference of one
-or more repeats is flagged COUNT_DISAGREES. This exposes flanking indels and
-wrong unit lengths, which a length alone cannot show.
+or more repeats is flagged COUNT_DISAGREES, also when the unit is not
+found at all. This exposes flanking indels, wrong unit lengths and wrong
+unit sequences, which a length alone cannot show. Markers without a unit
+sequence are not counted; their tandem count is NA.
 
 ### Marker definitions
 
@@ -84,8 +108,10 @@ Marker definitions come from three sources, which are merged:
   `marker`, `patterns` (repeat unit sequences in the amplicon orientation,
   separated by `;`, or `N/A`), `unit_length`, `ref_size`, `ref_repeats`,
   `offset` and `label` (the locus name used in exports). Only `marker` is
-  required; `unit_length` defaults to the length
-  of the first pattern. The older pattern file (`marker`, `pattern`,
+  required; `unit_length` defaults to the length of the first pattern, and
+  a column named `unit` may hold either the unit sequence or its length.
+  Units must be DNA sequences (IUPAC codes allowed), and a marker defined
+  twice is an error. The older pattern file (`marker`, `pattern`,
   `length`, then ignored columns) is read by the same code, also without
   a header, in which case the first line counts as data (the legacy script
   skipped it) and a stated length that differs from the pattern is only
@@ -98,27 +124,31 @@ Marker definitions come from three sources, which are merged:
   and its tandem array count as `ref_repeats` (0 when no pattern is known,
   in which case alleles are offsets from the reference rather than repeat
   numbers). The derived definitions are written to
-  `marker_defs_derived.tsv` for review and reuse with `--markers`.
+  `marker_defs_derived.tsv` for review and reuse with `--markers`. A
+  reference sample without any amplicon is an error.
 
-Markers without unit length cannot be called. Without any definition only
-the lengths table is produced.
+The definitions a summarize used, from all three sources, are written to
+`<prefix>_definitions.tsv`. Markers without unit length cannot be called.
+Without any definition only the lengths table is produced, and the call
+tables an earlier run wrote under the same prefix are removed.
 
 ### Schemes
 
 A scheme directory bundles `primers.sts`, `markers.tsv`, an optional
 `bins.tsv` and `scheme.yml`, flat `key: value` metadata (name, organism,
-reference, citation, url, retrieved, notes) that may also set the calling defaults
+reference, assembly, citation, url, retrieved, notes; `#` starts a comment
+at the start of a line or after a space) that may also set the calling defaults
 `rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
 and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
 `mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
 `--bins`; `mlvatyper new-scheme DIR` writes the four files as annotated
 templates, and [schemes.md](schemes.md) describes how to fill them from a
-publication; options given on the command line still win over the scheme
-defaults. One scheme, `testM`, is bundled as a template under
-`src/mlvatyper/schemes/`. Published schemes should be added only with
+publication. An option given on the command line wins over the scheme
+default, also when it is given at its default value. Schemes are bundled
+under `src/mlvatyper/schemes/`. Published schemes should be added only with
 reference values taken from their publications, the provenance fields
-filled in, and the output of `check-scheme --reference` against the
-strain the publication used.
+filled in, and a passing `check-scheme` against the assembly of the strain
+the publication used.
 
 Bundled schemes:
 
@@ -130,16 +160,19 @@ Bundled schemes:
   LT2 (AE006468 and pSLT AE006471) and equal the LT2 sizes of the SOP;
   reference repeat numbers were derived from the SOP size ranges and
   confirmed by exact tandem counts in the LT2 amplicons, which the CI job
-  repeats on the committed LT2 regions under `tests/data`. Units are
+  repeats on the LT2 assembly (GCF_000006945.2, downloaded by accession).
+  Units are
   counted exactly (`unit_mismatches: 0`) because the nomenclature counts
   complete repeats. STTR3 is a compound locus of 27 bp and 33 bp units
   that the single unit formula cannot express; it is reported by length
   and its allele has to be assigned by hand.
 
 - `Lpn_MLVA12`: the 12 locus MLVA panel of Orsay for *Legionella
-  pneumophila* (Sobral et al., Table 1; it contains the MLVA-8 markers of
+  pneumophila* (Sobral et al. 2011, Appl Environ Microbiol 77:6899-6907,
+  doi:10.1128/AEM.05556-11, Table 1; it contains the MLVA-8 markers of
   Pourcel et al. 2007, but the source does not say which eight). Reference
-  sizes and copy numbers are those of Philadelphia-1 (AE017354); all 12
+  sizes and copy numbers are those of Philadelphia-1 (AE017354, assembly
+  GCF_000008485.1, which the CI job checks); all 12
   products match the source sizes exactly with no primer mismatches. No
   unit sequences are shipped, so alleles are called from amplicon length
   alone and the tandem count is not a cross-check; the arrays in
@@ -148,8 +181,7 @@ Bundled schemes:
   Corby the other 11 loci give whole repeat numbers, while Lpms31 gives
   numbers ending in .4 to .6 (INTERMEDIATE) because its length differences
   to Philadelphia-1 are not whole multiples of 45 bp; read that locus
-  against the published allele table. The `url` of the scheme still has to
-  be filled in with the DOI.
+  against the published allele table.
 
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`
@@ -169,9 +201,11 @@ accession (`assembly`), or `--assembly` or `--reference assembly.fasta`
 is given, it also searches every marker and reports the number of
 products, the product length against `ref_size` and the tandem count
 against `ref_repeats` in `scheme_check.tsv`. Assemblies are downloaded
-from NCBI once into `~/.cache/mlvatyper/assemblies` (or `MLVATYPER_CACHE`)
-and are never stored with the scheme; `--no-download` checks the files
-only.
+from NCBI once into `~/.cache/mlvatyper/assemblies` (or `MLVATYPER_CACHE`,
+or `--cache-dir`) and are never stored with the scheme; `--no-download`
+checks the files only, and `--fetch ACCESSION --email ADDRESS` fetches a
+single nucleotide record instead of an assembly. Overlapping hits for one
+locus count as one product, as in the search.
 
 ### Exchange with MLVA databases
 
@@ -186,8 +220,10 @@ names against the target database before uploading.
 allele size table (one row per locus, allele and size or size range; tab
 or comma separated; columns found by name, or given with
 `--locus-column`, `--allele-column`, `--size-column`) to the bin file
-format. `--markers FILE` maps the table's locus names to marker ids
-through the `label` column.
+format. Ranges may be written with any dash (`100-110`, `100–110`),
+decimal sizes are rounded to whole base pairs (halves up), and rows
+without an allele are skipped with a warning. `--markers FILE` maps the
+table's locus names to marker ids through the `label` column.
 
 ### Discovering repeat units
 
@@ -206,7 +242,8 @@ Two repeat finders are available (`--engine`, default `auto`):
   alignment parameters 2 7 7 80 10, the weak score floor as its minimum
   score and `--max-unit` as its maximum period. TRF handles indels inside
   arrays and reports fractional copy numbers. The exact command line is
-  recorded in `run_info.json`.
+  recorded in `run_info.json`. `--engine trf` without TRF on PATH is an
+  error; `auto` then falls back to `builtin`.
 - `builtin`: self-comparison at every period from `--min-unit` to
   `--max-unit` (3 to 100 bp), with the mismatch allowance of the tandem
   counter and the same scoring as TRF (+2 per matching and -7 per differing
@@ -263,9 +300,10 @@ every sample with rank and category. Both are meant for review; the
 definition file should be completed by hand where the scheme publication
 gives the unit.
 
-An optional bin file (`--bins`: marker, size or `low-high` range, allele)
-maps amplicon sizes directly to allele names and takes precedence over the
-formula, as some schemes (for example Brucella) number alleles by
+An optional bin file (`--bins`: tab separated marker, size or `low-high`
+range, allele; a header and `#` comment lines are optional) maps amplicon
+sizes directly to allele names, which need not be numbers, and takes
+precedence over the formula, as some schemes (for example Brucella) number alleles by
 convention. A size outside every bin for that marker is flagged OFF_TABLE
 and falls back to the formula.
 
@@ -275,13 +313,33 @@ read assemblies, so L should be the assembly k-mer or read length.
 
 ### Output tables
 
+`search` (and the search step of `run`) writes, in `--outdir`:
+
+- `hits.tsv`: one row per amplicon with its coordinates, length, expected
+  size, primer mismatches and indels, discarded alternatives, distance to
+  the contig end, search pass and sequence.
+- `sequences/<marker>.fasta`: the amplicons of each marker, record ids
+  `<sample>_<copy>`, and with an aligner `<marker>_aligned.fasta` and
+  `<marker>_aligned.clw` (`_clean` variants with `--clwclean`).
+- `missing_markers.tsv`: every sample and marker without a hit, with its
+  reason; `near_contig_end.tsv` lists the NEAR_CONTIG_END ones.
+- `samples.txt`, `primers_used.sts` (the validated STS entries, with the
+  size windows from `--markers`) and `invalid_primers.tsv` (with
+  `--skip-invalid`).
+
+`summarize` (and the summary step of `run`) reads those and writes, under
+`--prefix`; optional tables that an earlier run with the same prefix wrote
+and this one does not are removed:
+
+- `<prefix>_lengths_summary.tsv` (see step 6 above).
 - `<prefix>_alleles.tsv`: sample by marker allele values. Several amplicons
   are joined with `/`. Missing markers show a status code instead of a
   number.
 - `<prefix>_status.tsv`: sample by marker status codes joined by `;`.
 - `<prefix>_tandem_counts.tsv`: tandem array counts per amplicon.
 - `<prefix>_profile.tsv`: alleles in STS order plus a hyphen joined profile
-  string per sample.
+  string per sample; a negative allele is written in parentheses there,
+  `5-(-1)-3`, so that the string stays unambiguous.
 - `<prefix>_calls_long.tsv`: one row per amplicon (and per missing marker)
   with coordinates, length, expected size, primer mismatches, discarded
   alternatives, distance to contig end, primer indels and search pass, raw
@@ -304,15 +362,22 @@ read assemblies, so L should be the assembly k-mer or read length.
   present, a methods paragraph generated from the recorded parameters,
   the input checksums and the marker definitions. Styles and figures
   (SVG) are embedded, so the file opens offline and prints to PDF from a
-  browser. `--no-report` skips it.
+  browser. `--no-report` skips it, and `--title` sets its title. See
+  [report.md](report.md).
+
+`discover` writes `discover_report.tsv`, `discover_candidates.tsv` and
+`marker_defs_discovered.tsv` (see Discovering repeat units), and
+`check-scheme` writes `scheme_check.tsv`.
 
 Status codes: OK, NOT_DETECTED (no hit), NEAR_CONTIG_END (no hit but a primer
-within the size window of a contig end), NOT_SEARCHED and ONE_PRIMER_ONLY
+within the marker's expected size plus `-M` of a contig end), NOT_SEARCHED and ONE_PRIMER_ONLY
 (from `missing_markers.tsv`), INTERMEDIATE, NEGATIVE (fewer bases than the
 flanking region), BINNED, OFF_TABLE, MULTIPLE (several loci in the sample),
 AMBIGUOUS (overlapping hits were collapsed), PRIMER_INDEL (hit from the
-indel rescue), CENSORED, HAS_N, COUNT_DISAGREES and NO_DEFINITION. The codes are text so that they cannot be
-confused with the allele 0, which is a valid call.
+indel rescue), CENSORED, HAS_N, COUNT_DISAGREES and NO_DEFINITION (an
+amplicon was found, but the marker has no unit length or reference
+values). The codes are text so that they cannot be confused with the
+allele 0, which is a valid call.
 
 `--legacy-tables` additionally writes the two tables of the original script:
 exact non-overlapping pattern counts (`<prefix>_count_summary.tsv`) and the
@@ -331,8 +396,9 @@ there as NOT_DETECTED). The reasons are:
   the word size of the most permissive merPCR pass (`-W`, or
   `--rescue-wordsize` when the rescue pass ran). merPCR logs "primers have
   ambiguities which prevent computation of a hash value" for such primers.
-- NEAR_CONTIG_END: a primer matches within the size window of a contig end;
-  the locus is more likely split by the assembly than deleted.
+- NEAR_CONTIG_END: a primer matches within the marker's expected size plus
+  `-M` of a contig end; the locus is more likely split by the assembly than
+  deleted.
 - ONE_PRIMER_ONLY: one primer matches exactly somewhere in the assembly, so
   the other primer has more than `-N` mismatches or an indel
   (`--rescue-indels` allows one), or the product lies outside the size
@@ -354,7 +420,7 @@ there as NOT_DETECTED). The reasons are:
 
 ## Differences from the legacy script
 
-- me-PCR replaced by merPCR; seqret replaced by Biopython `AlignIO`.
+- me-PCR replaced by merPCR; seqret replaced by a built-in CLUSTAL writer.
 - STS entries are validated up front instead of being silently dropped.
 - IUPAC codes in primers are honoured by default (`--no-iupac` restores the
   me-PCR default where they count as mismatches).
