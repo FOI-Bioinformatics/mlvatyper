@@ -210,15 +210,16 @@ Two repeat finders are available (`--engine`, default `auto`):
 - `builtin`: self-comparison at every period from `--min-unit` to
   `--max-unit` (3 to 100 bp), with the mismatch allowance of the tandem
   counter and the same scoring as TRF (+2 per matching and -7 per differing
-  position between consecutive copies), without indel handling. Used when
-  TRF is not on PATH.
+  position between consecutive copies), without indel handling. Every
+  separate array of a period is reported, as with TRF. Used when TRF is not
+  on PATH.
 
 Every array an engine reports becomes a candidate. Arrays that describe the
 same locus at several periods are merged, keeping the smallest period whose
 score is within 85 percent of the best, so that a unit is not given as its
-own multiple. Each candidate is counted again with the tandem counter so
-that `ref_repeats` is the integer allele calling will see, and is placed in
-a category:
+own multiple. Each candidate is counted again with the tandem counter,
+around its own array, so that `ref_repeats` is the integer allele calling
+will see, and is placed in a category:
 
 | category | conditions |
 |---|---|

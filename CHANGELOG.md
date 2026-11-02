@@ -102,6 +102,22 @@ is below 1.0, so the output tables may still change between minor versions.
   all next to an allele of one or more.
 - Whitespace in a sample name (taken from the FASTA file name) becomes `_`,
   since FASTA record ids end at the first space.
+- A negative allele is written in parentheses in the profile string,
+  `5-(-1)-3`, so that the hyphen joined profile stays unambiguous; the
+  allele columns keep the value.
+- The built-in `discover` engine reports every separate array of a period,
+  as TRF does, so a marker with two arrays of the same period is seen as
+  mixed without TRF. Each candidate, from either engine, is counted around
+  its own array, so two arrays of one unit are no longer both reported
+  with the copy number of the larger one.
+- `NEAR_CONTIG_END` uses each missing marker's own expected size plus
+  `-M` as its window, instead of the largest expected size of all missing
+  markers.
+- `--legacy-tables` gives the length difference table for every marker with
+  a unit length, also without a unit sequence (all of Lpn_MLVA12).
+- A summarize removes the optional tables that an earlier run with the same
+  prefix wrote and this run does not (`_mlvabank.csv`, `_clean` and legacy
+  tables), so the output directory describes the latest run.
 
 ## 0.3.0 - 2026-10-23
 

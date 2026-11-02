@@ -52,3 +52,15 @@ def test_length_diff_from_shortest():
     assert df.loc["s2", "m1"] == "4.000;0.000"
     df_clean = length_diff_from_shortest_table(AMPS, SAMPLES, DEFS, clean=True)
     assert df_clean.loc["s1", "m1"] == "0.000" and df_clean.loc["s2", "m1"] == "2.000"
+
+
+def test_legacy_lengthdiff_needs_only_the_unit_length_and_stale_tables_go(tmp_path):
+    from mlvatyper.models import Amplicon, Hit, MarkerDef
+    from mlvatyper.summarize import length_diff_from_shortest_table, write_all_summaries
+    amps = [Amplicon(Hit(s, "c", 1, n, "+", "m"), 1, "A" * n) for s, n in (("a", 100), ("b", 145))]
+    table = length_diff_from_shortest_table(amps, ["a", "b"], [MarkerDef("m", (), 45)])
+    assert table.loc["b", "m"] == "1.000"
+    write_all_summaries(amps, ["a", "b"], tmp_path, "p", [MarkerDef("m", (), 45)], True, True)
+    assert (tmp_path / "p_count_lengthdiff_clean.tsv").exists()
+    write_all_summaries(amps, ["a", "b"], tmp_path, "p", None, False)
+    assert sorted(f.name for f in tmp_path.iterdir()) == ["p_lengths_summary.tsv"]

@@ -377,8 +377,10 @@ def search_sample(searcher: MerPcrSearcher, fasta: Path, pairs: list[PrimerPair]
         missing = still_missing()
     reasons: dict[str, str] = {}
     if missing:
-        window = max(p.expected_size for p in missing) + margin
-        near = primers_near_contig_ends(contigs, missing, window)
+        # per marker: its own expected size plus -M, not the largest one of all missing markers. The top of a
+        # definition window (50 repeats by default) would mark almost every primer in a small contig as near an end.
+        windows = {p.id: p.expected_size + margin for p in missing}
+        near = primers_near_contig_ends(contigs, missing, windows)
         used_wordsize = rescue.wordsize if rescue.wordsize > 0 else wordsize
         reasons = missing_reasons(contigs, missing, near, used_wordsize, one_sided or rescue.wordsize > 0)
     return _renumber(amps), reasons
@@ -553,6 +555,9 @@ def write_calls(calls: list, samples: list[str], markers: list[str], outdir: Pat
     if mlvabank:
         export_profiles(alleles, defs or [MarkerDef(m) for m in markers], outdir / f"{prefix}_mlvabank.csv",
                         missing=mlvabank_missing)
+    elif (outdir / f"{prefix}_mlvabank.csv").exists():  # from an earlier run with --mlvabank
+        (outdir / f"{prefix}_mlvabank.csv").unlink()
+        log.info("Removed %s from an earlier run", outdir / f"{prefix}_mlvabank.csv")
     write_table(status_table(calls, samples, markers), outdir / f"{prefix}_status.tsv")
     write_table(tandem_count_table(calls, samples, markers), outdir / f"{prefix}_tandem_counts.tsv")
     write_table(profile_table(calls, samples, markers), outdir / f"{prefix}_profile.tsv")

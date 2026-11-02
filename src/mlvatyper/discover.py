@@ -2,9 +2,9 @@
 
 Every tandem array that an engine reports in an amplicon becomes a
 candidate. The builtin engine compares the sequence with itself shifted by
-every candidate period and keeps, per period, the longest run of positions
-where seq[i] == seq[i + p] with at most max_mismatch differences in any
-window of p positions. Tandem Repeats Finder (trf.py) is the alternative
+every candidate period and keeps, per period, every run of positions where
+seq[i] == seq[i + p] with at most max_mismatch differences in any window of
+p positions, so that two arrays of one period are both reported. Tandem Repeats Finder (trf.py) is the alternative
 engine. Candidates that describe the same array at several periods are
 merged, keeping the smallest period whose score is within period_slack of
 the best one, so that a unit is not reported as its own multiple.
@@ -132,15 +132,24 @@ def canonical_rotation(unit: str) -> str:
 
 
 def _longest_self_match_run(seq: str, period: int, max_mismatch: int) -> tuple[int, int]:
-    """Longest run of positions i with seq[i] == seq[i + period], tolerating mismatches.
+    """Longest run of positions i with seq[i] == seq[i + period]; see _self_match_runs. (0, 0) when none."""
+    best_start = best_len = 0
+    for start, length in _self_match_runs(seq, period, max_mismatch):
+        if length > best_len:
+            best_start, best_len = start, length
+    return best_start, best_len
 
-    Returns (start, length) of the run in match positions; the array spans
+
+def _self_match_runs(seq: str, period: int, max_mismatch: int) -> list[tuple[int, int]]:
+    """Every maximal run of positions i with seq[i] == seq[i + period], tolerating mismatches, in order.
+
+    Returns (start, length) per run in match positions; the array spans
     start to start + length + period. A mismatch is tolerated while the last
     period positions hold at most max_mismatch mismatches; two mismatches
     in a row end the run.
     """
     n = len(seq) - period
-    best_start = best_len = 0
+    runs: list[tuple[int, int]] = []
     i = 0
     while i < n:
         if seq[i] != seq[i + period]:
@@ -161,10 +170,10 @@ def _longest_self_match_run(seq: str, period: int, max_mismatch: int) -> tuple[i
         end = j
         while end > start and seq[end - 1] != seq[end - 1 + period]:
             end -= 1
-        if end - start > best_len:
-            best_start, best_len = start, end - start
+        if end > start:
+            runs.append((start, end - start))
         i = max(end, start + 1)
-    return best_start, best_len
+    return runs
 
 
 def unit_entropy(unit: str) -> float:
@@ -188,25 +197,44 @@ def _consensus(seq: str, start: int, period: int, copies: int) -> str:
 def builtin_arrays(
     sequence: str, min_unit: int = 3, max_unit: int = 100, max_mismatch: int = 1, min_score: int = 20,
 ) -> list[RawArray]:
-    """One array per period from the self-comparison, before harmonic merging."""
+    """Every array per period from the self-comparison, before harmonic merging.
+
+    Each self-match run of at least two periods becomes an array, so that two
+    separate arrays of the same period (a mixed marker) are both reported.
+    The unit is counted around its own run only.
+    """
     seq = sequence.upper()
     arrays: list[RawArray] = []
     for period in range(min_unit, min(max_unit, len(seq) // 2) + 1):
         allowed = effective_mismatch(period, max_mismatch)
-        start, length = _longest_self_match_run(seq, period, allowed)
-        span = length + period
-        if not length or span < 2 * period:
-            continue
-        copies = span // period
-        unit = _consensus(seq, start, period, copies)
-        array = count_tandem_array(seq, (unit,), max_mismatch)
-        if array.copies < 2:
-            continue
-        score = array_score(seq, array, period)
-        if score < min_score:
-            continue
-        arrays.append(RawArray(array.start, array.end, period, unit, score, round(array.span / period, 1)))
+        found: set[tuple[int, int]] = set()
+        for start, length in _self_match_runs(seq, period, allowed):
+            span = length + period
+            if span < 2 * period:
+                continue
+            unit = _consensus(seq, start, period, span // period)
+            array = _count_near(seq, unit, max_mismatch, start, start + span)
+            if array.copies < 2 or (array.start, array.end) in found:
+                continue
+            score = array_score(seq, array, period)
+            if score < min_score:
+                continue
+            found.add((array.start, array.end))
+            arrays.append(RawArray(array.start, array.end, period, unit, score, round(array.span / period, 1)))
     return arrays
+
+
+def _count_near(seq: str, unit: str, max_mismatch: int, start: int, end: int) -> TandemArray:
+    """The tandem array of the unit around start..end, with coordinates in seq.
+
+    The window reaches two units beyond the region on each side, so that an
+    array the engine reported a little short is still counted whole, while
+    another array of the same unit further away is not.
+    """
+    pad = 2 * len(unit)
+    low, high = max(0, start - pad), min(len(seq), end + pad)
+    array = count_tandem_array(seq[low:high], (unit,), max_mismatch)
+    return replace(array, start=array.start + low, end=array.end + low) if array.copies else array
 
 
 def _overlap(a: RawArray, b: RawArray) -> int:
@@ -234,12 +262,22 @@ def merge_harmonics(arrays: list[RawArray], period_slack: float = 0.85) -> list[
     return merged
 
 
-def _oriented(seq: str, unit: str, max_mismatch: int) -> tuple[str, TandemArray]:
-    """Count the unit in the amplicon and return it in the orientation of the amplicon."""
-    array = count_tandem_array(seq, (unit,), max_mismatch)
+def _oriented(seq: str, unit: str, max_mismatch: int, region: tuple[int, int] | None = None) -> tuple[str, TandemArray]:
+    """Count the unit and return it in the orientation of the amplicon.
+
+    With region (start, end) the unit is counted around that array only, so
+    that two arrays of one unit in an amplicon stay two candidates; without
+    it, anywhere in the amplicon.
+    """
+    start, end = region or (0, len(seq))
+
+    def count(u: str) -> TandemArray:
+        return _count_near(seq, u, max_mismatch, start, end) if region else count_tandem_array(seq, (u,), max_mismatch)
+
+    array = count(unit)
     if array.orientation == "-":
         unit = str(Seq(unit).reverse_complement())
-        array = count_tandem_array(seq, (unit,), max_mismatch)
+        array = count(unit)
     return canonical_rotation(unit), array
 
 
@@ -248,7 +286,8 @@ def make_discovery(
     primer_lengths: tuple[int, int] | None = None, min_copies: int = 2,
 ) -> Discovery | None:
     """Discovery for an engine array, or None when the tandem counter finds fewer than min_copies copies."""
-    unit, array = _oriented(seq, raw.consensus, max_mismatch)
+    # an engine array with coordinates is counted where it is; a pooled unit (no coordinates) anywhere
+    unit, array = _oriented(seq, raw.consensus, max_mismatch, (raw.start, raw.end) if raw.end > raw.start else None)
     if array.copies < min_copies:
         return None
     overlap = False

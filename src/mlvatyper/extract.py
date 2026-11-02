@@ -170,23 +170,28 @@ def _iupac_regex(primer: str) -> str:
                    for b in primer.upper())
 
 
-def primers_near_contig_ends(contigs: dict[str, str], pairs: list[PrimerPair], window: int) -> set[str]:
+def primers_near_contig_ends(contigs: dict[str, str], pairs: list[PrimerPair],
+                             window: int | dict[str, int]) -> set[str]:
     """Markers for which either primer (any orientation) lies within window bp of a contig end.
 
     A missing marker with a primer near a contig end is more likely split by
-    the assembly than deleted. Exact IUPAC-aware matching is used.
+    the assembly than deleted. Exact IUPAC-aware matching is used. window is
+    one size for all markers or a size per marker id.
     """
     found: set[str] = set()
-    ends = []
-    for seq in contigs.values():
-        seq = seq.upper()
-        if len(seq) <= 2 * window:
-            ends.append(seq)
-        else:
-            ends.append(seq[:window])
-            ends.append(seq[-window:])
-    text = "\n".join(ends)
+    texts: dict[int, str] = {}
+
+    def end_text(size: int) -> str:
+        if size not in texts:
+            ends = []
+            for seq in contigs.values():
+                seq = seq.upper()
+                ends.extend([seq] if len(seq) <= 2 * size else [seq[:size], seq[-size:]])
+            texts[size] = "\n".join(ends)
+        return texts[size]
+
     for pair in pairs:
+        text = end_text(window[pair.id] if isinstance(window, dict) else window)
         for primer in (pair.forward, pair.reverse):
             rc = str(Seq(primer).reverse_complement())
             if re.search(_iupac_regex(primer), text) or re.search(_iupac_regex(rc), text):

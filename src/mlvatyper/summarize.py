@@ -93,7 +93,7 @@ def length_diff_from_shortest_table(
     The reference is the shortest amplicon in the current dataset, so the
     values are relative to the run and not comparable between runs.
     """
-    valid = {d.primer_id: d for d in defs if d.has_repeats and d.pattern_length > 0}
+    valid = {d.primer_id: d for d in defs if d.unit_length > 0}  # needs the unit length only, not its sequence
     data: dict[str, dict[str, str | None]] = defaultdict(dict)
     grouped = _by_marker_sample(_select(amplicons, clean))
     for marker, d in valid.items():
@@ -130,4 +130,11 @@ def write_all_summaries(amplicons: list[Amplicon], samples: list[str], outdir: P
             p = outdir / f"{prefix}_count_lengthdiff{suffix}.tsv"
             write_table(length_diff_from_shortest_table(amplicons, samples, defs, clean), p)
             written.append(p)
+    # optional tables of an earlier run with this prefix that this run does not write no longer describe it
+    for name in ("lengths_summary_clean", "count_summary", "count_summary_clean", "count_lengthdiff",
+                 "count_lengthdiff_clean"):
+        stale = outdir / f"{prefix}_{name}.tsv"
+        if stale not in written and stale.exists():
+            stale.unlink()
+            log.info("Removed %s from an earlier run", stale)
     return written
