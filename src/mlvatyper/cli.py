@@ -34,8 +34,9 @@ from .extract import (
     extract_amplicons, load_fasta, primers_near_contig_ends, read_hits_table, read_samples, write_hits_table,
     write_marker_fastas, write_samples,
 )
+from .io import strip_compression
 from .log import configure_logging, get_logger
-from .markers import check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
+from .markers import MarkerError, check_against_sts, markers_from_ids, merge_definitions, read_markers, write_markers
 from .models import MarkerDef, PrimerPair
 from .checkscheme import (
     assembly_checks, fetch_assembly, file_checks, provenance_checks, resolve_reference, summary as check_summary,
@@ -286,6 +287,9 @@ def resolve_samples(patterns: list[str]) -> list[Path]:
     if not fasta_files:
         raise SystemExit(f"no FASTA files match {patterns}")
     names = [sample_name(f) for f in fasta_files]
+    for f, name in zip(fasta_files, names, strict=True):
+        if name != strip_compression(f).stem:
+            log.warning("%s: sample name %s, with whitespace replaced by _", f, name)
     if len(set(names)) != len(names):
         raise SystemExit("sample names (FASTA file stems) are not unique")
     return fasta_files
@@ -441,11 +445,19 @@ def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
     info["merpcr_version"] = merpcr_version
     if stage == "search":
         info["inputs"] = [file_record(Path(p)) for p in [args.sts, *resolve_samples(args.fasta)]]
+    # marker and bin files are inputs too; they are recorded when the stage that reads them runs
+    listed = {record["path"] for record in info.get("inputs", [])}
+    for extra in (getattr(args, "markers", None), getattr(args, "bins", None)):
+        if extra and str(extra) not in listed and Path(extra).exists():
+            info.setdefault("inputs", []).append(file_record(Path(extra)))
+            listed.add(str(extra))
     info[stage] = {
         "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
         "parameters": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()
                        if k not in {"command", "verbose"}},
     }
+    if stage == "summarize":  # several prefixes can share an outdir; each report reads its own parameters
+        info.setdefault("summarize_by_prefix", {})[args.prefix] = info[stage]
     path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
@@ -509,10 +521,26 @@ def load_definitions(args: argparse.Namespace, outdir: Path, sts_ids: list[str],
         order = {i: n for n, i in enumerate(sts_ids)}
         defs.sort(key=lambda d: order.get(d.primer_id, len(order)))
     if args.reference_sample:
-        defs = derive_definitions(amplicons, defs, args.reference_sample, args.unit_mismatches)
+        try:
+            defs = derive_definitions(amplicons, defs, args.reference_sample, args.unit_mismatches)
+        except ValueError as exc:  # the reference sample has no amplicons
+            raise SystemExit(f"{exc}; choose another --reference-sample") from exc
         write_markers(defs, outdir / DERIVED_FILE)
         log.info("Derived marker definitions written to %s", outdir / DERIVED_FILE)
     return defs
+
+
+CALL_OUTPUTS = ("_alleles.tsv", "_status.tsv", "_tandem_counts.tsv", "_profile.tsv", "_calls_long.tsv",
+                "_mlvabank.csv", "_definitions.tsv", "_report.html")
+
+
+def _remove_stale_calls(outdir: Path, prefix: str) -> None:
+    """Remove the call tables of an earlier summarize with this prefix, which no longer describe the run."""
+    for suffix in CALL_OUTPUTS:
+        path = outdir / f"{prefix}{suffix}"
+        if path.exists():
+            path.unlink()
+            log.info("Removed %s from an earlier run", path)
 
 
 def write_calls(calls: list, samples: list[str], markers: list[str], outdir: Path, prefix: str,
@@ -520,6 +548,8 @@ def write_calls(calls: list, samples: list[str], markers: list[str], outdir: Pat
                 mlvabank_missing: str | None = None) -> None:
     alleles = allele_table(calls, samples, markers)
     write_table(alleles, outdir / f"{prefix}_alleles.tsv")
+    if defs:
+        write_markers(defs, outdir / f"{prefix}_definitions.tsv")  # what these calls were made with
     if mlvabank:
         export_profiles(alleles, defs or [MarkerDef(m) for m in markers], outdir / f"{prefix}_mlvabank.csv",
                         missing=mlvabank_missing)
@@ -546,10 +576,12 @@ def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
     defs = load_definitions(args, outdir, sts_ids, amplicons) if (args.markers or args.reference_sample
                                                                      or sts_ids) else []
     legacy_defs = defs if (args.markers or args.reference_sample) else None
-    write_all_summaries(amplicons, samples, outdir, args.prefix, legacy_defs, args.clwclean, args.legacy_tables)
+    write_all_summaries(amplicons, samples, outdir, args.prefix, legacy_defs, args.clwclean, args.legacy_tables,
+                        sts_ids)
 
     if not any(d.can_call or d.has_repeats for d in defs):
         log.info("No marker has reference size and repeats or repeat patterns; allele calling skipped")
+        _remove_stale_calls(outdir, args.prefix)
         write_run_info(outdir, args, "summarize")
         return
     if not any(d.can_call for d in defs):
@@ -757,7 +789,7 @@ def main(argv: list[str] | None = None) -> int:
         if exc.code not in (None, 0):
             log.error("%s", exc.code)
             return 1
-    except SchemeError as exc:
+    except (SchemeError, MarkerError) as exc:
         log.error("%s", exc)
         return 1
     return 0

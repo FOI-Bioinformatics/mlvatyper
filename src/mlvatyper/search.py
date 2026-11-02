@@ -8,6 +8,7 @@ margin, so for VNTR markers the expected size and the margin together define
 the allowed amplicon size window.
 """
 
+import re
 from pathlib import Path
 
 from .io import strip_compression
@@ -22,8 +23,12 @@ class SearchError(RuntimeError):
 
 
 def sample_name(fasta_path: str | Path) -> str:
-    """Sample name is the FASTA file name without its last suffix and any compression suffix."""
-    return strip_compression(fasta_path).stem
+    """Sample name is the FASTA file name without its last suffix and any compression suffix.
+
+    Whitespace becomes '_': the name is part of FASTA record ids
+    (<sample>_<copy>), which end at the first space.
+    """
+    return re.sub(r"\s+", "_", strip_compression(fasta_path).stem)
 
 
 class MerPcrSearcher:

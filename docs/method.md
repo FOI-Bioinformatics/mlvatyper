@@ -286,9 +286,15 @@ read assemblies, so L should be the assembly k-mer or read length.
   alternatives, distance to contig end, primer indels and search pass, raw
   repeat number, allele, residual
   in bp between the length and the expected size of the called allele,
-  tandem array count, and status.
+  tandem array count (NA for a marker without repeat unit sequences), and
+  status.
+- `<prefix>_definitions.tsv`: the marker definitions the calls were made
+  with, after merging the marker file, MLVAbank style ids and the reference
+  sample; the report shows this table.
 - `run_info.json`: versions, all parameters of the search and summary
-  steps, and the size and MD5 sum of every input file.
+  steps (the summary parameters also per prefix, so that several prefixes
+  can share an output directory), and the size and MD5 sum of every input
+  file, including the marker and bin files.
 - `<prefix>_report.html`: a self-contained report written by `run` (or by
   `mlvatyper report --outdir DIR --prefix P`) with a status summary, the
   allele profile table shaded by status, figures of amplicon lengths,

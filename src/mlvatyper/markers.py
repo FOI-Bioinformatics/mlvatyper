@@ -146,6 +146,7 @@ def read_markers(path: str | Path) -> list[MarkerDef]:
     patterns, and a differing stated length is only reported.
     """
     results: list[MarkerDef] = []
+    first_line: dict[str, int] = {}
     with open(path, encoding="utf-8-sig") as handle:  # -sig: drop a byte-order mark
         header = handle.readline()
         legacy = looks_like_data(header)
@@ -161,7 +162,11 @@ def read_markers(path: str | Path) -> list[MarkerDef]:
             if not line.strip() or line.startswith("#"):
                 continue
             parsed = parse_marker_line(line, columns, number)
+            if parsed is not None and parsed.primer_id in first_line:
+                raise MarkerError(f"line {number} ({parsed.primer_id}): marker already defined on line "
+                                  f"{first_line[parsed.primer_id]}")
             if parsed is not None:
+                first_line[parsed.primer_id] = number
                 if legacy:
                     _check_legacy_length(line, parsed, number)
                 results.append(parsed)

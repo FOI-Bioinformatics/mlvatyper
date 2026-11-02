@@ -167,3 +167,61 @@ def test_missing_fasta_path_stops_the_run(fixture_dir, caplog):
                str(fixture_dir / "nothing*.fasta"), "--outdir", str(fixture_dir / "o"), "--align", "none",
                "--skip-invalid", "-N", "0", "-M", "50"])
     assert rc == 0 and "matches no file" in caplog.text
+
+
+def test_sample_name_with_spaces(fixture_dir, caplog):
+    from Bio import SeqIO
+    spaced = fixture_dir / "my sample A.fasta"
+    spaced.write_text((fixture_dir / "sampleA.fasta").read_text())
+    out = fixture_dir / "o"
+    assert main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(spaced),
+                 "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]) == 0
+    assert (out / "samples.txt").read_text().split() == ["my_sample_A"] and "replaced by _" in caplog.text
+    assert [r.id for r in SeqIO.parse(out / "sequences" / "VNTR1.fasta", "fasta")] == ["my_sample_A_1"]
+
+
+def test_masked_fasta_gives_the_same_amplicons(fixture_dir):
+    text = (fixture_dir / "sampleA.fasta").read_text().splitlines()
+    (fixture_dir / "sampleA.fasta").write_text("\n".join([text[0], "XXXXXXXXXX" + text[1].lower()]) + "\n")
+    out = fixture_dir / "o"
+    assert main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "sampleA.fasta"),
+                 "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]) == 0
+    hits = pd.read_csv(out / "hits.tsv", sep="\t")
+    assert hits.loc[0, "sequence"].startswith(FWD) and hits.loc[0, "length"] == 70
+
+
+def test_summarize_errors_and_columns(fixture_dir, caplog):
+    out = fixture_dir / "out"
+    assert main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+                 "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]) == 0
+    # a marker without an amplicon in any sample still has a lengths column
+    assert main(["summarize", "--outdir", str(out), "--prefix", "a",
+                 "--markers", str(fixture_dir / "patterns.tsv")]) == 0
+    assert "ABSENT" in read(out / "a_lengths_summary.tsv").columns
+    # a duplicated marker is an error with a message, not two columns
+    dup = fixture_dir / "dup.tsv"
+    dup.write_text("marker\tunit_length\tref_size\tref_repeats\nVNTR1\t6\t70\t5\nVNTR1\t6\t76\t5\n")
+    assert main(["summarize", "--outdir", str(out), "--prefix", "b", "--markers", str(dup)]) == 1
+    assert "already defined on line 2" in caplog.text
+    # a reference sample without amplicons is an error with a message, not a traceback
+    (out / "samples.txt").write_text("sampleA\nsampleB\nempty\n")
+    assert main(["summarize", "--outdir", str(out), "--prefix", "c", "--markers", str(fixture_dir / "patterns.tsv"),
+                 "--reference-sample", "empty"]) == 1
+    assert "has no amplicons" in caplog.text
+
+
+def test_summarize_prefixes_do_not_mix(fixture_dir):
+    from mlvatyper.report import load_report_data, methods_text
+    out = fixture_dir / "out"
+    assert main(["run", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+                 "--outdir", str(out), "--prefix", "p", "-N", "0", "-M", "50", "--skip-invalid", "--align", "none",
+                 "--markers", str(fixture_dir / "patterns.tsv"), "--reference-sample", "sampleA"]) == 0
+    assert (out / "p_definitions.tsv").exists()
+    assert main(["summarize", "--outdir", str(out), "--prefix", "q", "--markers", str(fixture_dir / "patterns.tsv"),
+                 "--reference-sample", "sampleA", "--rounding", "down", "--allele-tolerance", "0.1"]) == 0
+    text = methods_text(json.loads((out / "run_info.json").read_text()), "p")
+    assert "0.25 of an integer" in text and "intermediate policy" in text
+    # a later summarize of p that cannot call removes p's tables instead of leaving them from the earlier run
+    assert main(["summarize", "--outdir", str(out), "--prefix", "p"]) == 0
+    assert not (out / "p_alleles.tsv").exists() and not (out / "p_report.html").exists()
+    assert load_report_data(out, "q").definitions is not None
