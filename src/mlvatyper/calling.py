@@ -83,21 +83,51 @@ class Call:
         return self.status[0] if self.status else OK
 
 
+# hyphen, non-breaking hyphen, figure dash, en dash, em dash and minus sign, as pasted from publications
+DASHES = str.maketrans({c: "-" for c in "\u2010\u2011\u2012\u2013\u2014\u2212"})
+
+
+def parse_size_range(text: str, decimals: bool = False) -> tuple[int, int]:
+    """(low, high) from a size or a low-high range; any dash character separates the bounds.
+
+    With decimals, sizes are rounded to whole base pairs, halves up.
+    Raises ValueError for anything else, including a range whose high
+    bound is below its low bound.
+    """
+    text = str(text).translate(DASHES).replace(" ", "")
+    parts = text.split("-") if "-" in text else [text, text]
+    if len(parts) != 2:
+        raise ValueError(text)
+    low, high = (math.floor(float(p) + 0.5) if decimals else int(p) for p in parts)
+    if high < low:
+        raise ValueError(text)
+    return low, high
+
+
 def read_bins(path: str | Path) -> dict[str, list[Bin]]:
-    """Bin file: marker, size or low-high range, allele. Tab separated, header optional."""
+    """Bin file: marker, size or low-high range, allele. Tab separated, header optional.
+
+    The header, when present, is the first line that is not a comment. A
+    line without an allele is skipped with a warning, as is a size that is
+    not understood.
+    """
     bins: dict[str, list[Bin]] = defaultdict(list)
-    with open(path, encoding="utf-8") as handle:
+    first = True
+    with open(path, encoding="utf-8-sig") as handle:  # -sig: drop a byte-order mark
         for number, line in enumerate(handle, start=1):
             parts = [p.strip() for p in line.rstrip("\r\n").split("\t")]
-            if len(parts) < 3 or not parts[0] or parts[0].startswith("#"):
+            if not parts[0] or parts[0].startswith("#"):
                 continue
-            size = parts[1].replace(" ", "")
+            header, first = first, False
+            if len(parts) < 3 or not parts[2]:
+                if not header:
+                    log.warning("bin file line %d: no allele, skipped", number)
+                continue
             try:
-                low, high = (int(x) for x in size.split("-")) if "-" in size else (int(size), int(size))
+                low, high = parse_size_range(parts[1])
             except ValueError:
-                if number == 1:
-                    continue  # header
-                log.warning("bin file line %d: size %r not understood, skipped", number, parts[1])
+                if not header:
+                    log.warning("bin file line %d: size %r not understood, skipped", number, parts[1])
                 continue
             bins[parts[0]].append(Bin(parts[0], low, high, parts[2]))
     return dict(bins)

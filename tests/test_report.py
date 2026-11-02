@@ -65,3 +65,17 @@ def test_command_line_uses_the_negated_flags():
     assert on == "mlvatyper run --fasta a.fa"
     off = _command_line({"search": {"parameters": {"dedup": False, "iupac": False, "report": False}}})
     assert off == "mlvatyper run --no-dedup --no-iupac --no-report"
+
+
+def test_report_with_amplicons_of_undefined_markers(fixture_dir):
+    """hits.tsv holds markers that the definitions used by summarize do not list."""
+    out = _run(fixture_dir)
+    (out / "primers_used.sts").unlink()
+    (fixture_dir / "sub.tsv").write_text(f"marker\tpatterns\tunit_length\tref_size\tref_repeats\n"
+                                         f"VNTR1\t{UNIT}\t6\t70\t5\n")
+    hits = (out / "hits.tsv").read_text().splitlines()
+    extra = hits[1].replace("\tVNTR1\t", "\tOTHER\t", 1)
+    (out / "hits.tsv").write_text("\n".join([*hits, extra]) + "\n")
+    assert main(["summarize", "--outdir", str(out), "--prefix", "u", "--markers", str(fixture_dir / "sub.tsv")]) == 0
+    assert main(["report", "--outdir", str(out), "--prefix", "u"]) == 0
+    assert (out / "u_report.html").exists()

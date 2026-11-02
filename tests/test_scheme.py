@@ -197,3 +197,33 @@ def test_assembly_accession_in_metadata(tmp_path):
 def test_parse_flat_yaml_keeps_url_fragment():
     meta = parse_flat_yaml("url: https://example.org/page#table1  # comment\ncitation: Smith #2\n")
     assert meta == {"url": "https://example.org/page#table1", "citation": "Smith"}
+
+
+def test_check_scheme_keeps_a_rejected_duplicate_row_apart(fixture_dir):
+    d = _scheme_dir(fixture_dir)
+    (d / "primers.sts").write_text(f"VNTR1\t{FWD}\t{REV}\t70\nVNTR1\t{FWD}\t{REV}\t80\n")
+    out = fixture_dir / "chk"
+    assert main(["check-scheme", "--scheme", str(d), "--outdir", str(out), "--reference",
+                 str(fixture_dir / "sampleA.fasta"), "-N", "0", "-M", "50"]) == 0
+    table = pd.read_csv(out / "scheme_check.tsv", sep="\t", keep_default_na=False, dtype=str)
+    valid, duplicate = table.iloc[0], table.iloc[1]
+    assert (valid["sts_ok"], valid["n_products"], valid["length"]) == ("1", "1", "70")
+    assert (duplicate["sts_ok"], duplicate["n_products"], duplicate["length"]) == ("0", "", "")
+    assert "duplicate id" in duplicate["note"]
+
+
+def test_bins_from_table_dashes_decimals_and_empty_alleles(tmp_path, caplog):
+    table = tmp_path / "t.csv"
+    table.write_text("﻿Locus,Allele,Size\nL1,1,100–110\nL1,,120\nL1,3,130.5\nL2,2,200 - 210\nL2,4,220-210\n")
+    assert bins_from_table(table, tmp_path / "b.tsv") == 3
+    assert (tmp_path / "b.tsv").read_text().splitlines()[1:] == ["L1\t100-110\t1", "L1\t131-131\t3", "L2\t200-210\t2"]
+    assert "no allele for L1" in caplog.text
+
+
+def test_read_bins_header_after_comments_and_dashes(tmp_path, caplog):
+    from mlvatyper.calling import read_bins
+    path = tmp_path / "bins.tsv"
+    path.write_text("﻿# from Table 2\nmarker\tsize\tallele\nL1\t100–110\t1\nL1\t120\t\nL1\t130\t3\n")
+    bins = read_bins(path)
+    assert [(b.low, b.high, b.allele) for b in bins["L1"]] == [(100, 110, "1"), (130, 130, "3")]
+    assert "line 4: no allele" in caplog.text and "size 'size'" not in caplog.text

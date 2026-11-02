@@ -156,7 +156,7 @@ def load_scheme(name_or_path: str | Path) -> Scheme:
         names = ", ".join(p.name for p in list_schemes()) or "none"
         raise SchemeError(f"no scheme at {name_or_path}: a scheme directory needs {STS_FILE} "
                           f"(bundled schemes: {names})")
-    meta = parse_flat_yaml((path / META_FILE).read_text(encoding="utf-8")) if (path / META_FILE).exists() else {}
+    meta = parse_flat_yaml((path / META_FILE).read_text(encoding="utf-8-sig")) if (path / META_FILE).exists() else {}
     markers = path / MARKERS_FILE if (path / MARKERS_FILE).exists() else None
     bins = path / BINS_FILE if (path / BINS_FILE).exists() else None
     return Scheme(meta.get("name") or path.name, path, path / STS_FILE, markers, bins, meta)

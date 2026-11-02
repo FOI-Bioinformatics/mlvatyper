@@ -55,6 +55,24 @@ is below 1.0, so the output tables may still change between minor versions.
   cut off as a comment.
 - The command line in the report uses `--no-dedup` and `--no-iupac`
   instead of flags that do not exist, and `NOT_FOUND` has an explanation.
+- A marker file whose `unit` column holds the unit length (`9`) rather
+  than its sequence was read as the pattern `9` with a unit length of 1,
+  which made every allele wrong; the length is now used, and a repeat unit
+  that is not a DNA sequence is an error.
+- A UTF-8 byte-order mark at the start of an STS, marker, bin or scheme
+  file, as Excel and Windows editors write, no longer becomes part of the
+  first id.
+- Bin tables accept ranges written with an en dash or another dash
+  character, take the header from the first line that is not a comment,
+  and skip rows without an allele instead of writing an empty allele;
+  decimal sizes round halves up.
+- `report` no longer fails when `hits.tsv` holds markers that the
+  definitions used by `summarize` do not list.
+- `check-scheme` no longer copies the results of a marker onto the row of
+  a rejected duplicate of its id.
+- A `--fasta` path that does not exist stops the run instead of being
+  left out without notice; a glob pattern that matches nothing is warned
+  about.
 
 ## 0.3.0 - 2026-10-23
 

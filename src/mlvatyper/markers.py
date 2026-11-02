@@ -3,7 +3,8 @@
 The definition file is tab separated with a header line. Recognised columns
 (case insensitive): marker, patterns (or pattern), unit_length (or length),
 ref_size, ref_repeats, offset. Only marker is required. patterns holds one or
-more repeat unit sequences separated by semicolons, or N/A. Other columns are
+more repeat unit sequences separated by semicolons, or N/A; a column named
+unit may hold either the sequence or the length. Other columns are
 ignored, which keeps the older pattern file format (marker, pattern, length)
 readable.
 
@@ -53,20 +54,30 @@ def _parse_int(value: str, field: str, marker: str, line_number: int) -> int | N
         raise MarkerError(f"line {line_number} ({marker}): {field} {value!r} is not an integer") from exc
 
 
-def _parse_patterns(value: str) -> tuple[str, ...]:
+UNIT_RE = re.compile(r"^[ACGTRYSWKMBDHVN]+$")
+
+
+def _parse_patterns(value: str, marker: str = "", line_number: int = 0) -> tuple[str, ...]:
     value = value.strip()
-    if not value or value.upper() == "N/A":
+    if not value or value.upper() in {"NA", "N/A"}:
         return ()
-    return tuple(p.strip().upper() for p in value.split(";") if p.strip())
+    patterns = tuple(p.strip().upper() for p in value.split(";") if p.strip())
+    bad = [p for p in patterns if not UNIT_RE.match(p)]
+    if bad:
+        raise MarkerError(f"line {line_number} ({marker}): repeat units {bad} are not DNA sequences")
+    return patterns
 
 
 def parse_header(line: str) -> dict[str, int]:
     """Map canonical column names to column indices."""
     columns: dict[str, int] = {}
     for index, raw in enumerate(line.rstrip("\r\n").split("\t")):
-        canonical = COLUMN_ALIASES.get(raw.strip().lower().lstrip("#"))
+        name = raw.strip().lower().lstrip("#")
+        canonical = COLUMN_ALIASES.get(name)
         if canonical and canonical not in columns:
             columns[canonical] = index
+            if name == "unit":
+                columns["unit"] = index  # may hold the length instead of the sequence; see parse_marker_line
     if "marker" not in columns:
         raise MarkerError("marker definition file needs a header with a 'marker' column")
     return columns
@@ -83,8 +94,14 @@ def parse_marker_line(line: str, columns: dict[str, int], line_number: int) -> M
     if not marker:
         log.warning("marker file line %d: empty marker id, skipped", line_number)
         return None
-    patterns = _parse_patterns(get("patterns"))
+    patterns_text = get("patterns").strip()
     unit_length = _parse_int(get("unit_length"), "unit_length", marker, line_number)
+    if patterns_text.isdigit() and columns.get("patterns") == columns.get("unit"):
+        # a column named unit that holds the unit length rather than its sequence
+        if unit_length is None:
+            unit_length = int(patterns_text)
+        patterns_text = ""
+    patterns = _parse_patterns(patterns_text, marker, line_number)
     if unit_length is None:
         unit_length = len(patterns[0]) if patterns else 0
     ref_size = _parse_int(get("ref_size"), "ref_size", marker, line_number)
@@ -129,7 +146,7 @@ def read_markers(path: str | Path) -> list[MarkerDef]:
     patterns, and a differing stated length is only reported.
     """
     results: list[MarkerDef] = []
-    with open(path, encoding="utf-8") as handle:
+    with open(path, encoding="utf-8-sig") as handle:  # -sig: drop a byte-order mark
         header = handle.readline()
         legacy = looks_like_data(header)
         if legacy:
