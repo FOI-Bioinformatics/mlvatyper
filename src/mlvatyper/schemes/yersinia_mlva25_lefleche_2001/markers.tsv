@@ -1,0 +1,66 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+ms01	18	228	8	N/A	yp0120ms01
+ms04	17	230	8	N/A	yp1290ms04
+ms05	17	291	11	N/A	yp1935ms05
+ms06	60	606	9	N/A	yp2769ms06
+ms07	10	184	9	N/A	yp2916ms07
+ms09	18	682	33	N/A	yp3057ms09
+ms15	15	237	10	N/A	yp0559ms15
+ms20	15	253	9	N/A	yp1814ms20
+ms21	18	278	9	N/A	yp1895ms21
+ms35	15	204	8	N/A	yp4042ms35
+ms38	16	233	8	N/A	yp4425ms38
+ms40	17	214	7	N/A	yp0581ms40
+ms41	17	217	7	N/A	yp0718ms41
+ms44	17	233	7	N/A	yp1018ms44
+ms45	12	161	7	N/A	yp1108ms45
+ms46	17	252	7	N/A	yp1335ms46
+ms51	18	207	7	N/A	yp2058ms51
+ms54	22	281	7	N/A	yp2612ms54
+ms56	16	220	7	N/A	yp3060ms56
+ms62	9	240	7	N/A	yp4280ms62
+ms69	16	179	6	N/A	yp1118ms69
+ms70	9	146	6	N/A	yp1580ms70
+ms71	14	171	6	N/A	yp1925ms71
+ms73	18	225	6	N/A	yp3236ms73
+ms74	15	195	6	N/A	yp3245ms74
+# unit_length is the published repeat unit length U, ref_repeats the published repeat number N and
+# ref_size the expected product in CO92 that the source table gives, all three taken from the table
+# unchanged. In silico PCR with these primers in the CO92 assembly GCA_000009065.1 reproduces every
+# one of the 25 published products exactly, outer primer edge to outer primer edge: one product per
+# locus, all on the chromosome AL590842.1, all searchable at hash word size 11, none needing the
+# rescue pass and none with a primer mismatch. This is a complete check of the published sizes.
+#
+# The full locus name in the label column gives the position of the locus in the CO92 chromosome in
+# kb, and all 25 products start at that position, for example ms01 (yp0120ms01) at 120578 and ms09
+# (yp3057ms09) at 3057920. The locus identity is therefore confirmed independently of the size.
+#
+# ms40 is the one internal inconsistency in the source: its expected product is 214 bp while its
+# published size range is 220-240 bp, which excludes it. The measurement agrees with 214 bp, so the
+# size is taken as published and the range is treated as the error.
+#
+# patterns is N/A at every locus, so the tandem array cross-check is off throughout and alleles rest
+# on amplicon length alone, which is how this panel is numbered. The source table gives no repeat
+# motifs, and the published repeat number is not a count of whole units in CO92: the arrays are
+# degenerate, which the source itself records as a conservation of 59 to 97 per cent per locus, and
+# at no locus does the longest run of adjacent units within that conservation reach N. The run is
+# shorter than N at 24 of the 25 loci, by one unit at ms01, ms70 and ms74 and by five or more at
+# ms15, ms21, ms41, ms45, ms46, ms51, ms54 and ms06, and only ms62 exceeds it, with eight runs of a
+# poly-T rich 9 bp unit against the published seven. Storing a motif would therefore make every
+# locus report COUNT_DISAGREES.
+#
+# Repeat detection in the CO92 amplicons does reproduce the published unit length at 21 of the 25
+# loci, which is the strongest check the source allows on U. Four do not: ms15 gives 16 bp against
+# the published 15, ms51 gives 21 against 18, ms46 gives a 7 bp unit (five perfect copies of
+# AATAGTT) against the published 17, and ms06 and ms54 give no unit at all, their arrays being too
+# diverged (conservation 64 and 82 per cent, with a 60 bp and a 22 bp unit). An allele of ms46 or
+# ms51 that disagrees with a database is worth checking against the unit length first.
+#
+# Published unit GC content and conservation, and the size range, per locus: ms01 34%, 86%,
+# 180-280; ms04 27%, 96%, 160-240; ms05 36%, 87%, 190-300; ms06 48%, 64%, 370-2500; ms07 44%, 85%,
+# 150-200; ms09 65%, 91%, 500-820; ms15 30%, 62%, 225-250; ms20 47%, 74%, 230-250; ms21 51%, 76%,
+# 220-350; ms35 41%, 59%, 195-225; ms38 41%, 86%, 200-380; ms40 28%, 76%, 220-240; ms41 41%, 75%,
+# 180-220; ms44 38%, 61%, 220-260; ms45 65%, 79%, 120-170; ms46 33%, 73%, 230-310; ms51 37%, 65%,
+# 190-210; ms54 28%, 82%, 250-300; ms56 21%, 81%, 180-250; ms62 33%, 60%, 220-310; ms69 39%, 82%,
+# 165-180; ms70 32%, 97%, 140-170; ms71 45%, 91%, 145-210; ms73 40%, 89%, 175-230; ms74 44%, 83%,
+# 180-225.
