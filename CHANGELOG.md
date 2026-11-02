@@ -73,6 +73,9 @@ is below 1.0, so the output tables may still change between minor versions.
 - A `--fasta` path that does not exist stops the run instead of being
   left out without notice; a glob pattern that matches nothing is warned
   about.
+- CLUSTAL alignments (`*_aligned.clw`) keep the full sequence names;
+  names were cut to 30 characters, so copies of one sample or isolates with
+  a long shared prefix became indistinguishable.
 
 ## 0.3.0 - 2026-10-23
 
