@@ -1,7 +1,9 @@
 """Transparent reading of plain or compressed text files.
 
 Files ending in .gz, .bz2 or .xz are decompressed on the fly. The suffix is
-the only signal used, which matches the behaviour of merPCR.
+the only signal used, which matches the behaviour of merPCR. A UTF-8
+byte-order mark, which Excel and Windows editors write, is dropped so that
+it does not become part of the first id.
 """
 
 import bz2
@@ -18,8 +20,8 @@ def open_text(path: str | Path) -> IO[str]:
     path = Path(path)
     opener = COMPRESSION_SUFFIXES.get(path.suffix.lower())
     if opener is None:
-        return open(path, encoding="utf-8")
-    return opener(path, "rt", encoding="utf-8")
+        return open(path, encoding="utf-8-sig")
+    return opener(path, "rt", encoding="utf-8-sig")
 
 
 def strip_compression(path: str | Path) -> Path:

@@ -157,3 +157,13 @@ def test_run_types_the_good_samples_when_one_fails(fixture_dir, caplog):
     alleles = read(out / "t_alleles.tsv")
     assert list(alleles.index) == ["sampleA", "sampleB"] and alleles.loc["sampleA", "VNTR1"] == "5"
     assert (out / "t_report.html").exists()
+
+
+def test_missing_fasta_path_stops_the_run(fixture_dir, caplog):
+    rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "sampleA.fasta"),
+               str(fixture_dir / "sampleX.fasta"), "--outdir", str(fixture_dir / "o"), "--align", "none"])
+    assert rc == 1 and "sampleX.fasta not found" in caplog.text
+    rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "sampleA.fasta"),
+               str(fixture_dir / "nothing*.fasta"), "--outdir", str(fixture_dir / "o"), "--align", "none",
+               "--skip-invalid", "-N", "0", "-M", "50"])
+    assert rc == 0 and "matches no file" in caplog.text

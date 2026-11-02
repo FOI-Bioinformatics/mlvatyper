@@ -168,6 +168,8 @@ def figures(data: ReportData) -> dict[str, str]:
     plt.rcParams.update({"font.size": 8, "font.family": "sans-serif", "svg.fonttype": "none"})
     out: dict[str, str] = {}
     found = data.calls[data.calls["copy"] != ""].copy()
+    # amplicons of markers outside the allele table (no definition given for them) have no column to sit in
+    found = found[found["marker"].isin(data.markers)]
     found["length"] = _numeric(found["length"])
     found["expected_size"] = _numeric(found["expected_size"])
     found["residual_bp"] = _numeric(found["residual_bp"])

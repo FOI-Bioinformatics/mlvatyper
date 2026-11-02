@@ -74,3 +74,14 @@ def test_read_headerless_legacy_pattern_file(tmp_path, caplog):
     assert defs["M4"].unit_length == 6 and "stated unit length 5" in caplog.text
     repo = Path(__file__).resolve().parents[1] / "examples" / "testM" / "testM_pattern.txt"
     assert len(read_markers(repo)) == 31
+
+
+def test_unit_column_with_a_length_and_bad_units(tmp_path):
+    path = tmp_path / "m.tsv"
+    path.write_text("﻿marker\tunit\tref_size\tref_repeats\nm1\t9\t200\t4\nm2\tGATCGA\t100\t2\n")
+    defs = {d.primer_id: d for d in read_markers(path)}
+    assert (defs["m1"].patterns, defs["m1"].unit_length, defs["m1"].can_call) == ((), 9, True)
+    assert (defs["m2"].patterns, defs["m2"].unit_length) == (("GATCGA",), 6)
+    path.write_text("marker\tpatterns\tunit_length\nm1\t9bp\t3\n")
+    with pytest.raises(MarkerError, match="not DNA"):
+        read_markers(path)

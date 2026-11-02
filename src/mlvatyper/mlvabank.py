@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from .calling import parse_size_range
 from .log import get_logger
 from .models import MarkerDef
 
@@ -68,10 +69,11 @@ def bins_from_table(path: str | Path, out: str | Path, locus_column: str | None 
     """Convert a long allele size table to the bin file format; returns the number of bins.
 
     The table is tab or comma separated with a header. Sizes may be single
-    numbers or low-high ranges; decimals are rounded to whole base pairs.
+    numbers or low-high ranges with any dash; decimals are rounded to whole
+    base pairs, halves up. Rows without an allele are skipped with a warning.
     labels maps a locus name in the table to a marker id when they differ.
     """
-    table = pd.read_csv(path, sep=None, engine="python", dtype=str, keep_default_na=False)
+    table = pd.read_csv(path, sep=None, engine="python", dtype=str, keep_default_na=False, encoding="utf-8-sig")
     cols = list(table.columns)
     locus = locus_column or _find_column(cols, LOCUS_ALIASES, "locus")
     allele = allele_column or _find_column(cols, ALLELE_ALIASES, "allele")
@@ -82,16 +84,19 @@ def bins_from_table(path: str | Path, out: str | Path, locus_column: str | None 
         handle.write("marker\tsize\tallele\n")
         for _, row in table.iterrows():
             marker = names.get(str(row[locus]).strip().lower(), str(row[locus]).strip())
-            text = str(row[size]).replace(" ", "")
+            text = str(row[size]).strip()
+            value = str(row[allele]).strip()
             if not marker or not text:
                 continue
+            if not value:
+                log.warning("%s: no allele for %s size %s, skipped", path, marker, text)
+                continue
             try:
-                low, high = (round(float(x)) for x in text.split("-")) if "-" in text else (
-                    round(float(text)), round(float(text)))
+                low, high = parse_size_range(text, decimals=True)
             except ValueError:
                 log.warning("%s: size %r for %s not understood, skipped", path, row[size], marker)
                 continue
-            handle.write(f"{marker}\t{low}-{high}\t{str(row[allele]).strip()}\n")
+            handle.write(f"{marker}\t{low}-{high}\t{value}\n")
             n += 1
     log.info("Wrote %d bins to %s", n, out)
     return n

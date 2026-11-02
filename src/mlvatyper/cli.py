@@ -260,11 +260,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def expand_fasta(patterns: list[str]) -> list[Path]:
+    """FASTA files from paths and glob patterns.
+
+    A path without glob characters that does not exist stops the run, since
+    a misspelled sample would otherwise be left out without notice; a glob
+    pattern that matches nothing is reported as a warning.
+    """
     files: list[Path] = []
     for pat in patterns:
         matches = sorted(glob.glob(pat))
         if not matches and Path(pat).exists():
             matches = [pat]
+        if not matches:
+            if any(c in pat for c in "*?["):
+                log.warning("--fasta pattern %s matches no file", pat)
+            else:
+                raise SystemExit(f"FASTA file {pat} not found")
         files.extend(Path(m) for m in matches)
     return files
 

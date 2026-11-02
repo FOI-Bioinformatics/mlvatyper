@@ -49,3 +49,10 @@ def test_example_sts_and_markers():
     assert set(defs) == {p.id for p in valid}
     assert defs["testM03"].patterns[0] == "ATCCTTATT" and len(defs["testM03"].patterns) == 5
     assert all(d.has_repeats and not d.can_call for d in defs.values())
+
+
+def test_read_sts_drops_a_byte_order_mark(tmp_path):
+    path = tmp_path / "bom.sts"
+    path.write_text("﻿m1\tACGTACGTACGTACGT\tTTGCAACGTTGCAAGT\t200\n", encoding="utf-8")
+    valid, invalid = read_sts(path)
+    assert [p.id for p in valid] == ["m1"] and not invalid

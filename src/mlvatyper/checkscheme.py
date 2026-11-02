@@ -132,7 +132,9 @@ def assembly_checks(table: pd.DataFrame, pairs: list[PrimerPair], defs: dict[str
                     workdir: Path, margin: int = 500, mismatches: int = 2, unit_mismatches: int = 1) -> pd.DataFrame:
     """Search the assembly and fill the product columns of the check table."""
     found = _search_reference(pairs, fasta, workdir, margin, mismatches)
-    table = table.set_index("marker").astype(object)
+    table = table.astype(object)
+    # one row per valid pair; a duplicate id rejected from the STS file has a row of its own that stays as it is
+    rows = {pair.id: index for index, pair in zip(table.index, pairs, strict=False)}
     for pair in pairs:
         marker_hits = found["hits"].get(pair.id, [])
         d = defs.get(pair.id)
@@ -145,8 +147,8 @@ def assembly_checks(table: pd.DataFrame, pairs: list[PrimerPair], defs: dict[str
         else:
             row["note"] = "not found in the reference assembly"
         for key, value in row.items():
-            table.loc[pair.id, key] = value
-    return table.reset_index()
+            table.loc[rows[pair.id], key] = value
+    return table
 
 
 def resolve_reference(scheme: Scheme, reference: str | None, assembly: str | None, download: bool,
