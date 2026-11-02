@@ -16,6 +16,9 @@ is below 1.0, so the output tables may still change between minor versions.
 - Documentation of every output file, exit status and input rule in
   `docs/method.md`, a runnable example on the committed test slices in the
   README, and the scheme file rules in `docs/schemes.md`.
+- Bundled scheme `Bru_MLVA16`, the 16 locus *Brucella* panel (Le Fleche et
+  al. 2006; panels of Al Dahouk et al. 2007), with reference values from
+  *B. melitensis* 16M; CI checks it against that assembly.
 - `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
   template files, and `docs/schemes.md` describes how to build a scheme
   from a publication and verify it against the reference strain.

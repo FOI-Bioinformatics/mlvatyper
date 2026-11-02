@@ -1,0 +1,20 @@
+marker	unit_length	ref_size	ref_repeats	offset	label	patterns
+# reference values are strain B. melitensis 16M (Le Fleche et al. 2006, Table 1, b.mel column and the locus name
+# NAME_<unit>bp_<16M size>bp_<copies>u); offset = ref_size - ref_repeats * unit_length, the non-repeat flank
+# no repeat unit sequences are shipped, so alleles are called by length
+Bruce06	134	408	3	6	Bruce06	N/A
+Bruce08	18	348	4	276	Bruce08	N/A
+Bruce11	63	257	2	131	Bruce11	N/A
+Bruce12	15	392	13	197	Bruce12	N/A
+Bruce42	125	539	4	39	Bruce42	N/A
+Bruce43	12	182	2	158	Bruce43	N/A
+Bruce45	18	151	3	97	Bruce45	N/A
+Bruce55	40	273	3	153	Bruce55	N/A
+Bruce18	8	146	5	106	Bruce18	N/A
+Bruce19	6	163	18	55	Bruce19	N/A
+Bruce21	8	148	6	100	Bruce21	N/A
+Bruce04	8	152	2	136	Bruce04	N/A
+Bruce07	8	158	5	118	Bruce07	N/A
+Bruce09	8	156	7	100	Bruce09	N/A
+Bruce16	8	152	3	128	Bruce16	N/A
+Bruce30	8	151	6	103	Bruce30	N/A
