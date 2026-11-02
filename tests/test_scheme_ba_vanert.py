@@ -2,15 +2,15 @@
 
 MLVA-15 carries the eight MLVA-8 loci of Keim et al. forward with the same
 primers, so the two bundles must agree at those loci even though their orders
-differ. The source table publishes a repeat motif and a location per locus but
-no allele definitions, so the copy numbers are derived and the scheme notes say
-so; these tests pin them, and they pin the comparison with the published spans.
+differ. The reference numbers are read from the MLVAbank identifier in the label
+column, so they are published; these tests pin them, and they pin the comparison
+with the locations and motifs the publication prints.
 """
 
 import pandas as pd
 
 from mlvatyper.cli import main
-from mlvatyper.markers import read_markers
+from mlvatyper.markers import parse_marker_name, read_markers
 from mlvatyper.scheme import load_scheme
 from tests.conftest import reference_assembly
 
@@ -21,19 +21,19 @@ MLVA8 = "bacillus_mlva8_keim_2000"
 ORDER = ["BaVNTR12", "BaVNTR19", "BaVNTR35", "BaVNTR16", "BaVNTR23", "BaVNTR17", "BaVNTR32",
          "vrrA", "vrrB1", "CG3", "pXO1-aat", "pXO2-at", "vrrB2", "vrrC1", "vrrC2"]
 SHARED = ["vrrA", "vrrB1", "vrrB2", "vrrC1", "vrrC2", "CG3", "pXO1-aat", "pXO2-at"]
-PROFILE = "6-4-5-4-4-4-11-4-3-2-7-10-2-7-8"
+PROFILE = "6-4-5-20-4-4-16-4-20-2-7-9-13-53-17"
 REF_SIZE = {"BaVNTR12": 115, "BaVNTR19": 96, "BaVNTR35": 115, "BaVNTR16": 273, "BaVNTR23": 197,
             "BaVNTR17": 386, "BaVNTR32": 577, "vrrA": 314, "vrrB1": 229, "CG3": 158,
             "pXO1-aat": 126, "pXO2-at": 141, "vrrB2": 153, "vrrC1": 580, "vrrC2": 532}
-# the repeat motifs the publication prints, with BaVNTR32 given only as Complex
-PUBLISHED_MOTIF = {"BaVNTR12": "TA", "BaVNTR19": "TAT", "BaVNTR35": "GATTGT", "BaVNTR16": "ACATTTAC",
-                   "BaVNTR23": "ATGAAAAAGAAA", "BaVNTR17": "ATGTGTAA", "vrrA": "CAATATCAACAA",
-                   "CG3": "TAATA", "pXO1-aat": "AAT", "pXO2-at": "AT"}
-# units derived from the reference: BaVNTR32 is printed as Complex, vrrB1 as a 9 bp degenerate
-# repeat and vrrB2 as Complex, so none of the three has a motif to take from the table
-DERIVED_MOTIF = {"BaVNTR32": "GAAGAAACAGAAAAGCCAGGT", "vrrB1": "CAAGGTCAC", "vrrB2": "CAACAGCAC"}
-# arrays too imperfect to count from a stored pattern, so the cross-check is skipped
-NO_PATTERN = {"vrrC1", "vrrC2"}
+# the motifs stored as patterns, which are the published ones and which a count reproduces
+STORED_MOTIF = {"BaVNTR12": "TA", "BaVNTR19": "TAT", "BaVNTR35": "GATTGT",
+                "BaVNTR23": "ATGAAAAAGAAA", "BaVNTR17": "ATGTGTAA", "vrrA": "CAATATCAACAA",
+                "CG3": "TAATA", "pXO1-aat": "AAT"}
+# no pattern: either the table prints no motif (Complex, or a 9 bp degenerate repeat for vrrB1)
+# or counting the published motif contradicts the published copy number
+NO_PATTERN = {"BaVNTR32", "vrrB1", "vrrB2", "vrrC1", "vrrC2", "BaVNTR16", "pXO2-at"}
+# published copy numbers that leave less room than the two primers need
+PRIMERS_INSIDE_ARRAY = {"vrrB1", "vrrB2"}
 # span of the published location, which is in the A2012 numbering
 PUBLISHED_SPAN = {"BaVNTR12": 114, "BaVNTR19": 124, "BaVNTR35": 114, "BaVNTR16": 272,
                   "BaVNTR23": 197, "BaVNTR17": 385, "BaVNTR32": 577, "vrrA": 314, "vrrB1": 229,
@@ -55,21 +55,41 @@ def test_scheme_files_are_consistent():
     for d in defs:
         assert d.can_call, d.primer_id
         assert d.ref_size == REF_SIZE[d.primer_id], d.primer_id
-        assert d.ref_size - d.ref_repeats * d.unit_length >= 41, d.primer_id  # room for both primers
+        slack = d.ref_size - d.ref_repeats * d.unit_length
+        assert slack >= 0, d.primer_id
+        if d.primer_id in PRIMERS_INSIDE_ARRAY:
+            assert slack < 52  # less than the two primers occupy
+        else:
+            assert slack >= 41
         if d.primer_id in NO_PATTERN:
             assert d.patterns == ()
         else:
-            motif = {**PUBLISHED_MOTIF, **DERIVED_MOTIF}[d.primer_id]
+            motif = STORED_MOTIF[d.primer_id]
             assert d.patterns == (motif,), d.primer_id
             assert d.unit_length == len(motif), d.primer_id
 
 
-def test_the_stored_units_are_the_published_motifs():
-    """Only BaVNTR32, printed as Complex, has a unit derived from the reference."""
+def test_the_stored_units_are_published_motifs_that_the_count_reproduces():
+    """The two loci with a motif but no pattern are the ones where the count disagrees."""
     defs = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
-    for marker, motif in PUBLISHED_MOTIF.items():
+    for marker, motif in STORED_MOTIF.items():
         assert defs[marker].patterns == (motif,), marker
-    assert set(DERIVED_MOTIF) | set(PUBLISHED_MOTIF) | NO_PATTERN == set(ORDER)
+    assert set(STORED_MOTIF) | NO_PATTERN == set(ORDER)
+    # ten TA units counted where the panel numbers 9, and four perfect ACATTTAC copies of 20
+    assert defs["pXO2-at"].ref_repeats == 9 and defs["BaVNTR16"].ref_repeats == 20
+
+
+def test_reference_numbers_match_the_mlvabank_identifier():
+    """The label encodes the three reference numbers; BaVNTR32 is the documented exception."""
+    for d in read_markers(load_scheme(SCHEME).markers):
+        encoded = parse_marker_name(d.label)
+        assert encoded is not None, d.label
+        assert (d.unit_length, d.ref_repeats) == (encoded.unit_length, encoded.ref_repeats), d.primer_id
+        if d.primer_id == "BaVNTR32":
+            # MLVAbank amplifies this locus as bams01 with a different primer pair, so only the size differs
+            assert d.label.startswith("bams01_") and d.ref_size != encoded.ref_size
+        else:
+            assert d.ref_size == encoded.ref_size, d.primer_id
 
 
 def test_mlva8_is_an_exact_subset():
@@ -86,8 +106,8 @@ def test_mlva8_is_an_exact_subset():
     for marker in SHARED:
         assert sts15[marker] == sts8[marker], marker
         a, b = defs15[marker], defs8[marker]
-        assert (a.unit_length, a.ref_size, a.ref_repeats, a.patterns) == \
-               (b.unit_length, b.ref_size, b.ref_repeats, b.patterns), marker
+        assert (a.unit_length, a.ref_size, a.ref_repeats, a.patterns, a.label) == \
+               (b.unit_length, b.ref_size, b.ref_repeats, b.patterns, b.label), marker
     # the two orders differ, so the profile strings are not aligned
     assert [m for m in ORDER if m in SHARED] != SHARED
 
@@ -143,6 +163,7 @@ def test_sizes_against_the_published_locations():
     for marker in ORDER[:7]:
         delta = defs[marker].ref_size - PUBLISHED_SPAN[marker]
         if marker == "BaVNTR19":
+            # the published span is wrong: the MLVAbank identifier gives 96 bp, as measured
             assert delta == -28
         else:
             assert delta in (0, 1), marker

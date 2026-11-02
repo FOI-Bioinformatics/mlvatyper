@@ -1,64 +1,67 @@
 marker	unit_length	ref_size	ref_repeats	patterns	label
-BaVNTR12	2	115	6	TA	BaVNTR12
-BaVNTR19	3	96	4	TAT	BaVNTR19
-BaVNTR35	6	115	5	GATTGT	BaVNTR35
-BaVNTR16	8	273	4	ACATTTAC	BaVNTR16
-BaVNTR23	12	197	4	ATGAAAAAGAAA	BaVNTR23
-BaVNTR17	8	386	4	ATGTGTAA	BaVNTR17
-BaVNTR32	21	577	11	GAAGAAACAGAAAAGCCAGGT	BaVNTR32
-vrrA	12	314	4	CAATATCAACAA	vrrA
-vrrB1	9	229	3	CAAGGTCAC	vrrB1
-CG3	5	158	2	TAATA	CG3
-pXO1-aat	3	126	7	AAT	pXO1-aat
-pXO2-at	2	141	10	AT	pXO2-at
-vrrB2	9	153	2	CAACAGCAC	vrrB2
-vrrC1	36	580	7	N/A	vrrC1
-vrrC2	36	532	8	N/A	vrrC2
-# ref_size is the product length measured in the Ames Ancestor assembly GCA_000008445.1 by in
-# silico PCR with these primers, outer primer edge to outer primer edge. Every locus gives
-# exactly one product, all are searchable at word size 11 and none needs the rescue pass. Each
-# product lies on the replicon the publication states: the eleven chromosomal loci on
-# AE017334.2, pXO1-aat on pXO1 (AE017336.2) and BaVNTR16, BaVNTR17 and pXO2-at on pXO2
-# (AE017335.3).
+BaVNTR12	2	115	6	TA	vntr12_2bp_115bp_6U
+BaVNTR19	3	96	4	TAT	vntr19_3bp_96bp_4U
+BaVNTR35	6	115	5	GATTGT	vntr35_6bp_115bp_5U
+BaVNTR16	8	273	20	N/A	vntr16_8bp_273bp_20U
+BaVNTR23	12	197	4	ATGAAAAAGAAA	vntr23_12bp_197bp_4U
+BaVNTR17	8	386	4	ATGTGTAA	vntr17_8bp_386bp_4U
+BaVNTR32	21	577	16	N/A	bams01_21bp_485bp_16U
+vrrA	12	314	4	CAATATCAACAA	vrrA_12bp_314bp_4U
+vrrB1	9	229	20	N/A	vrrB1_9bp_229bp_20U
+CG3	5	158	2	TAATA	CG3_5bp_158bp_2U
+pXO1-aat	3	126	7	AAT	pXO1-aat_3bp_126bp_7U
+pXO2-at	2	141	9	N/A	pXO2-at_2bp_141bp_9U
+vrrB2	9	153	13	N/A	vrrB2_9bp_153bp_13U
+vrrC1	9	580	53	N/A	vrrC1_9bp_580bp_53U
+vrrC2	18	532	17	N/A	vrrC2_18bp_532bp_17U
+# unit_length, ref_size and ref_repeats are the published values that the MLVAbank identifier in
+# the label column encodes as NAME_<unit>bp_<size>bp_<n>u, taken from the source table of the
+# bundled scheme bacillus_mlva31_mlvabank, which holds the 31 locus composite panel. The label
+# therefore carries the MLVAbank name of the locus, which for the seven loci this panel adds is
+# vntrNN rather than BaVNTRNN. No number in this table is derived.
+#
+# ref_size is also the product length measured in the Ames Ancestor assembly GCA_000008445.1 by
+# in silico PCR with these primers, outer primer edge to outer primer edge. All fifteen agree
+# with the identifier, every locus gives exactly one product, all are searchable at word size 11
+# and none needs the rescue pass. Each product lies on the replicon the publication states: the
+# eleven chromosomal loci on AE017334.2, pXO1-aat on pXO1 (AE017336.2) and BaVNTR16, BaVNTR17
+# and pXO2-at on pXO2 (AE017335.3).
+#
+# BaVNTR32 is the one locus whose identifier does not describe this amplicon. It is the locus
+# MLVAbank calls bams01, alias vntr32, and the two panels amplify it with different primer pairs,
+# 485 bp there against 577 bp here, so the unit length and the copy number are taken from the
+# identifier but ref_size is the product these primers give. The 21 bp unit it publishes confirms
+# the unit derived from the reference for this locus, whose motif Van Ert et al. print only as
+# Complex.
 #
 # The publication's locations are coordinates in the A2012 numbering (NC_003995 for the
 # chromosome, NC_003980 for pXO1, NC_003981 for pXO2), not in Ames Ancestor, so they were
-# compared by span length rather than by position. All eight MLVA-8 loci reproduce their
-# published span exactly: vrrA 314, vrrB1 229, CG3 158, pXO1-aat 126, pXO2-at 141, vrrB2 153,
-# vrrC1 580 and vrrC2 532 bp.
+# compared by span length. All eight older loci reproduce their published span exactly.
 #
-# A non-genomic base in the new reverse primers. Each of the seven BaVNTR reverse primers
-# begins with a 5' G that the genome does not carry; six of them therefore report one primer
-# mismatch, and in BaVNTR19 the G happens to match. The primers are kept as published, because
-# a real reaction with them yields a product one base longer than the genomic span, which is
-# what ref_size records. Taking that one base into account, six of the seven loci agree with
-# the published span: BaVNTR12, BaVNTR35, BaVNTR16 and BaVNTR17 match it when the extra base
-# is excluded (114, 114, 272, 385 bp), and BaVNTR23 and BaVNTR32 match it when the extra base
-# is included (197 and 577 bp), so the publication appears not to be consistent about whether
-# the base is counted. BaVNTR19 is the exception: 96 bp here against a published span of 124,
-# and a difference of 28 bp is not a whole number of TAT units, so it is not a simple allele
-# difference. It is either a strain difference between A2012 and Ames Ancestor combined with
-# an indel, or a coordinate error; it could not be settled without the A2012 sequence.
+# A non-genomic base in the new reverse primers. Each of the seven reverse primers this panel
+# adds begins with a 5' G that the genome does not carry; six of them therefore report one primer
+# mismatch, and in BaVNTR19 the G happens to match. The primers are kept as published, because a
+# real reaction with them yields a product one base longer than the genomic span, and the
+# published reference sizes already include that base. Taking it into account, six of the seven
+# agree with the published span: BaVNTR12, BaVNTR35, BaVNTR16 and BaVNTR17 match it when the
+# extra base is excluded (114, 114, 272, 385 bp), and BaVNTR23 and BaVNTR32 match it when the
+# extra base is included, so the publication appears not to be consistent about whether the base
+# is counted. BaVNTR19 is the exception: its published span is 124 bp, against 96 bp measured
+# here. That one is a mistake in the publication rather than a strain difference, because the
+# MLVAbank identifier for the same locus also gives 96 bp.
 #
-# unit_length and patterns of the seven new loci are the repeat motifs the publication gives,
-# except BaVNTR32, whose motif is stated only as Complex: the reference holds a clean 21 bp
-# array there, GAAGAAACAGAAAAGCCAGGT, and the unit length is derived from it. The motifs given
-# for the MLVA-8 loci corroborate the units in bacillus_mlva8_keim_2000: vrrA CAATATCAACAA is
-# the stored pattern exactly, CG3 TAATA is the published rotation of the same 5 bp unit and is
-# used here, pXO1-aat AAT and pXO2-at AT match, vrrB1 is described as a 9 bp degenerate repeat
-# and vrrB2, vrrC1 and vrrC2 as Complex, which is what the reference shows.
+# patterns are kept only for the six loci whose published copy number equals the number of times
+# the published motif occurs in the reference, so the tandem array cross-check is active on those
+# six and skipped on the rest, where it would contradict the published number. The motifs are the
+# published ones; BaVNTR32, vrrB1, vrrB2, vrrC1 and vrrC2 have no motif in the table, which
+# prints them as Complex or, for vrrB1, as a 9 bp degenerate repeat. The two loci left without a
+# pattern although their motif is known are pXO2-at, whose array holds ten TA units where the
+# panel numbers the reference 9, and BaVNTR16, whose array holds 20 published units of ACATTTAC
+# of which only four are perfect copies. An allele in this panel is therefore not always a
+# literal count of whole units in the reference.
 #
-# THE COPY NUMBERS ARE NOT PUBLISHED VALUES. The source table gives motifs, locations and
-# primers but no allele definitions, so ref_repeats is the count the tandem array counter
-# returns for the stored motif at the default mismatch allowance. MLVA-15 alleles are
-# canonically assigned from fragment size against the published allele table, so a count here
-# may be offset from the canonical allele by a constant. Confirm them against that table, or
-# supply it as bins.tsv, before a profile from this scheme is compared with published MLVA-15
-# genotypes. The twelve loci with a stored pattern carry an active repeat count cross-check
-# that check-scheme reproduces; vrrC1 and vrrC2 do not, for the reason given in
-# bacillus_mlva8_keim_2000, from which the eight shared loci take their values unchanged.
-#
-# BaVNTR32 holds about 14 units of its 21 bp motif in the reference, of which 11 are counted:
-# the three outermost differ from the core by 5 to 8 of 21 bases and fall outside the default
-# allowance. vrrB1 with vrrB2 and vrrC1 with vrrC2 are adjacent paralogues whose amplicons
-# overlap by 27 and 36 bp, so a rearrangement there can move both members of a pair.
+# vrrB1 and vrrB2 hold 20 and 13 units of 9 bp in a 229 and a 153 bp product, which leaves 49 and
+# 36 bp outside the array, less than their two primers occupy, so for these two loci the primers
+# lie inside the repeat array; the allele formula needs only the size and the copy number to be
+# consistent, which they are. vrrB1 with vrrB2 and vrrC1 with vrrC2 are adjacent paralogues whose
+# amplicons overlap by 27 and 36 bp, so a rearrangement there can move both members of a pair.

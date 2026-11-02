@@ -1,0 +1,69 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+vrrA	12	314	4	CAATATCAACAA	vrrA_12bp_314bp_4U
+vrrB1	9	229	20	N/A	vrrB1_9bp_229bp_20U
+vrrB2	9	153	13	N/A	vrrB2_9bp_153bp_13U
+vrrC1	9	580	53	N/A	vrrC1_9bp_580bp_53U
+vrrC2	18	532	17	N/A	vrrC2_18bp_532bp_17U
+CG3	5	158	2	TAATA	CG3_5bp_158bp_2U
+pXO1-aat	3	126	7	AAT	pXO1-aat_3bp_126bp_7U
+pXO2-at	2	141	9	N/A	pXO2-at_2bp_141bp_9U
+bams01	21	485	16	N/A	bams01_21bp_485bp_16U
+bams03	15	549	26	N/A	bams03_15bp_549bp_26U
+bams05	39	307	5	N/A	bams05_39bp_307bp_5U
+bams13	9	814	70	N/A	bams13_9bp_814bp_70U
+bams15	9	418	24	N/A	bams15_9bp_418bp_24U
+bams21	45	676	10	N/A	bams21_45bp_676bp_10U
+bams22	36	735	16	N/A	bams22_36bp_735bp_16U
+bams23	42	651	11	N/A	bams23_42bp_651bp_11U
+bams24	42	595	11	N/A	bams24_42bp_595bp_11U
+bams25	15	391	13	N/A	bams25_15bp_391bp_13U
+bams28	24	493	14	N/A	bams28_24bp_493bp_14U
+bams30	9	727	57	N/A	bams30_9bp_727bp_57U
+bams31	9	772	64	N/A	bams31_9bp_772bp_64U
+bams34	39	503	11	N/A	bams34_39bp_503bp_11U
+bams44	39	417	8	N/A	bams44_39bp_417bp_8U
+bams51	45	493	9	N/A	bams51_45bp_493bp_9U
+bams53	12	236	8	N/A	bams53_12bp_236bp_8U
+vntr12	2	115	6	TA	vntr12_2bp_115bp_6U
+vntr16	8	273	20	N/A	vntr16_8bp_273bp_20U
+vntr17	8	386	4	ATGTGTAA	vntr17_8bp_386bp_4U
+vntr19	3	96	4	TAT	vntr19_3bp_96bp_4U
+vntr23	12	197	4	ATGAAAAAGAAA	vntr23_12bp_197bp_4U
+vntr35	6	115	5	GATTGT	vntr35_6bp_115bp_5U
+# unit_length, ref_size and ref_repeats are read from the MLVAbank identifier in the label
+# column, which encodes them as NAME_<unit>bp_<size>bp_<n>u, so all three are published values
+# and no number in this table is derived. The reference is the Ames Ancestor assembly
+# GCA_000008445.1.
+#
+# Every one of the 31 loci gives exactly one product in that assembly, of exactly the published
+# reference size, searchable at word size 11 and without the rescue pass. That is a complete
+# check of the sizes: 31 of 31 agree. Each product lies on the replicon the source table
+# states: pXO1-aat on pXO1 (AE017336.2), pXO2-at, vntr16 and vntr17 on pXO2 (AE017335.3), the
+# rest on the chromosome (AE017334.2).
+#
+# Six of the vntr reverse primers begin with a 5' G that the genome does not carry, so five of
+# them report one primer mismatch and the sixth, vntr19, happens to match. The primers are kept
+# as published, and the published reference sizes already include that base.
+#
+# patterns are filled only for the eight loci where the repeat motif published by Van Ert et
+# al. 2007 occurs in the reference exactly the published number of times, so that the tandem
+# array cross-check is active on them. The source table gives no motifs, so the rest are N/A
+# and their alleles rest on amplicon length alone, which is how this panel is numbered. Two
+# loci are deliberately left without a pattern although a motif is known for them, because the
+# count disagrees with the published value: the pXO2-at array is ten TA units but the panel
+# numbers the reference 9, and the vntr16 array is 20 published units of ACATTTAC of which only
+# four are perfect copies. An allele in this panel is therefore not always a literal count of
+# whole units in the reference.
+#
+# vrrB1 and vrrB2 have 20 and 13 units of 9 bp in a 229 and a 153 bp product, which leaves 49
+# and 36 bp outside the array, less than their two primers occupy. Their primers therefore sit
+# inside the repeat array, as happens in other published schemes; the allele formula is
+# unaffected because it needs only the size and the copy number to be consistent.
+#
+# This panel numbers vrrC1 on a 9 bp unit and vrrC2 on an 18 bp unit, not the 36 bp unit that
+# the arrays also show as a higher-order period, and bams01 carries the alias vntr32, the locus
+# that Van Ert et al. print with a complex motif; its 21 bp unit here confirms the unit derived
+# for that locus in bacillus_mlva15_vanert_2007.
+#
+# bams07, the locus held out of the panel, with its published values:
+#bams07	18	1017	50	N/A	bams07_18bp_1017bp_50U
