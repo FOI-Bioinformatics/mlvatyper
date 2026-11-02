@@ -156,7 +156,9 @@ provenance of the scheme: `citation` (who published the values), `url`
 (where the file came from) and `reference` (the strain or accession the
 reference sizes and repeat numbers describe). Allele numbers are only
 comparable with a database when their source is recorded, so an empty
-field or a placeholder such as `none` or `TBD` fails the check; the
+field or a placeholder such as `none` or `TBD` fails the check, as does
+a value that opens with one and explains it (`not recorded; ...`) or says
+it is still to be filled in (`the DOI has to be added`); the
 remaining checks still run and are written, and
 `--allow-missing-provenance` turns the failure into a warning while a
 scheme is being prepared. `organism` and `retrieved` are reported as

@@ -57,3 +57,11 @@ def test_report_helpers(fixture_dir):
     assert "searched again with a hash word of 6 bases" in text
     assert render(data).startswith("<!DOCTYPE html>")
     assert methods_text({}).startswith("VNTR amplicons were located")
+
+
+def test_command_line_uses_the_negated_flags():
+    from mlvatyper.report import _command_line
+    on = _command_line({"search": {"parameters": {"dedup": True, "iupac": True, "fasta": ["a.fa"]}}})
+    assert on == "mlvatyper run --fasta a.fa"
+    off = _command_line({"search": {"parameters": {"dedup": False, "iupac": False, "report": False}}})
+    assert off == "mlvatyper run --no-dedup --no-iupac --no-report"

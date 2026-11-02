@@ -28,6 +28,7 @@ bundled name or a directory path.
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 
 from .assemblies import ASSEMBLY_RE
 from .log import get_logger
@@ -45,7 +46,17 @@ PROVENANCE_FIELDS = ("citation", "url", "reference")
 RECOMMENDED_FIELDS = ("organism", "retrieved", "assembly")
 # values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
 PLACEHOLDERS = frozenset({"", "-", "?", "na", "n/a", "none", "unknown", "tbd", "todo", "fixme", "xxx",
-                          "to be added", "to be determined", "see publication", "see paper"})
+                          "to be added", "to be determined", "see publication", "see paper", "not recorded",
+                          "not given", "not known", "not available", "missing", "pending"})
+# a value that opens with a placeholder and explains it ("not recorded; the DOI has to be added") still states
+# nothing; the leading clause ends at the first ; : , ( or spaced dash
+LEADING_CLAUSE_RE = re.compile(r"[;:,(\u2013\u2014]|\s-\s")
+# wording that says the value is still to be filled in, anywhere in it
+UNFINISHED_RE = re.compile(r"\b(?:tbd|todo|fixme|(?:has|have|needs?) to be added|to be added|to be determined)\b",
+                           re.IGNORECASE)
+
+
+COMMENT_RE = re.compile(r"\s#")
 
 
 class SchemeError(ValueError):
@@ -90,15 +101,27 @@ class Scheme:
 
 
 def is_placeholder(value) -> bool:
-    """Whether a metadata value states nothing: empty, or one of the placeholder words."""
-    return str(value).strip().rstrip(".!,;:").lower() in PLACEHOLDERS
+    """Whether a metadata value states nothing.
+
+    That is a value that is empty or a placeholder word, one whose leading
+    clause is a placeholder ("not recorded; see the paper"), or one that
+    says it is still to be filled in ("the DOI has to be added here").
+    """
+    text = str(value).strip()
+    if text.rstrip(".!,;:").lower() in PLACEHOLDERS or UNFINISHED_RE.search(text):
+        return True
+    return LEADING_CLAUSE_RE.split(text, maxsplit=1)[0].strip().rstrip(".!").lower() in PLACEHOLDERS
 
 
 def parse_flat_yaml(text: str) -> dict:
-    """key: value lines; quotes around the value are removed, numbers are typed by key."""
+    """key: value lines; quotes around the value are removed, numbers are typed by key.
+
+    As in YAML, # starts a comment only at the start of a line or after
+    whitespace, so a URL fragment (page#section) is kept.
+    """
     meta: dict = {}
     for number, raw in enumerate(text.splitlines(), start=1):
-        line = raw.split("#", 1)[0].rstrip() if not raw.lstrip().startswith("#") else ""
+        line = COMMENT_RE.split(raw, maxsplit=1)[0].rstrip() if not raw.lstrip().startswith("#") else ""
         if not line.strip():
             continue
         if ":" not in line:
@@ -139,11 +162,13 @@ def load_scheme(name_or_path: str | Path) -> Scheme:
     return Scheme(meta.get("name") or path.name, path, path / STS_FILE, markers, bins, meta)
 
 
-def apply_scheme(args, scheme: Scheme, parser_defaults: dict) -> None:
+def apply_scheme(args, scheme: Scheme, parser_defaults: dict, explicit: set[str] | None = None) -> None:
     """Fill --sts, --markers and --bins from the scheme and apply its calling defaults.
 
-    An option keeps its command line value when it differs from the parser
-    default; otherwise the scheme value is used.
+    explicit holds the option destinations given on the command line; those
+    keep their value, even when it equals the parser default, and every
+    other option takes the scheme value. Without explicit, an option is
+    taken as given when its value differs from the parser default.
     """
     if getattr(args, "sts", None) is None:
         args.sts = str(scheme.sts)
@@ -153,7 +178,8 @@ def apply_scheme(args, scheme: Scheme, parser_defaults: dict) -> None:
         args.bins = str(scheme.bins)
     applied = []
     for key, value in scheme.calling_defaults().items():
-        if hasattr(args, key) and getattr(args, key) == parser_defaults.get(key):
+        given = key in explicit if explicit is not None else getattr(args, key, None) != parser_defaults.get(key)
+        if hasattr(args, key) and not given:
             setattr(args, key, value)
             applied.append(f"{key}={value}")
     log.info("Scheme %s: %s%s", scheme.name, scheme.description,

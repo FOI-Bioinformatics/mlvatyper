@@ -61,6 +61,19 @@ def test_run_with_scheme_directory_applies_files_and_defaults(fixture_dir):
     assert main(["summarize", "--scheme", str(d), "--outdir", str(out), "--prefix", "u", "--rounding", "up"]) == 0
     info = __import__("json").loads((out / "run_info.json").read_text())
     assert info["summarize"]["parameters"]["rounding"] == "up"
+    # also when the explicit value equals the parser default, and for the other calling options
+    assert main(["summarize", "--scheme", str(d), "--outdir", str(out), "--prefix", "v", "--rounding",
+                 "intermediate", "--allele-tolerance=0.25"]) == 0
+    info = __import__("json").loads((out / "run_info.json").read_text())
+    assert info["summarize"]["parameters"]["rounding"] == "intermediate"
+    assert info["summarize"]["parameters"]["allele_tolerance"] == 0.25
+
+
+def test_explicit_options():
+    from mlvatyper.cli import explicit_options
+    given = explicit_options(["summarize", "--outdir", "o", "--prefix", "p", "--rounding", "intermediate"])
+    assert {"rounding", "outdir", "prefix", "command"} <= given and "allele_tolerance" not in given
+    assert "margin" in explicit_options(["run", "--outdir", "o", "--prefix", "p", "--fasta", "x", "-M", "500"])
 
 
 def test_sts_or_scheme_required(fixture_dir):
@@ -100,10 +113,15 @@ def test_label_round_trip(tmp_path):
 
 
 def test_is_placeholder_and_missing_provenance(fixture_dir):
-    for value in ("", "  ", "none", "None.", "N/A", "unknown", "TBD", "to be added", "-"):
-        assert is_placeholder(value)
-    for value in ("Example et al. 2026", "https://example.test/x", "strain MINI-1", "0"):
-        assert not is_placeholder(value)
+    for value in ("", "  ", "none", "None.", "N/A", "unknown", "TBD", "to be added", "-",
+                  "not recorded; the table was supplied from Smith et al., and the DOI has to be added here",
+                  "Unknown (see notes)", "TBD - ask the authors", "Smith et al. 2020, DOI to be added",
+                  "https://doi.org/TODO"):
+        assert is_placeholder(value), value
+    for value in ("Example et al. 2026", "https://example.test/x", "strain MINI-1", "0",
+                  "https://doi.org/10.1128/AEM.05556-11 (Table 1)", "Missingham A. Title. J 2020;1:1-2",
+                  "Pending B, Unknown C. Typing. J 2019;3:4-5", "strain NA-12, chromosome CP000000.1"):
+        assert not is_placeholder(value), value
     d = _scheme_dir(fixture_dir)
     (d / "scheme.yml").write_text("name: mini\ncitation: none\nurl:\nreference: strain MINI-1\n")
     scheme = load_scheme(d)
@@ -174,3 +192,8 @@ def test_assembly_accession_in_metadata(tmp_path):
         load_scheme(d)
     (d / "scheme.yml").write_text("name: x\nassembly: none\n")
     assert load_scheme(d).assembly is None
+
+
+def test_parse_flat_yaml_keeps_url_fragment():
+    meta = parse_flat_yaml("url: https://example.org/page#table1  # comment\ncitation: Smith #2\n")
+    assert meta == {"url": "https://example.org/page#table1", "citation": "Smith"}

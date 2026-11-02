@@ -102,3 +102,10 @@ def test_fix_sts_strips_stray_characters(fixture_dir):
                  "--outdir", str(out), "--fix-sts", "--align", "none", "-M", "50"]) == 0
     assert "BAD1\t" + FWD in (out / "primers_used.sts").read_text()
     assert not (out / "invalid_primers.tsv").exists()
+
+
+def test_find_with_indels_reports_an_exact_product_once():
+    amp = make_amplicon(5)
+    genome = random_dna(300, 95) + amp + random_dna(300, 96)
+    hits = find_with_indels({"c": genome}, PrimerPair("VNTR1", FWD, REV, len(amp)), "s", margin=50)
+    assert [(h.start, h.length) for h in hits] == [(301, len(amp))]

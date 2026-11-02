@@ -26,6 +26,7 @@ STATUS_GLOSSARY = {
     "NEAR_CONTIG_END": "no amplicon, but a primer lies within the size window of a contig end",
     "NOT_SEARCHED": "no primer holds a hash word of the word size used, so merPCR did not search the marker",
     "ONE_PRIMER_ONLY": "one primer matches exactly, the other exceeds the mismatch limit or has an indel",
+    "NOT_FOUND": "no amplicon and neither primer matches exactly; reported as NOT_DETECTED in the allele tables",
     "INTERMEDIATE": "repeat number not within tolerance of an integer",
     "NEGATIVE": "amplicon shorter than the flanking region of the definition",
     "BINNED": "allele taken from the bin table",
@@ -266,11 +267,19 @@ def methods_text(run_info: dict) -> str:
     return " ".join(parts)
 
 
+# options stored under their dest whose flag is the negation (store_false); see cli.build_parser
+NEGATED_FLAGS = {"dedup": "--no-dedup", "iupac": "--no-iupac", "report": "--no-report", "download": "--no-download"}
+
+
 def _command_line(run_info: dict) -> str:
     search = run_info.get("search", {}).get("parameters", {}) or {}
     items = []
     for key, value in sorted(search.items()):
-        if value in (None, False, "", []) or key in ("report", "title"):
+        if key in NEGATED_FLAGS:
+            if value is False:
+                items.append(NEGATED_FLAGS[key])
+            continue
+        if value in (None, False, "", []) or key == "title":
             continue
         flag = "--" + key.replace("_", "-")
         if value is True:

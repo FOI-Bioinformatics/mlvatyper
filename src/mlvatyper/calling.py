@@ -14,7 +14,7 @@ numbers.
 
 import math
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import pandas as pd
@@ -104,8 +104,12 @@ def read_bins(path: str | Path) -> dict[str, list[Bin]]:
 
 
 def round_repeats(raw: float, tolerance: float, policy: str) -> tuple[str, bool]:
-    """Return (allele text, is_intermediate)."""
-    nearest = round(raw)
+    """Return (allele text, is_intermediate).
+
+    Halves round up (2.5 to 3), not to the even neighbour as Python's round
+    does. The intermediate value is floor(raw) + 0.5, so -0.4 gives -0.5.
+    """
+    nearest = math.floor(raw + 0.5)
     # strict comparison as in MLVA_finder: a value exactly tolerance away is intermediate
     if abs(raw - nearest) < tolerance:
         return str(nearest), False
@@ -116,12 +120,16 @@ def round_repeats(raw: float, tolerance: float, policy: str) -> tuple[str, bool]
     if policy == "down":
         return str(math.floor(raw)), True
     if policy == "intermediate":
-        return f"{math.floor(raw)}.5", True
+        return str(math.floor(raw) + 0.5), True
     raise ValueError(f"unknown rounding policy {policy}")
 
 
-def _allele_value(text: str) -> float:
-    return float(text.lstrip(">="))
+def _allele_value(text: str) -> float | None:
+    """Numeric value of an allele, or None for a non-numeric bin label such as '3a'."""
+    try:
+        return float(text.lstrip(">="))
+    except ValueError:
+        return None
 
 
 def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None,
@@ -141,16 +149,22 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
             call.status.append(INTERMEDIATE)
     if call.raw < 0:
         call.status.append(NEGATIVE)
-    expected = d.expected_size(_allele_value(call.allele))
+    value = _allele_value(call.allele)
+    expected = None if value is None else d.expected_size(value)
     call.residual = None if expected is None else length - expected
 
 
 def _check_array(call: Call, d: MarkerDef, max_array_length: int | None) -> None:
     allele = _allele_value(call.allele)
-    if d.has_repeats and call.array.copies and abs(call.array.copies - allele) >= 1:
+    if d.has_repeats and call.array.copies and allele is not None and abs(call.array.copies - allele) >= 1:
         call.status.append(COUNT_DISAGREES)
-    array_length = call.array.span if call.array.copies else allele * d.unit_length
-    if max_array_length is not None and array_length >= max_array_length:
+    if call.array.copies:
+        array_length = call.array.span
+    elif allele is not None:
+        array_length = allele * d.unit_length
+    else:
+        array_length = None
+    if max_array_length is not None and array_length is not None and array_length >= max_array_length:
         call.allele = f">={call.allele}"
         call.status.append(CENSORED)
 
@@ -169,7 +183,7 @@ def call_amplicon(
     if d.has_repeats:
         call.array = count_tandem_array(amp.sequence, d.patterns, max_mismatch)
     if not d.can_call:
-        call.status.append(NO_DEFINITION)
+        call.status.insert(0, NO_DEFINITION)  # first, so that the allele table shows it rather than e.g. HAS_N
         return call
     _assign_allele(call, d, len(amp.sequence), bins, tolerance, policy)
     _check_array(call, d, max_array_length)
@@ -329,7 +343,7 @@ def derive_definitions(
             ref_repeats = count_tandem_array(amp.sequence, d.patterns, max_mismatch).copies
         else:
             ref_repeats = 0
-        derived.append(MarkerDef(d.primer_id, d.patterns, d.unit_length, ref_size, ref_repeats, d.offset))
+        derived.append(replace(d, ref_size=ref_size, ref_repeats=ref_repeats))  # keeps offset and label
     n = sum(1 for d in derived if d.can_call)
     log.info("Reference sample %s: %d of %d markers have reference size and repeats", reference_sample, n, len(defs))
     return derived

@@ -24,7 +24,7 @@ from Bio.Seq import Seq
 
 from .assemblies import download_assembly
 from .calling import read_bins
-from .extract import load_fasta
+from .extract import deduplicate_hits, load_fasta
 from .log import get_logger
 from .markers import read_markers
 from .models import MarkerDef, PrimerPair
@@ -97,6 +97,8 @@ def _search_reference(pairs: list[PrimerPair], fasta: Path, workdir: Path, margi
         missing = [p for p in pairs if p.id not in {h.primer_id for h in hits}]
     for pair in missing:
         hits += find_with_indels(contigs, pair, "reference", 2 * margin, mismatches)
+    # overlapping hits for one locus are one product, as in the search command
+    hits = deduplicate_hits(hits, max((len(p.forward) for p in pairs), default=20))
     by_marker: dict[str, list] = {}
     for h in hits:
         by_marker.setdefault(h.primer_id, []).append(h)
