@@ -61,6 +61,19 @@ def test_run_with_scheme_directory_applies_files_and_defaults(fixture_dir):
     assert main(["summarize", "--scheme", str(d), "--outdir", str(out), "--prefix", "u", "--rounding", "up"]) == 0
     info = __import__("json").loads((out / "run_info.json").read_text())
     assert info["summarize"]["parameters"]["rounding"] == "up"
+    # also when the explicit value equals the parser default, and for the other calling options
+    assert main(["summarize", "--scheme", str(d), "--outdir", str(out), "--prefix", "v", "--rounding",
+                 "intermediate", "--allele-tolerance=0.25"]) == 0
+    info = __import__("json").loads((out / "run_info.json").read_text())
+    assert info["summarize"]["parameters"]["rounding"] == "intermediate"
+    assert info["summarize"]["parameters"]["allele_tolerance"] == 0.25
+
+
+def test_explicit_options():
+    from mlvatyper.cli import explicit_options
+    given = explicit_options(["summarize", "--outdir", "o", "--prefix", "p", "--rounding", "intermediate"])
+    assert {"rounding", "outdir", "prefix", "command"} <= given and "allele_tolerance" not in given
+    assert "margin" in explicit_options(["run", "--outdir", "o", "--prefix", "p", "--fasta", "x", "-M", "500"])
 
 
 def test_sts_or_scheme_required(fixture_dir):

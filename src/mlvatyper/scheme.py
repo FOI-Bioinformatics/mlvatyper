@@ -147,11 +147,13 @@ def load_scheme(name_or_path: str | Path) -> Scheme:
     return Scheme(meta.get("name") or path.name, path, path / STS_FILE, markers, bins, meta)
 
 
-def apply_scheme(args, scheme: Scheme, parser_defaults: dict) -> None:
+def apply_scheme(args, scheme: Scheme, parser_defaults: dict, explicit: set[str] | None = None) -> None:
     """Fill --sts, --markers and --bins from the scheme and apply its calling defaults.
 
-    An option keeps its command line value when it differs from the parser
-    default; otherwise the scheme value is used.
+    explicit holds the option destinations given on the command line; those
+    keep their value, even when it equals the parser default, and every
+    other option takes the scheme value. Without explicit, an option is
+    taken as given when its value differs from the parser default.
     """
     if getattr(args, "sts", None) is None:
         args.sts = str(scheme.sts)
@@ -161,7 +163,8 @@ def apply_scheme(args, scheme: Scheme, parser_defaults: dict) -> None:
         args.bins = str(scheme.bins)
     applied = []
     for key, value in scheme.calling_defaults().items():
-        if hasattr(args, key) and getattr(args, key) == parser_defaults.get(key):
+        given = key in explicit if explicit is not None else getattr(args, key, None) != parser_defaults.get(key)
+        if hasattr(args, key) and not given:
             setattr(args, key, value)
             applied.append(f"{key}={value}")
     log.info("Scheme %s: %s%s", scheme.name, scheme.description,

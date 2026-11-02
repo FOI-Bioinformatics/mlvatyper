@@ -665,15 +665,32 @@ def do_bins_from_table(args: argparse.Namespace) -> None:
     bins_from_table(args.table, args.output, args.locus_column, args.allele_column, args.size_column, labels)
 
 
-def _resolve_scheme(args: argparse.Namespace) -> None:
+def explicit_options(argv: list[str]) -> set[str]:
+    """Destinations of the options given in argv, whatever their value.
+
+    The command line is parsed again by a parser whose defaults are all
+    suppressed, so only what was typed ends up in the namespace.
+    """
+    parser = build_parser()
+    parsers = [parser]
+    while parsers:
+        p = parsers.pop()
+        for action in p._actions:
+            action.default = argparse.SUPPRESS
+            if isinstance(action, argparse._SubParsersAction):
+                parsers.extend(action.choices.values())
+    return set(vars(parser.parse_args(argv)))
+
+
+def _resolve_scheme(args: argparse.Namespace, explicit: set[str] | None = None) -> None:
     if getattr(args, "scheme", None):
-        apply_scheme(args, load_scheme(args.scheme), CALLING_DEFAULTS)
+        apply_scheme(args, load_scheme(args.scheme), CALLING_DEFAULTS, explicit)
     if args.command in ("run", "search") and not args.sts:
         raise SystemExit("--sts or --scheme is required")
 
 
-def _dispatch(args: argparse.Namespace, outdir: Path) -> None:
-    _resolve_scheme(args)
+def _dispatch(args: argparse.Namespace, outdir: Path, explicit: set[str] | None = None) -> None:
+    _resolve_scheme(args, explicit)
     if args.command == "check-scheme":
         do_check_scheme(args, outdir)
     elif args.command == "search":
@@ -697,6 +714,7 @@ def _dispatch(args: argparse.Namespace, outdir: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
     args = build_parser().parse_args(argv)
     configure_logging(args.verbose)
     if args.command == "schemes":
@@ -720,7 +738,7 @@ def main(argv: list[str] | None = None) -> int:
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     try:
-        _dispatch(args, outdir)
+        _dispatch(args, outdir, explicit_options(argv))
     except SystemExit as exc:
         if exc.code not in (None, 0):
             log.error("%s", exc.code)
