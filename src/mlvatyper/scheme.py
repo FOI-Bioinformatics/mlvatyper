@@ -28,6 +28,7 @@ bundled name or a directory path.
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 
 from .assemblies import ASSEMBLY_RE
 from .log import get_logger
@@ -46,6 +47,9 @@ RECOMMENDED_FIELDS = ("organism", "retrieved", "assembly")
 # values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
 PLACEHOLDERS = frozenset({"", "-", "?", "na", "n/a", "none", "unknown", "tbd", "todo", "fixme", "xxx",
                           "to be added", "to be determined", "see publication", "see paper"})
+
+
+COMMENT_RE = re.compile(r"\s#")
 
 
 class SchemeError(ValueError):
@@ -95,10 +99,14 @@ def is_placeholder(value) -> bool:
 
 
 def parse_flat_yaml(text: str) -> dict:
-    """key: value lines; quotes around the value are removed, numbers are typed by key."""
+    """key: value lines; quotes around the value are removed, numbers are typed by key.
+
+    As in YAML, # starts a comment only at the start of a line or after
+    whitespace, so a URL fragment (page#section) is kept.
+    """
     meta: dict = {}
     for number, raw in enumerate(text.splitlines(), start=1):
-        line = raw.split("#", 1)[0].rstrip() if not raw.lstrip().startswith("#") else ""
+        line = COMMENT_RE.split(raw, maxsplit=1)[0].rstrip() if not raw.lstrip().startswith("#") else ""
         if not line.strip():
             continue
         if ":" not in line:

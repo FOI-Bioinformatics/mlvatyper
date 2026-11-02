@@ -130,7 +130,8 @@ def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, m
     """Products on one strand as (start, end, fwd_mm, rev_mm, fwd_indels, rev_indels), 0-based half open.
 
     The product size window is the STS size range, or the expected size,
-    widened by the margin on both sides.
+    widened by the margin on both sides. A product whose primers both match
+    exactly is found from either anchor; it is reported once.
     """
     low = pair.expected_size if pair.size_low is None else pair.size_low
     high = pair.expected_size if pair.size_high is None else pair.size_high
@@ -151,7 +152,7 @@ def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, m
         best = align_primer(fwd, text[lo:hi])
         if best and best[0] <= max_mismatch and best[1] <= 1:
             found.append((lo + best[2], e, best[0], 0, best[1], 0))
-    return found
+    return list(dict.fromkeys(found))
 
 
 def find_with_indels(contigs: dict[str, str], pair: PrimerPair, sample: str, margin: int,

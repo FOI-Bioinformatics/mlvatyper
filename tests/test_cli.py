@@ -142,3 +142,18 @@ def test_non_fasta_input_fails_only_that_sample(fixture_dir, caplog):
     assert rc == 1 and "1 samples failed" in caplog.text
     hits = pd.read_csv(out / "hits.tsv", sep="\t")
     assert set(hits["sample"]) == {"sampleA", "sampleB"}  # the valid samples were still processed and written
+
+
+def test_run_types_the_good_samples_when_one_fails(fixture_dir, caplog):
+    """A failed sample does not stop allele calling for the others, and is not reported as NOT_DETECTED."""
+    (fixture_dir / "corrupt.fasta.gz").write_bytes(b"not gzip at all")
+    out = fixture_dir / "out"
+    rc = main(["run", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+               str(fixture_dir / "*.fasta.gz"), "--outdir", str(out), "--prefix", "t", "-N", "0", "-M", "50",
+               "--skip-invalid", "--align", "none", "--markers", str(fixture_dir / "patterns.tsv"),
+               "--reference-sample", "sampleA"])
+    assert rc == 1 and "corrupt" in caplog.text
+    assert (out / "samples.txt").read_text().split() == ["sampleA", "sampleB"]
+    alleles = read(out / "t_alleles.tsv")
+    assert list(alleles.index) == ["sampleA", "sampleB"] and alleles.loc["sampleA", "VNTR1"] == "5"
+    assert (out / "t_report.html").exists()

@@ -110,3 +110,33 @@ def test_derive_definitions():
     assert derived["m4"] == defs[3]
     with pytest.raises(ValueError):
         derive_definitions(amps, defs, "absent")
+
+
+@pytest.mark.parametrize("raw,policy,expected", [
+    (2.5, "nearest", ("3", True)),  # halves round up, not to the even neighbour
+    (3.5, "nearest", ("4", True)),
+    (-0.4, "intermediate", ("-0.5", True)),
+    (-0.5, "intermediate", ("-0.5", True)),
+])
+def test_round_repeats_halves_and_negative(raw, policy, expected):
+    assert round_repeats(raw, 0.25, policy) == expected
+
+
+def test_non_numeric_bin_allele():
+    from mlvatyper.calling import Bin
+    bins = [Bin("m1", 0, 1000, "3a")]
+    c = call_amplicon(amp("s", "m1", 1, 5), DEF, 0.25, "nearest", bins)
+    assert c.allele == "3a" and "BINNED" in c.status and c.residual is None
+    no_units = MarkerDef("m1", (), 6, DEF.ref_size, DEF.ref_repeats)  # no tandem count to censor on
+    assert call_amplicon(amp("s", "m1", 1, 5), no_units, 0.25, "nearest", bins, max_array_length=10).allele == "3a"
+
+
+def test_derive_definitions_keeps_label_and_offset():
+    defs = [MarkerDef("m1", (UNIT,), 6, offset=len(FL + FR), label="LOCUS1")]
+    d = derive_definitions([amp("ref", "m1", 1, 5)], defs, "ref")[0]
+    assert d.label == "LOCUS1" and d.offset == len(FL + FR) and d.ref_repeats == 5
+
+
+def test_no_definition_is_the_allele_table_cell():
+    c = call_amplicon(amp("s", "m2", 1, 3, n_alt=1, has_n=True), MarkerDef("m2", (UNIT,), 6), 0.25, "nearest")
+    assert c.cell == "NO_DEFINITION" and set(c.status) == {"NO_DEFINITION", "HAS_N", "AMBIGUOUS"}

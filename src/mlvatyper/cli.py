@@ -371,21 +371,23 @@ def search_sample(searcher: MerPcrSearcher, fasta: Path, pairs: list[PrimerPair]
 
 def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: list[PrimerPair], margin: int,
                    dedup: bool = True, rescue: RescueOptions | None = None, wordsize: int = 11,
-                   one_sided: bool = False) -> tuple[list, dict[tuple[str, str], str], int]:
+                   one_sided: bool = False) -> tuple[list, dict[tuple[str, str], str], list[Path]]:
     """Search and extract amplicons for every sample.
 
-    Returns (amplicons, reason per (sample, marker) without a hit, failed sample count).
+    Returns (amplicons, reason per (sample, marker) without a hit, FASTA files that failed).
     """
     rescue = rescue or RescueOptions(wordsize=0)
     amplicons = []
     reasons: dict[tuple[str, str], str] = {}
-    failed = 0
+    failed = []
     for fasta in fasta_files:
         try:
             amps, sample_reasons = search_sample(searcher, fasta, pairs, margin, dedup, rescue, wordsize, one_sided)
-        except (SearchError, ValueError) as exc:  # ValueError: Biopython rejects a file that is not FASTA
+        # ValueError: Biopython rejects a file that is not FASTA; OSError and EOFError: a corrupt or truncated
+        # compressed file (gzip.BadGzipFile is an OSError)
+        except (SearchError, ValueError, OSError, EOFError) as exc:
             log.error("%s: %s", fasta, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
-            failed += 1
+            failed.append(fasta)
             continue
         amplicons.extend(amps)
         reasons.update({(sample_name(fasta), m): r for m, r in sample_reasons.items()})
@@ -436,7 +438,8 @@ def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
     path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def do_search(args: argparse.Namespace, outdir: Path) -> None:
+def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
+    """Search every sample; returns the FASTA files that failed, which are left out of samples.txt."""
     fasta_files = resolve_samples(args.fasta)
     clean_sts, pairs = prepare_sts(args.sts, outdir, args.skip_invalid, args.iupac, args.fix_sts)
     if getattr(args, "markers", None):
@@ -451,7 +454,8 @@ def do_search(args: argparse.Namespace, outdir: Path) -> None:
     amplicons, reasons, failed = search_samples(searcher, fasta_files, pairs, args.margin, args.dedup, rescue,
                                                 args.wordsize, args.one_sided)
 
-    write_samples([sample_name(f) for f in fasta_files], outdir / SAMPLES_FILE)
+    # a failed sample is left out rather than listed with every marker NOT_DETECTED, which would read as typed
+    write_samples([sample_name(f) for f in fasta_files if f not in failed], outdir / SAMPLES_FILE)
     write_hits_table(amplicons, outdir / HITS_FILE)
     write_missing(reasons, outdir / MISSING_FILE)
     near_end = {key for key, reason in reasons.items() if reason == "NEAR_CONTIG_END"}
@@ -468,14 +472,19 @@ def do_search(args: argparse.Namespace, outdir: Path) -> None:
             counts[reason] = counts.get(reason, 0) + 1
         log.info("%d sample/marker combinations without a hit: %s", len(reasons),
                  ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
-    log.info("Processed %d samples, %d failed", len(fasta_files) - failed, failed)
+    log.info("Processed %d samples, %d failed", len(fasta_files) - len(failed), len(failed))
     write_run_info(outdir, args, "search")
 
     aligner = detect_aligner(args.align)
     if aligner is not None:
         align_all(seq_dir, aligner, clwclean=getattr(args, "clwclean", False))
+    return failed
+
+
+def _failed_exit(failed: list[Path]) -> None:
     if failed:
-        raise SystemExit(f"{failed} samples failed")
+        raise SystemExit(f"{len(failed)} samples failed and are not in the results: "
+                         f"{', '.join(sample_name(f) for f in failed)}")
 
 
 def load_definitions(args: argparse.Namespace, outdir: Path, sts_ids: list[str], amplicons: list) -> list[MarkerDef]:
@@ -668,7 +677,7 @@ def _dispatch(args: argparse.Namespace, outdir: Path) -> None:
     if args.command == "check-scheme":
         do_check_scheme(args, outdir)
     elif args.command == "search":
-        do_search(args, outdir)
+        _failed_exit(do_search(args, outdir))
     elif args.command == "summarize":
         do_summarize(args, outdir)
     elif args.command == "discover":
@@ -679,10 +688,12 @@ def _dispatch(args: argparse.Namespace, outdir: Path) -> None:
         except FileNotFoundError as exc:
             raise SystemExit(str(exc)) from exc
     elif args.command == "run":
-        do_search(args, outdir)
+        # the samples that did not fail are typed and reported; the exit status still reports the failures
+        failed = do_search(args, outdir)
         do_summarize(args, outdir)
         if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
             write_html_report(outdir, args.prefix, args.title)
+        _failed_exit(failed)
 
 
 def main(argv: list[str] | None = None) -> int:

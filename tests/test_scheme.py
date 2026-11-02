@@ -174,3 +174,8 @@ def test_assembly_accession_in_metadata(tmp_path):
         load_scheme(d)
     (d / "scheme.yml").write_text("name: x\nassembly: none\n")
     assert load_scheme(d).assembly is None
+
+
+def test_parse_flat_yaml_keeps_url_fragment():
+    meta = parse_flat_yaml("url: https://example.org/page#table1  # comment\ncitation: Smith #2\n")
+    assert meta == {"url": "https://example.org/page#table1", "citation": "Smith"}
