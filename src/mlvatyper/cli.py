@@ -19,6 +19,7 @@ import json
 import logging
 import sys
 import textwrap
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import replace
 from datetime import datetime, UTC
 from pathlib import Path
@@ -84,7 +85,10 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--three-prime-match", type=int, default=1,
                    help="number of 3' primer bases that must match exactly (default 1)")
     p.add_argument("-T", "--threads", type=int, default=1,
-                   help="merPCR worker processes (default 1)")
+                   help="merPCR worker threads within one sample (default 1)")
+    p.add_argument("--jobs", type=int, default=1,
+                   help="samples searched in parallel, each in its own process (default 1); the total worker "
+                        "count is --jobs times --threads")
     p.add_argument("-W", "--wordsize", type=int, default=11,
                    help="merPCR hash word size, 3 to 16; a primer needs this many consecutive unambiguous "
                         "bases to be searched (default 11)")
@@ -393,26 +397,73 @@ def search_sample(searcher: MerPcrSearcher, fasta: Path, pairs: list[PrimerPair]
     return _renumber(amps), reasons
 
 
+# fork-safe per-process state for the parallel path, filled by _init_worker
+_WORKER: dict = {}
+
+SAMPLE_ERRORS = (SearchError, ValueError, OSError, EOFError)  # not FASTA, or a corrupt/truncated compressed file
+
+
+def _init_worker(sts_path, searcher_kwargs, params) -> None:
+    _WORKER["searcher"] = MerPcrSearcher(sts_path, **searcher_kwargs)
+    _WORKER["params"] = params
+
+
+def _search_one(fasta: Path):
+    """Run one sample in a worker; return (fasta, amplicons, reasons) or (fasta, None, error text)."""
+    pairs, margin, dedup, rescue, wordsize, one_sided = _WORKER["params"]
+    try:
+        amps, reasons = search_sample(_WORKER["searcher"], fasta, pairs, margin, dedup, rescue, wordsize, one_sided)
+    except SAMPLE_ERRORS as exc:
+        return fasta, None, str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+    return fasta, amps, reasons
+
+
 def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: list[PrimerPair], margin: int,
                    dedup: bool = True, rescue: RescueOptions | None = None, wordsize: int = 11,
-                   one_sided: bool = False) -> tuple[list, dict[tuple[str, str], str], list[Path]]:
+                   one_sided: bool = False, jobs: int = 1, sts_path: str | Path | None = None,
+                   searcher_kwargs: dict | None = None) -> tuple[list, dict[tuple[str, str], str], list[Path]]:
     """Search and extract amplicons for every sample.
 
-    Returns (amplicons, reason per (sample, marker) without a hit, FASTA files that failed).
+    With jobs > 1 the samples are searched in parallel, one process each, and
+    the results are merged in input order so the outputs are identical to the
+    serial run. Each process builds its own searcher from sts_path and
+    searcher_kwargs, so those are required when jobs > 1. Returns (amplicons,
+    reason per (sample, marker) without a hit, FASTA files that failed).
     """
     rescue = rescue or RescueOptions(wordsize=0)
+    params = (pairs, margin, dedup, rescue, wordsize, one_sided)
+    workers = max(1, min(jobs, len(fasta_files)))
+    if workers == 1:
+        results = []
+        for fasta in fasta_files:
+            _WORKER_SERIAL = searcher  # noqa: N806 - keep the serial path a plain loop
+            try:
+                amps, sample_reasons = search_sample(_WORKER_SERIAL, fasta, pairs, margin, dedup, rescue,
+                                                      wordsize, one_sided)
+            except SAMPLE_ERRORS as exc:
+                results.append((fasta, None, str(exc).splitlines()[0] if str(exc) else type(exc).__name__))
+                continue
+            results.append((fasta, amps, sample_reasons))
+    else:
+        if sts_path is None or searcher_kwargs is None:
+            raise ValueError("parallel search needs sts_path and searcher_kwargs")
+        log.info("Searching %d samples with %d parallel jobs", len(fasta_files), workers)
+        by_fasta: dict[Path, tuple] = {}
+        with ProcessPoolExecutor(max_workers=workers, initializer=_init_worker,
+                                 initargs=(str(sts_path), searcher_kwargs, params)) as pool:
+            for fasta, amps, reasons in pool.map(_search_one, fasta_files):
+                by_fasta[fasta] = (fasta, amps, reasons)
+        results = [by_fasta[fasta] for fasta in fasta_files]  # input order, for deterministic output
     amplicons = []
     reasons: dict[tuple[str, str], str] = {}
     failed = []
-    for fasta in fasta_files:
-        try:
-            amps, sample_reasons = search_sample(searcher, fasta, pairs, margin, dedup, rescue, wordsize, one_sided)
-        # ValueError: Biopython rejects a file that is not FASTA; OSError and EOFError: a corrupt or truncated
-        # compressed file (gzip.BadGzipFile is an OSError)
-        except (SearchError, ValueError, OSError, EOFError) as exc:
-            log.error("%s: %s", fasta, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
+    for fasta, amps, sample_reasons in results:
+        if amps is None:
+            log.error("%s: %s", fasta, sample_reasons)
             failed.append(fasta)
             continue
+        if workers > 1:
+            log.info("%s: %d amplicons", sample_name(fasta), len(amps))
         amplicons.extend(amps)
         reasons.update({(sample_name(fasta), m): r for m, r in sample_reasons.items()})
     return amplicons, reasons, failed
@@ -570,14 +621,17 @@ def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
     if getattr(args, "markers", None):
         pairs = size_windows_from_definitions(pairs, read_markers(args.markers), args.max_repeats)
         write_sts(pairs, clean_sts)
-    searcher = MerPcrSearcher(clean_sts, margin=args.margin, mismatches=args.mismatches,
-                              threads=args.threads, iupac_mode=int(args.iupac),
-                              wordsize=args.wordsize, one_sided=int(args.one_sided),
-                              three_prime_match=args.three_prime_match)
+    searcher_kwargs = dict(margin=args.margin, mismatches=args.mismatches, threads=args.threads,
+                           iupac_mode=int(args.iupac), wordsize=args.wordsize, one_sided=int(args.one_sided),
+                           three_prime_match=args.three_prime_match)
+    jobs = getattr(args, "jobs", 1)
+    # the serial path builds the searcher once here; each parallel worker builds its own from clean_sts
+    searcher = MerPcrSearcher(clean_sts, **searcher_kwargs) if jobs <= 1 or len(fasta_files) <= 1 else None
     rescue = RescueOptions(args.rescue_wordsize, args.rescue_margin or 2 * args.margin, args.rescue_indels,
                            args.mismatches, args.iupac, args.three_prime_match, args.threads)
     amplicons, reasons, failed = search_samples(searcher, fasta_files, pairs, args.margin, args.dedup, rescue,
-                                                args.wordsize, args.one_sided)
+                                                args.wordsize, args.one_sided, jobs=jobs, sts_path=clean_sts,
+                                                searcher_kwargs=searcher_kwargs)
 
     # a failed sample is left out rather than listed with every marker NOT_DETECTED, which would read as typed
     write_samples([sample_name(f) for f in fasta_files if f not in failed], outdir / SAMPLES_FILE)

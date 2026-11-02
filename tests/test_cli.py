@@ -236,3 +236,25 @@ def test_summarize_without_mlvabank_removes_the_old_export(fixture_dir):
     assert (out / "t_mlvabank.csv").exists()
     assert main(["summarize", *base]) == 0
     assert not (out / "t_mlvabank.csv").exists()
+
+
+def test_jobs_parallel_matches_serial(fixture_dir):
+    """--jobs N over several samples gives byte-identical hits, samples and missing-marker files."""
+    for name in ("sampleC", "sampleD"):  # duplicate the two fixture samples so there are four
+        (fixture_dir / f"{name}.fasta").write_text((fixture_dir / "sampleA.fasta").read_text())
+    base = ["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+            "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]
+    assert main([*base, "--outdir", str(fixture_dir / "serial")]) == 0
+    assert main([*base, "--outdir", str(fixture_dir / "par"), "--jobs", "4"]) == 0
+    for name in ("hits.tsv", "samples.txt", "missing_markers.tsv", "near_contig_end.tsv"):
+        assert (fixture_dir / "serial" / name).read_text() == (fixture_dir / "par" / name).read_text(), name
+
+
+def test_jobs_parallel_isolates_a_failed_sample(fixture_dir, caplog):
+    (fixture_dir / "broken.fasta").write_text("not a fasta file\n")
+    rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
+               "--outdir", str(fixture_dir / "o"), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none",
+               "--jobs", "3"])
+    assert rc == 1 and "broken" in caplog.text
+    assert "broken" not in (fixture_dir / "o" / "samples.txt").read_text()
+    assert {"sampleA", "sampleB"} <= set((fixture_dir / "o" / "samples.txt").read_text().split())
