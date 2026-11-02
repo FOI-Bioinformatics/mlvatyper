@@ -1,0 +1,67 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+ms01	16	198	4	N/A	Cbu0033_ms01_16bp_4U_198bp
+ms03	12	229	7	N/A	Cbu0448_ms03_12bp_7U_229bp
+ms07	126	1112	8	N/A	Cbu0988_ms07_126bp_8U_1112bp
+ms12	126	1074	8	N/A	Cbu1316_ms12_126bp_8U_1074bp
+ms20	18	402	15	N/A	Cbu1941_ms20_18bp_15U_402bp
+ms21	12	210	6	N/A	Cbu1963_ms21_12bp_6U_210bp
+ms22	11	246	6	N/A	Cbu1980_ms22_11bp_6U_246bp
+ms26	9	127	4	N/A	Cbu0831_ms26_9bp_4U_127bp
+ms30	18	306	6	N/A	Cbu1351_ms30_18bp_6U_215bp
+ms36	9	477	4	N/A	Cbu1941_ms36_9bp_4U_447bp
+ms23	7	157	8	N/A	Cbu0197_ms23_7bp_8U_157bp
+ms24	7	344	27	N/A	Cbu0259_ms24_7bp_27U_344bp
+ms27	6	276	4	N/A	Cbu0838_ms27_6bp_4U_276bp
+ms28	6	276	6	N/A	Cbu0839_ms28_6bp_6U_276bp
+ms31	7	285	5	ACAGAGG	Cbu1418_ms31_7bp_5U_182bp
+ms33	7	262	9	N/A	Cbu1435_ms33_7bp_9U_262bp
+ms34	6	210	5	N/A	Cbu1471_ms34_6bp_5U_210bp
+# unit_length and ref_repeats are the published values encoded in the MLVAbank style locus
+# identifier of the source table, which is written NAME_<unit>bp_<n>U_<size>bp. ref_size is the
+# product length measured in the Nine Mile RSA 493 assembly GCA_000007765.2 (chromosome
+# AE016828.3) by in silico PCR with these primers, outer primer edge to outer primer edge. Every
+# locus gives exactly one product there, at hash word size 11, without the rescue pass and without
+# a primer mismatch, and all seventeen lie on the chromosome; the plasmid pQpH1 carries none.
+#
+# The source heading describes panel 1 as minisatellites with a unit above 9 bp; ms26 and ms36
+# are exactly 9 bp, and the remaining eight panel 1 units are 11 bp or longer.
+#
+# Fourteen of the seventeen measured products have exactly the size the identifier states. Three
+# do not, and for those three ref_size above is the measured size, not the published one:
+#   ms30  identifier 215 bp, measured 306 bp (+91)
+#   ms31  identifier 182 bp, measured 285 bp (+103)
+#   ms36  identifier 447 bp, measured 477 bp (+30)
+# The locus is not in doubt in any of the three: each product starts at the gene the identifier
+# names, and a search of both replicons allowing up to five mismatches per primer finds only this
+# one product per pair, so no second priming site explains the published size. For ms36 the
+# measured 477 bp falls inside the published estimated size range of 474-601 bp while the
+# identifier's 447 bp falls below it, so 447 is most likely a transposed 477. For ms30 and ms31
+# the identifier size equals the top of the published estimated size range, 215 and 182 bp, which
+# suggests it was taken from the capillary estimate rather than from the sequence.
+#
+# IMPORTANT, ms30 and ms31: the published and the measured size are not a whole number of repeat
+# units apart (91 bp is 5 units of 18 plus 1, and 103 bp is 14 units of 7 plus 5), so no choice of
+# ref_size and ref_repeats puts this scheme's alleles on the grid the published sizes imply. A
+# product of a size taken from the publication's own range is therefore called a fractional number
+# of repeats at these two loci and reported as INTERMEDIATE. Confirm the two primer pairs against
+# the publication before comparing ms30 or ms31 with published allele numbers. The other fifteen
+# loci are unaffected.
+#
+# patterns is filled only for ms31, the one locus where the repeat unit found by repeat detection
+# in the reference amplicon occurs there exactly the published number of times, so the tandem
+# array cross-check is active on ms31 and skipped on the other sixteen. The source table gives no
+# repeat motifs, and for the remaining loci the published copy number is not a count of whole
+# units in the reference: repeat detection finds no array at all at ms01, ms03, ms07, ms12, ms20
+# and ms30, and at the other ten it finds the array but a different number of copies, for example
+# 10 units of 14 bp at ms24 where the panel states 27 units of 7 bp, and 6 rather than 4 at ms27.
+# An allele in this panel is a function of amplicon length, which is how the panel is numbered,
+# and not a literal count of perfect units.
+#
+# Published estimated size range and unit numbers, for reference and for tightening the search
+# windows; a value in brackets is the alternative count the source gives for the loci that also
+# carry a Cox name: ms01 182-198, 3-4; ms03 217-229, 6-7; ms07 734-1112, 5-8; ms12 570-1200, 4 and
+# 7-9; ms20 384-528, 14-15, 18-19, 22; ms21 210-222, 5-6; ms22 246-257, 6-7; ms26 109-244, 2, 4-5,
+# 11, 13-14, 17 [2, 4, 13, 14, 16, 18]; ms30 197-215, 5-6; ms36 474-601, 7, 15, 17, 21;
+# ms23 122-157, 3, 5, 8 [3, 5-6, 8]; ms24 204-344, 7-13, 27 [6, 9, 12, 27]; ms27 264-282, 2-5
+# [2-4]; ms28 258-288, 3-8 [3-7]; ms31 161-182, 2-5 [the same]; ms33 227-1600, 4, 6-9;
+# ms34 192-252, 2-5, 7-12 [2, 3, 5, 10].
