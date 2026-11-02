@@ -9,10 +9,13 @@ is below 1.0, so the output tables may still change between minor versions.
 
 - Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
   Salmonella Typhimurium, with reference values verified against strain
-  LT2 and a committed fixture of the LT2 amplicon regions that CI checks.
+  LT2, whose assembly CI downloads by accession and checks.
 - Bundled scheme `Lpn_MLVA12`, the 12 locus MLVA panel for Legionella
-  pneumophila, verified against Philadelphia-1 and called from length
-  alone; a fixture of the twelve amplicon regions is checked in CI.
+  pneumophila (Sobral et al. 2011), verified against Philadelphia-1 and
+  called from length alone; CI checks it against that assembly.
+- Documentation of every output file, exit status and input rule in
+  `docs/method.md`, a runnable example on the committed test slices in the
+  README, and the scheme file rules in `docs/schemes.md`.
 - `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
   template files, and `docs/schemes.md` describes how to build a scheme
   from a publication and verify it against the reference strain.

@@ -22,47 +22,74 @@ single-file script (`vntr_searcher_9.py`).
 
 ## Installation
 
-merPCR (1.0.3 or newer) is not on PyPI or conda and requires Python 3.13 or newer.
+mlvatyper requires Python 3.13 or newer and merPCR 1.0.5, which is not on
+PyPI or conda and is installed from GitHub by both routes below.
 
     git clone https://github.com/FOI-Bioinformatics/mlvatyper
     cd mlvatyper
     conda env create -f environment.yml
     conda activate mlvatyper
-    pip install .
 
-or
+The conda environment installs mlvatyper itself (editable) together with
+MAFFT and Tandem Repeats Finder. Without conda:
 
     pip install git+https://github.com/FOI-Bioinformatics/mlvatyper
 
-An aligner is optional: `conda install -c bioconda mafft` or `muscle`.
+Two tools are optional and picked up from PATH: an aligner for the
+per-marker alignments (`conda install -c bioconda mafft`, or `muscle`) and
+Tandem Repeats Finder for `discover` (`conda install -c bioconda trf`;
+a built-in repeat finder is used without it).
 
 ## Usage
+
+With a bundled scheme (`mlvatyper schemes` lists them), which supplies the
+primers, the marker definitions and the calling defaults:
+
+    mlvatyper run --scheme STm_ECDC --fasta 'assemblies/*.fasta' \
+        --outdir results --prefix study --mlvabank
+
+With your own primer and marker files:
 
     mlvatyper run --sts primers.sts --fasta 'assemblies/*.fasta' \
         --outdir results --prefix study -N 2 -M 500 \
         --markers markers.tsv --reference-sample ref_strain \
         --rounding intermediate --clwclean --skip-invalid -T 4
 
-`search --markers markers.tsv` gives every marker with `ref_size` and
-`ref_repeats` an STS size range from 0 to `--max-repeats` (50) repeats, so
-that the size window follows the locus instead of the global `-M`.
+Each FASTA file is one sample, named after the file. `--markers` gives every
+marker with `ref_size` and `ref_repeats` a size window from 0 to
+`--max-repeats` (50) repeats, so that the window follows the locus instead
+of the global `-M`. The main results are `study_alleles.tsv`,
+`study_status.tsv` and `study_report.html`; [Method and
+output](docs/method.md) lists every file.
 
 Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
 `summarize` (rebuild tables and calls from an existing `results/hits.tsv`,
 for example with other rounding settings or an edited definition file),
 `discover` (seed a marker definition file from the amplicons), `report`
-(write the HTML report from the tables of a run), `schemes`, `check-scheme`
-and `bins-from-table` (scheme handling, see [Method and output](docs/method.md)).
+(write the HTML report from the tables of a run), and for schemes
+`schemes`, `new-scheme`, `check-scheme` and `bins-from-table` (see [Method
+and output](docs/method.md) and [Building a scheme](docs/schemes.md)).
+`mlvatyper <subcommand> --help` lists the options.
+
+A run exits with status 1 when an input is invalid or a sample failed; the
+other samples are still typed and reported.
 
 ## Example
 
-`examples/testM/` holds a 31 marker scheme: `testM.sts` (primers and
-expected sizes from the strain the scheme was designed on) and
-`testM_pattern.txt`, the legacy pattern file with the repeat unit of every
-marker, converted to `testM_markers.tsv` (patterns and unit length, no
-reference values). The assembly used below is not included in the
-repository; four slices of it around six of the markers are kept under
-`tests/data` as `mini.fasta`.
+`examples/testM/` holds a 31 marker scheme, also bundled as `--scheme
+testM`: `testM.sts` (primers and expected sizes from the strain the scheme
+was designed on) and `testM_pattern.txt`, the legacy pattern file with the
+repeat unit of every marker, converted to `testM_markers.tsv` (patterns and
+unit length, no reference values). The assembly used below is not included
+in the repository; four slices of it around six of the markers are kept
+under `tests/data` as `mini.fasta`, which runs from a clone:
+
+    mlvatyper run --scheme testM --fasta tests/data/mini.fasta \
+        --outdir out_mini --prefix testM --reference-sample mini --align none
+
+This is the run the CI example job checks: testM01, 02, 03, 06, 3a and 3b
+are typed 5, 3, 11, 4, 11 and 11, and the other 25 markers lie outside the
+slices. On the full assembly:
 
     mlvatyper run --sts examples/testM/testM.sts --fasta test.fasta \
         --outdir out_testM --prefix testM --markers examples/testM/testM_markers.tsv \
@@ -100,7 +127,10 @@ two copies only), 3 are other units, and 3 markers with one copy or a
 2 bp unit give nothing. The outputs (allele, status, tandem count and
 long tables, derived and discovered definitions, discovery report and
 candidate table, missing markers) and the HTML report are kept under
-`examples/testM/`.
+`examples/testM/`. They were produced with mlvatyper 0.3.0, before the
+fixes listed under Unreleased in the [CHANGELOG](CHANGELOG.md), and have
+not been regenerated because the assembly is not in the repository; a
+current run also writes `testM_definitions.tsv`.
 First columns of `hits.tsv`:
 
     sample  marker   copy  contig  start   end     strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
@@ -112,7 +142,11 @@ First columns of `hits.tsv`:
     ruff check src tests
     pytest --cov=mlvatyper
 
-Tests run in GitHub Actions on every push (`.github/workflows/tests.yml`).
+Tests that need TRF, an aligner or a reference assembly are skipped when
+these are missing. `MLVATYPER_ONLINE=1 pytest` downloads the assemblies of
+the bundled schemes from NCBI into the cache and runs the scheme tests
+against them. Tests run in GitHub Actions on every push
+(`.github/workflows/tests.yml`), with all of these enabled.
 
 ## License
 

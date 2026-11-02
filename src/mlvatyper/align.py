@@ -1,7 +1,8 @@
 """Optional multiple sequence alignment of amplicons per marker.
 
 An external aligner (mafft or muscle) is used when available. CLUSTAL output
-is produced with Biopython, which removes the dependency on EMBOSS seqret.
+is written here with the full sequence names, which removes the dependency
+on EMBOSS seqret.
 """
 
 import shutil

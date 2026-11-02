@@ -73,6 +73,11 @@ One line per marker with the same id:
 - `label`: the locus name used by the target database, for example the
   MLVAbank column name, when it differs from the id.
 
+Each marker appears once; a second line with the same id is an error, as
+is a unit that is not a DNA sequence. Save files from a spreadsheet as
+UTF-8 tab separated text; the byte-order mark Excel adds to UTF-8 files
+is ignored.
+
 Marker ids in the MLVAbank style `Name_<unit>bp_<size>bp_<n>u` carry
 unit length, reference size and repeats in the name and need no values
 in the columns.
@@ -94,8 +99,11 @@ which:
 
   The table needs locus, allele and size columns; column names are
   matched by common aliases or given with `--locus-column`,
-  `--allele-column` and `--size-column`. Alleles from the bin table take
-  precedence over the formula; sizes outside every bin are flagged
+  `--allele-column` and `--size-column`. Ranges may use any dash, as
+  copied from a PDF (`100–110`), decimal sizes are rounded to whole base
+  pairs, and rows without an allele are skipped with a warning; read the
+  log for those. Alleles from the bin table take precedence over the
+  formula and need not be numbers; sizes outside every bin are flagged
   OFF_TABLE and fall back to the formula.
 
 Record the rounding convention of the paper in `scheme.yml`: `rounding:
@@ -150,7 +158,8 @@ through mlvatyper and take the values from it:
 `ref_run/marker_defs_derived.tsv` then holds `ref_size` and
 `ref_repeats` for every marker that was found; copy them into
 `markers.tsv` after reading the tandem counts in `ref_calls_long.tsv`,
-where a count of 1 or 0 means the unit did not match and needs review.
+where a count of 1 or 0 means the unit did not match and needs review
+(a count of 0 is also flagged COUNT_DISAGREES).
 When the paper gives no unit at all, `mlvatyper discover` on the same
 run proposes one per marker with a category (see
 [method.md](method.md)); accept category A and B units and check the
@@ -174,6 +183,12 @@ Write in `notes` every correction made in sections 2 to 5. The next
 person to use the scheme, including you a year later, can then tell a
 deliberate change from a mistake.
 
+A value is one line. `#` after a space starts a comment, so write a URL
+fragment without a space before it (`page#table2`). `check-scheme` fails
+when `citation`, `url` or `reference` is empty or a placeholder such as
+`TBD`, and also when the value only explains its absence (`not recorded;
+the DOI has to be added`): find the source before the scheme is used.
+
 ## 7. Type isolates and compare
 
     mlvatyper run --scheme schemes/organism_2015 --fasta 'isolates/*.fasta' \
@@ -194,8 +209,8 @@ does not reproduce.
 - unit sequences in forward primer orientation, variants separated by `;`
 - reference size and repeats from the paper or from the reference assembly
 - allele numbering decided: formula or `bins.tsv`, rounding stated
-- `check-scheme --reference` run, every marker with one product of the
-  stated size and repeat count, exceptions noted
+- `check-scheme` run against the reference assembly, every marker with one
+  product of the stated size and repeat count, exceptions noted
 - citation, url, reference, assembly accession and retrieval date in
   `scheme.yml`; no FASTA file in the scheme directory
 - agreement with conventional MLVA checked on isolates with known profiles

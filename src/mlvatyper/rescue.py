@@ -17,7 +17,7 @@ sample, so that the main scan keeps its speed and specificity:
 Markers that remain missing are given one reason:
 
   NOT_SEARCHED     no primer holds a hash word of the word size used
-  NEAR_CONTIG_END  a primer lies within the size window of a contig end
+  NEAR_CONTIG_END  a primer lies within the expected size plus -M of a contig end
   ONE_PRIMER_ONLY  one primer matches exactly somewhere in the assembly
   NOT_FOUND        neither primer matches exactly
 """
