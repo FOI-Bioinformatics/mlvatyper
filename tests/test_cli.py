@@ -258,3 +258,26 @@ def test_jobs_parallel_isolates_a_failed_sample(fixture_dir, caplog):
     assert rc == 1 and "broken" in caplog.text
     assert "broken" not in (fixture_dir / "o" / "samples.txt").read_text()
     assert {"sampleA", "sampleB"} <= set((fixture_dir / "o" / "samples.txt").read_text().split())
+
+
+def test_log_json_writes_json_lines(fixture_dir):
+    log = fixture_dir / "events.jsonl"
+    rc = main(["--log-json", str(log), "search", "--sts", str(fixture_dir / "primers.sts"),
+               "--fasta", str(fixture_dir / "sampleA.fasta"), "--outdir", str(fixture_dir / "o"),
+               "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"])
+    assert rc == 0
+    lines = [json.loads(line) for line in log.read_text().splitlines()]
+    assert lines and all({"time", "level", "logger", "message"} <= set(e) for e in lines)
+    assert any(e["logger"] == "mlvatyper" and "valid primer pairs" in e["message"] for e in lines)
+    assert all(e["time"].endswith("+00:00") for e in lines)  # UTC
+
+
+def test_log_json_records_a_failed_sample(fixture_dir):
+    (fixture_dir / "broken.fasta").write_text("not a fasta\n")
+    log = fixture_dir / "events.jsonl"
+    rc = main(["--log-json", str(log), "search", "--sts", str(fixture_dir / "primers.sts"),
+               "--fasta", str(fixture_dir / "*.fasta"), "--outdir", str(fixture_dir / "o"),
+               "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"])
+    assert rc == 1
+    events = [json.loads(line) for line in log.read_text().splitlines()]
+    assert any(e["level"] == "ERROR" and "broken" in e["message"] for e in events)

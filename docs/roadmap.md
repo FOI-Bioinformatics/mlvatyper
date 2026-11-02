@@ -6,10 +6,10 @@ files it touches so that it can be picked up as its own task.
 
 ### A. Scale and pipelines
 
-1. Parallel samples: `search_samples` in `cli.py` runs one sample at a
-   time; add `--jobs N` with `concurrent.futures.ProcessPoolExecutor`
-   over samples (merPCR itself keeps `-T` for threads within a sample).
-   Results are merged in sample order so outputs stay deterministic.
+1. Parallel samples (done): `--jobs N` searches N samples at a time with
+   `concurrent.futures.ProcessPoolExecutor`, each process building its own
+   searcher; merPCR keeps `-T` for threads within a sample. Results are
+   merged in input order so the outputs match a serial run byte for byte.
 2. Streaming large sample sets: write `hits.tsv` per sample under
    `per_sample/` and concatenate at the end, so a failed sample can be
    rerun alone (`--resume` skips samples whose per-sample file exists).
@@ -20,9 +20,10 @@ files it touches so that it can be picked up as its own task.
    `workflow/`, each running `search` per sample in parallel and
    `summarize`, `discover` and `report` once. Nextflow files without
    Unicode. Tests with nf-test on `tests/data`.
-5. Structured log: `--log-json` writes one JSON line per event for
-   pipeline monitors; exit codes documented (0 ok, 1 input error,
-   2 some samples failed).
+5. Structured log (partly done): `--log-json FILE` writes one JSON object
+   per log event (JSON Lines) for pipeline monitors. Distinct exit codes
+   (0 ok, 1 input error, 2 some samples failed) are still to be decided;
+   the tool currently exits 1 for both an input error and a failed sample.
 
 ### B. Scheme and database support (done 2026-10-23)
 

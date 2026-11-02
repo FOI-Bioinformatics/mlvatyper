@@ -164,6 +164,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", action="version", version=f"mlvatyper {__version__}")
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("--log-json", metavar="FILE",
+                        help="also write one JSON object per log event (JSON Lines) to FILE, for pipeline monitors")
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="search, extract, align and call alleles")
@@ -921,7 +923,7 @@ def _dispatch(args: argparse.Namespace, outdir: Path, explicit: set[str] | None 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     args = build_parser().parse_args(argv)
-    configure_logging(args.verbose)
+    configure_logging(args.verbose, args.log_json)
     if args.command == "schemes":
         return do_schemes(args)
     if args.command == "new-scheme":
