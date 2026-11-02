@@ -261,6 +261,19 @@ below are shorter than they are.
   `yersinia_klevytska_2001`, which numbers them differently, so profiles from
   the two schemes are not interchangeable.
 
+- `yersinia_mlva26_li_2013`: the hierarchical 14+12 scheme of Li et al. for
+  *Yersinia pestis*, anchored on CO92. The first fourteen loci place an
+  isolate in a major population and the twelve that follow resolve it to a
+  sub-population, so the panel is bundled in that order and the first
+  fourteen digits of a profile are the first step result. Primers and
+  reference values are the paper's supplementary Table S2, which encodes unit
+  length, amplicon size and repeat number in each locus name; five of the
+  encoded sizes are not the product their own primers give in CO92, and the
+  measured size is used where another bundled scheme corroborates it with the
+  same primer pair. The panel shares loci with both other *Yersinia* schemes
+  but numbers several of them differently, so none of the three are
+  interchangeable.
+
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`
 (where the file came from) and `reference` (the strain or accession the

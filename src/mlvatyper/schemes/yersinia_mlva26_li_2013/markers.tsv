@@ -1,0 +1,50 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+yp0718ms41	17	217	7	N/A	yp0718ms41_17bp_218bp_7U
+yp3057ms09	18	682	33	N/A	yp3057ms09_18bp_682bp_33U
+yp3060ms56	16	220	7	N/A	yp3060ms56_16bp_220bp_7U
+yp3236ms73	18	225	6	N/A	yp3236ms73_18bp_225bp_6U
+yp4425ms38	16	233	8	N/A	yp4425ms38_16bp_251bp_8U
+M15	5	203	5	N/A	M15_5bp_203bp_5U
+M21	7	179	5	N/A	M21_7bp_179bp_5U
+M58	17	395	8	N/A	M58_17bp_395bp_8U
+M61	18	356	5	N/A	M61_18bp_357bp_5U
+N0865	18	225	2	N/A	N0865_18bp_225bp_2U
+N2486	17	346	3	N/A	N2486_17bp_346bp_3U
+N2896	16	281	3	N/A	N2896_16bp_281bp_3U
+N2976	18	294	3	N/A	N2976_18bp_294bp_3U
+N3779	17	328	4	N/A	N3779_17bp_328bp_4U
+M22	7	235	13	N/A	M22_7bp_235bp_13U
+M23	7	169	7	N/A	M23_7bp_169bp_7U
+M25	7	335	22	N/A	M25_7bp_335bp_22U
+M28	8	212	7	N/A	M28_8bp_212bp_7U
+M29	8	231	8	N/A	M29_8bp_233bp_8U
+M33	9	357	22	N/A	M33_9bp_357bp_22U
+M34	9	225	6	N/A	M34_9bp_255bp_6U
+M43	12	269	5	N/A	M43_12bp_269bp_5U
+N1606	9	221	4	N/A	N1606_9bp_221bp_4U
+N2117	9	353	3	N/A	N2117_9bp_353bp_3U
+N2577	7	219	7	N/A	N2577_7bp_219bp_7U
+N3773	9	265	5	N/A	N3773_9bp_265bp_5U
+# unit_length and ref_repeats are read from the locus name in Table S2, which encodes the repeat
+# unit length, the CO92 amplicon size and the CO92 repeat number as NAME_<unit>bp_<size>bp_<n>U.
+# The label keeps that published identifier unchanged. The unit lengths agree with the motif
+# lengths Table 1 gives for the same loci, which is an independent check of all 26.
+#
+# ref_size is the product these primers give in the CO92 assembly GCA_000009065.1 by in silico
+# PCR. It equals the size encoded in the label at 21 of the 26 loci. At the five below the encoded
+# size is not the product its own primers give, and the measured length instead equals the value
+# that an independently bundled scheme records for the same locus with the same primer pair, so
+# the measured one is used here and the published one is left in the label:
+#   yp0718ms41  217 measured, 218 encoded; ms41 of yersinia_mlva25_lefleche_2001 is 217
+#   yp4425ms38  233 measured, 251 encoded; ms38 of the same scheme is 233
+#   M61         356 measured, 357 encoded; M61 of yersinia_klevytska_2001 is 356
+#   M29         231 measured, 233 encoded; M29 of the same scheme is 231, one primer mismatches
+#   M34         225 measured, 255 encoded; M34 of the same scheme is 225
+# The repeat number pairs with the measured size in every one of the five, because the corroborating
+# scheme records the same repeat count there, so no allele is shifted by the correction.
+#
+# No repeat unit sequences are published for these loci, so patterns is N/A throughout: alleles are
+# called from amplicon length and the tandem count is not a cross-check.
+#
+# M58 and M34 are also known as ms04 and ms62 in the Pourcel nomenclature, which Table S2 appends
+# to the locus name; the alias is left out of the label so that the encoded values parse.

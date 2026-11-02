@@ -6,6 +6,16 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `yersinia_mlva26_li_2013`, the hierarchical 14+12 VNTR
+  scheme of Li et al. for *Yersinia pestis*, anchored on CO92. The fourteen
+  first step loci come before the twelve that resolve sub-populations, so a
+  profile truncates to the first step result. Primers and reference values
+  are the paper's supplementary Table S2; five of the amplicon sizes it
+  encodes are not the product its own primers give in the reference, and in
+  each case the measured size matches what `yersinia_klevytska_2001` or
+  `yersinia_mlva25_lefleche_2001` records for the same locus with the same
+  primers, so the measured size is used and the published identifier is kept
+  in the label. All 26 loci reproduce that size in CO92.
 - Bundled scheme `bacillus_mlva25_lista_2006`, the 25 locus MLVA panel of
   Lista et al. for *Bacillus anthracis*, the eight MLVA-8 loci with seventeen
   bams loci, anchored on Ames Ancestor. The paper publishes no primers, so it
