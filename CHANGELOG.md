@@ -5,6 +5,10 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+- `check-scheme` also rejects provenance that opens with a placeholder or
+  says it is still to be added, such as `url: not recorded; ... the DOI has
+  to be added here`. The Lpn_MLVA12 scheme, which had that `url`, now cites
+  Sobral et al. 2011 (doi:10.1128/AEM.05556-11) in full.
 - Schemes name their reference assembly by a GenBank or RefSeq accession
   (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
   NCBI Datasets into a local cache instead of needing a FASTA file, and the
