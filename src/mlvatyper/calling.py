@@ -290,10 +290,20 @@ def tandem_count_table(calls: list[Call], samples: list[str], markers: list[str]
     return _frame({k: ";".join(v) for k, v in grouped.items()}, samples, markers)
 
 
+def _profile_cell(value: str) -> str:
+    """A negative allele in parentheses, (-1), so that the hyphen joined profile stays unambiguous."""
+    return "/".join(f"({part})" if part.lstrip(">=").startswith("-") else part for part in str(value).split("/"))
+
+
 def profile_table(calls: list[Call], samples: list[str], markers: list[str]) -> pd.DataFrame:
-    """Allele per marker in the given order plus a hyphen joined profile string."""
+    """Allele per marker in the given order plus a hyphen joined profile string.
+
+    Negative alleles are written in parentheses in the profile string only,
+    5-(-1)-3; the marker columns keep the value.
+    """
     df = allele_table(calls, samples, markers).fillna(NOT_DETECTED)
-    df.insert(0, "profile", df[markers].astype(str).agg("-".join, axis=1) if markers else "")
+    profile = df[markers].astype(str).map(_profile_cell).agg("-".join, axis=1) if markers else ""
+    df.insert(0, "profile", profile)
     return df
 
 

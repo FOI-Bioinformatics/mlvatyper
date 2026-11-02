@@ -163,7 +163,7 @@ def test_mixed_marker_with_same_period_units_gets_both_patterns():
     unit_a, unit_b = "GATCGA", "ACGTTG"
     seq = FWD + random_dna(30, 44) + unit_a * 4 + random_dna(30, 45) + unit_b * 3 + random_dna(30, 46) + RC_REV
     amps = [Amplicon(Hit("s", "c", 1, 1, "+", "m"), 1, seq)]
-    # the builtin engine keeps one array per period, so the two arrays are given as engine output here
+    # the two arrays as engine output; test_builtin_reports_both_arrays_of_one_period runs the engine itself
     raw = [RawArray(50, 74, 6, unit_a, 36, 4.0), RawArray(104, 122, 6, unit_b, 24, 3.0)]
     cands = [make_discovery("m", "s", seq, r, "trf") for r in raw]
     found = {"m": finish_candidates(cands, Thresholds(min_score=20))}
@@ -178,3 +178,25 @@ def test_mixed_marker_with_same_period_units_gets_both_patterns():
     other = make_discovery("m", "s", seq + "ACGTTGA" * 3, RawArray(172, 193, 7, "ACGTTGA", 28, 3.0), "trf")
     mixed = {"m": finish_candidates([cands[0], other], Thresholds(min_score=20))}
     assert len(discoveries_to_definitions(mixed, [], amps, "s", Thresholds(min_score=20))[0].patterns) == 1
+
+
+def test_builtin_reports_both_arrays_of_one_period():
+    unit_a, unit_b = "GATCGA", "ACGTTG"
+    seq = FWD + random_dna(30, 44) + unit_a * 4 + random_dna(30, 45) + unit_b * 3 + random_dna(30, 46) + RC_REV
+    amps = [Amplicon(Hit("s", "c", 1, 1, "+", "m"), 1, seq)]
+    found, _ = discover_units(amps, "s", thresholds=Thresholds(min_score=20))
+    units = {canonical_unit(d.unit): d.copies for d in found["m"]}
+    assert units == {canonical_unit(unit_a): 4, canonical_unit(unit_b): 3} and is_mixed(found["m"])
+
+
+def test_two_arrays_of_one_unit_are_counted_where_they_are():
+    unit = "GATCGA"
+    seq = FWD + random_dna(30, 47) + unit * 5 + random_dna(40, 48) + unit * 3 + random_dna(30, 49) + RC_REV
+    first = len(FWD) + 30
+    second = first + 30 + 40
+    a = make_discovery("m", "s", seq, RawArray(first, first + 30, 6, unit, 60, 5.0), "trf")
+    b = make_discovery("m", "s", seq, RawArray(second, second + 18, 6, unit, 36, 3.0), "trf")
+    # each is counted at its own place (the phase may start a few bases early), not as the 5 copy array twice
+    assert (a.copies, b.copies) == (5, 3) and a.array.end <= b.array.start and abs(b.array.start - second) < 6
+    # a pooled unit without coordinates is still counted anywhere in the amplicon
+    assert make_discovery("m", "s", seq, RawArray(0, 0, 6, unit, 1, 0.0), "pooled", min_copies=0).copies == 5

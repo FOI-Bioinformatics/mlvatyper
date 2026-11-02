@@ -153,3 +153,11 @@ def test_tandem_counts_only_for_markers_with_units():
     wrong = MarkerDef("m1", ("TTTTTA",), 6, DEF.ref_size, DEF.ref_repeats)
     c = call_amplicon(amp("s", "m1", 1, 5), wrong, 0.25, "nearest")
     assert c.counted and c.array.copies == 0 and "COUNT_DISAGREES" in c.status
+
+
+def test_profile_puts_negative_alleles_in_parentheses():
+    from mlvatyper.calling import Call
+    calls = [Call("s", "m1", None, allele="5"), Call("s", "m2", None, allele="-1"),
+             Call("s", "m3", None, allele="-0.5"), Call("s", "m4", None, status=["NOT_DETECTED"])]
+    pt = profile_table(calls, ["s"], ["m1", "m2", "m3", "m4"])
+    assert pt.loc["s", "profile"] == "5-(-1)-(-0.5)-NOT_DETECTED" and pt.loc["s", "m2"] == "-1"

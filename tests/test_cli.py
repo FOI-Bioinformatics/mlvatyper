@@ -225,3 +225,14 @@ def test_summarize_prefixes_do_not_mix(fixture_dir):
     assert main(["summarize", "--outdir", str(out), "--prefix", "p"]) == 0
     assert not (out / "p_alleles.tsv").exists() and not (out / "p_report.html").exists()
     assert load_report_data(out, "q").definitions is not None
+
+
+def test_summarize_without_mlvabank_removes_the_old_export(fixture_dir):
+    out = fixture_dir / "out"
+    base = ["--outdir", str(out), "--prefix", "t", "--markers", str(fixture_dir / "patterns.tsv"),
+            "--reference-sample", "sampleA"]
+    assert main(["run", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"), "-N", "0",
+                 "-M", "50", "--skip-invalid", "--align", "none", "--no-report", "--mlvabank", *base]) == 0
+    assert (out / "t_mlvabank.csv").exists()
+    assert main(["summarize", *base]) == 0
+    assert not (out / "t_mlvabank.csv").exists()

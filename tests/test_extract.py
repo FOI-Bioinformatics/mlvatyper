@@ -105,3 +105,13 @@ def test_load_fasta_drops_what_merpcr_drops(tmp_path, caplog):
     path.write_text(">c1 desc\nXXXXacgt\nNNXX-GGu\n>c2\nACGT\n")
     assert load_fasta(path) == {"c1": "ACGTNN-GG", "c2": "ACGT"}
     assert "7 characters" in caplog.text
+
+
+def test_near_contig_end_window_per_marker():
+    from mlvatyper.extract import primers_near_contig_ends
+    from mlvatyper.models import PrimerPair
+    primer = "ACGTTGCAAGGTCCATGGCA"
+    contig = "T" * 150 + primer + "T" * 1000
+    pairs = [PrimerPair("small", primer, "G" * 20, 100), PrimerPair("big", primer, "C" * 20, 600)]
+    assert primers_near_contig_ends({"c": contig}, pairs, {"small": 120, "big": 650}) == {"big"}
+    assert primers_near_contig_ends({"c": contig}, pairs, 650) == {"small", "big"}
