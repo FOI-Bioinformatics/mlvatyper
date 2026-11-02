@@ -1,0 +1,157 @@
+# Allele definitions for bacillus_mlva25_lista_2006, from Table 3 of Lista et al. 2006, which
+# pairs the sequenced amplicon size of each allele with its repeat number. The paper calls alleles
+# this way rather than from a formula, so these values take precedence over ref_size and
+# ref_repeats wherever an amplicon matches a row. A size that is not in the table is called from
+# the marker definition instead and flagged OFF_TABLE.
+#
+# The size is the Expected column, the size deduced from sequencing. The Observed column of the
+# same table, the size the capillary machine reported, is an assay property and is not used.
+# Sizes are exact rather than ranges, because an amplicon taken from an assembly has an exact
+# length; a one base difference is a real difference and should not be absorbed by a window.
+#
+# One correction from the Methods is applied: the vrrC1 row published as 583 bp is written here as
+# 580 bp, the value the Methods gives for that allele and the size measured in Ames Ancestor. The
+# three other vrrC1 rows already carry the corrected size.
+#
+# Two inconsistencies in Table 3 are kept as published, because this file exists to reproduce the
+# publication and neither has a stated correction:
+#   bams13 391 bp is published as 24 repeats, while the other twelve rows of that locus all place
+#     391 bp at 23; the locus is otherwise an exact 9 bp grid.
+#   bams34 is not on one grid at all: 386 bp at 7 and 425 bp at 8 repeats imply a different
+#     flanking length from 503 bp at 9 and 581 bp at 11, and 238 bp at 3 agrees with neither.
+# The half repeat alleles of bams05, bams23 and bams24 sit off their locus grid as well, which is
+# expected where an array ends in a partial unit, and they are published values.
+
+marker	size	allele
+vrrA	290	8
+vrrA	302	9
+vrrA	314	10
+vrrA	326	11
+vrrB1	193	12
+vrrB1	220	15
+vrrB1	229	16
+vrrB1	256	19
+vrrB2	135	4
+vrrB2	153	6
+vrrB2	162	7
+vrrB2	171	8
+vrrC1	517	46
+vrrC1	535	48
+vrrC1	580	53
+vrrC1	616	57
+vrrC2	532	17
+vrrC2	568	19
+vrrC2	604	21
+CG3	153	1
+CG3	158	2
+pXO1-aat	123	6
+pXO1-aat	126	7
+pXO1-aat	129	8
+pXO1-aat	132	9
+pXO1-aat	135	10
+pXO2-at	132	5.5
+pXO2-at	133	6
+pXO2-at	135	7
+pXO2-at	137	8
+pXO2-at	139	9
+pXO2-at	141	10
+pXO2-at	143	11
+pXO2-at	145	12
+bams01	380	11
+bams01	401	12
+bams01	422	13
+bams01	443	14
+bams01	485	16
+bams03	474	21
+bams03	519	24
+bams03	549	26
+bams03	564	27
+bams03	579	28
+bams03	594	29
+bams03	609	30
+bams05	229	3
+bams05	307	5
+bams05	332	5.5
+bams05	346	6
+bams05	385	7
+bams13	337	17
+bams13	346	18
+bams13	364	20
+bams13	373	21
+bams13	391	24
+bams13	427	27
+bams13	454	30
+bams13	463	31
+bams13	481	33
+bams13	778	66
+bams13	814	70
+bams13	841	73
+bams13	868	76
+bams15	409	23
+bams15	418	24
+bams15	445	27
+bams15	535	37
+bams15	571	41
+bams15	580	42
+bams15	589	43
+bams15	598	44
+bams15	607	45
+bams15	616	46
+bams21	541	7
+bams21	631	9
+bams21	676	10
+bams22	555	11
+bams22	627	13
+bams22	663	14
+bams22	699	15
+bams22	735	16
+bams23	399	5
+bams23	567	9
+bams23	609	10
+bams23	639	10.5
+bams23	651	11
+bams24	469	8
+bams24	511	9
+bams24	553	10
+bams24	582	10.5
+bams24	595	11
+bams24	637	12
+bams25	376	12
+bams25	391	13
+bams28	373	9
+bams28	397	10
+bams28	469	13
+bams28	493	14
+bams30	268	6
+bams30	367	17
+bams30	493	31
+bams30	673	51
+bams30	691	53
+bams30	727	57
+bams30	754	60
+bams30	835	69
+bams30	853	71
+bams30	862	72
+bams30	889	75
+bams30	916	78
+bams31	331	15
+bams31	637	49
+bams31	691	55
+bams31	700	56
+bams31	727	59
+bams31	772	64
+bams31	781	65
+bams31	952	84
+bams34	238	3
+bams34	386	7
+bams34	425	8
+bams34	503	9
+bams34	581	11
+bams44	339	6
+bams44	417	8
+bams51	358	6
+bams51	448	8
+bams51	493	9
+bams51	538	10
+bams53	212	6
+bams53	236	8

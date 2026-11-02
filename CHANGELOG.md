@@ -6,6 +6,16 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `bacillus_mlva25_lista_2006`, the 25 locus MLVA panel of
+  Lista et al. for *Bacillus anthracis*, the eight MLVA-8 loci with seventeen
+  bams loci, anchored on Ames Ancestor. The paper publishes no primers, so it
+  reuses those of `bacillus_mlva31_mlvabank`, of which the panel is the first
+  25 loci; all 25 reproduce their reference size. It is the first bundled
+  scheme with a `bins.tsv`, holding the paper's table of sequenced amplicon
+  size against repeat number for all 25 loci, which is how the assay numbers
+  alleles. Its numbering is the paper's own and differs from the MLVAbank one
+  at vrrA, vrrB1, vrrB2, pXO2-at and bams34, so profiles from this scheme and
+  from the other Bacillus schemes must not be compared.
 - Bundled scheme `yersinia_mlva25_lefleche_2001`, the 25 loci of Le Fleche
   et al. polymorphic among *Yersinia pestis* and used as a panel by Pourcel
   et al. 2004, anchored on CO92. Unit length, repeat number and expected

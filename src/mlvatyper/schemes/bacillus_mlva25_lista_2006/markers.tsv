@@ -1,0 +1,52 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+vrrA	12	314	10	N/A	vrrA
+vrrB1	9	229	16	N/A	vrrB1
+vrrB2	9	153	6	N/A	vrrB2
+vrrC1	9	580	53	N/A	vrrC1
+vrrC2	18	532	17	N/A	vrrC2
+CG3	5	158	2	TAATA	CG3
+pXO1-aat	3	126	7	AAT	pXO1
+pXO2-at	2	141	10	N/A	pXO2
+bams01	21	485	16	N/A	bams1
+bams03	15	549	26	N/A	bams3
+bams05	39	307	5	N/A	bams5
+bams13	9	814	70	N/A	bams13
+bams15	9	418	24	N/A	bams15
+bams21	45	676	10	N/A	bams21
+bams22	36	735	16	N/A	bams22
+bams23	42	651	11	N/A	bams23
+bams24	42	595	11	N/A	bams24
+bams25	15	391	13	N/A	bams25
+bams28	24	493	14	N/A	bams28
+bams30	9	727	57	N/A	bams30
+bams31	9	772	64	N/A	bams31
+bams34	39	503	9	N/A	bams34
+bams44	39	417	8	N/A	bams44
+bams51	45	493	9	N/A	bams51
+bams53	12	236	8	N/A	bams53
+# unit_length is the repeat unit length printed for each marker in Table 3, which agrees with the
+# Repeat units column of Table 2 for every locus except bams13: Table 2 gives 39 bp there, while
+# Table 3, the sequenced allele sizes and the reference assembly all give 9 bp, so 39 appears to
+# be an error in Table 2.
+#
+# ref_size is the product measured in the Ames Ancestor assembly GCA_000008445.1 by in silico PCR
+# with these primers. Every one of the 25 sizes falls inside the fragment size range Table 2 gives
+# for that locus, and 24 of them are also a row of Table 3; vrrC1 is the exception and is covered
+# by the correction the Methods applies to that locus, 583 bp read as 580 bp.
+#
+# ref_repeats is the repeat number Table 3 pairs with that size. For the eight MLVA-8 loci the
+# Methods states the same values in full: the Ames code 314-229-153-580-532-158-126-141 bp is
+# 10-16-6-53-17-2-7-10 repeats for vrrA, vrrB1, vrrB2, vrrC1, vrrC2, CG3, pXO1-aat and pXO2-at.
+#
+# THIS NUMBERING IS NOT THE ONE USED BY bacillus_mlva31_mlvabank OR bacillus_mlva8_keim_2000.
+# Those schemes take their copy numbers from the MLVAbank locus identifiers, which count the same
+# reference products differently at five loci: vrrA 4 against 10 here, vrrB1 20 against 16,
+# vrrB2 13 against 6, pXO2-at 9 against 10 and bams34 11 against 9. The sizes agree exactly at
+# every locus. A profile from this scheme is comparable with published MLVA-25 genotypes and a
+# profile from those schemes is not, and the two must not be mixed.
+#
+# patterns are kept only for the two loci whose published repeat number equals the number of times
+# the motif occurs in the reference, so the tandem array cross-check is active there and skipped
+# elsewhere, where it would contradict the published number. vrrA carries no pattern here although
+# bacillus_mlva31_mlvabank gives it one, because the counter finds the four perfect 12 bp copies
+# that panel numbers rather than the ten this one does.

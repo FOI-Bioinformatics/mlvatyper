@@ -207,6 +207,17 @@ below are shorter than they are.
 - `bacillus_mlva15_vanert_2007`: MLVA-15 (Van Ert et al. 2007), the MLVA-8
   loci with the same primers plus seven BaVNTR loci, also on Ames Ancestor.
 
+- `bacillus_mlva25_lista_2006`: MLVA-25 (Lista et al. 2006), the MLVA-8 loci
+  with 17 bams loci, run as four multiplex reactions and anchored on Ames
+  Ancestor. The paper publishes no primers, so these are the MLVAbank ones of
+  `bacillus_mlva31_mlvabank`, of which this panel is the first 25 loci, but
+  the repeat numbering is the paper's own and differs from the MLVAbank one at
+  vrrA, vrrB1, vrrB2, pXO2-at and bams34; the reference sizes agree at every
+  locus. This is the only bundled scheme with a `bins.tsv`: the paper numbers
+  alleles from a table of sequenced amplicon size against repeat number, which
+  ships here in full, so a profile is comparable with published MLVA-25
+  genotypes while one from the other Bacillus schemes is not.
+
 - `bacillus_mlva31_mlvabank`: the 31 locus composite panel of MLVAbank, the
   MLVA-8 loci with 17 bams loci (Lista et al. 2006) and six vntr loci. Every
   reference value is read from the MLVAbank locus identifiers and all 31 are
