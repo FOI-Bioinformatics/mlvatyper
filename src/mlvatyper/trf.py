@@ -116,11 +116,13 @@ def discover_with_trf(
         raise FileNotFoundError("trf not found on PATH; install with: conda install -c bioconda trf")
     t = thresholds or Thresholds(min_score=min_score, min_copies=min_copies)
     chosen = chosen_amplicons(amplicons, sample)
+    # TRF names a sequence by its header up to the first space, so markers are written under neutral names
+    names = {marker: f"m{n}" for n, marker in enumerate(chosen)}
     with tempfile.TemporaryDirectory() as tmp:
         fasta = Path(tmp) / "amplicons.fasta"
         with open(fasta, "w", encoding="utf-8") as handle:
             for marker, amp in chosen.items():
-                handle.write(f">{marker}\n{amp.sequence}\n")
+                handle.write(f">{names[marker]}\n{amp.sequence}\n")
         floor = min(t.min_score, t.weak_score)
         command = trf_command(fasta, floor, max_period)
         repeats = parse_trf_ngs(run_trf(fasta, floor, max_period))
@@ -128,7 +130,7 @@ def discover_with_trf(
     missing: list[str] = []
     for marker, amp in chosen.items():
         seq = amp.sequence.upper()
-        raw = merge_harmonics(trf_raw_arrays(repeats.get(marker, [])))
+        raw = merge_harmonics(trf_raw_arrays(repeats.get(names[marker], [])))
         cands = [make_discovery(marker, sample, seq, r, "trf", max_mismatch, (primer_lengths or {}).get(marker))
                  for r in raw if r.copies >= t.min_copies]
         cands = finish_candidates([c for c in cands if c is not None], t)

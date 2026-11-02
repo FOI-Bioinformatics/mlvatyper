@@ -99,9 +99,13 @@ def load_report_data(outdir: Path, prefix: str, title: str | None = None) -> Rep
     missing = _read(outdir / "missing_markers.tsv")
     if missing is None:
         missing = pd.DataFrame(columns=["sample", "marker", "reason"])
-    definitions = _read(outdir / "marker_defs_derived.tsv")
+    summ = summarize_parameters(run_info, prefix)
+    # the definitions this prefix was called with; older runs only have the shared derived file or the input
+    definitions = _read(outdir / f"{prefix}_definitions.tsv")
+    if definitions is None and summ.get("reference_sample"):
+        definitions = _read(outdir / "marker_defs_derived.tsv")
     if definitions is None:
-        markers_file = (run_info.get("summarize", {}).get("parameters", {}) or {}).get("markers")
+        markers_file = summ.get("markers")
         if markers_file and Path(markers_file).exists():
             try:
                 definitions = _read(Path(markers_file))
@@ -111,6 +115,20 @@ def load_report_data(outdir: Path, prefix: str, title: str | None = None) -> Rep
     scheme = scheme_name(run_info) or prefix
     return ReportData(outdir, prefix, title or f"MLVA typing report: {scheme}", run_info, samples, markers,
                       alleles, status, profile, calls, missing, definitions, discovery)
+
+
+# codes that mean no amplicon was found; NO_DEFINITION is an amplicon without reference values
+ABSENT_CODES = ("NOT_DETECTED", "NEAR_CONTIG_END", "NOT_SEARCHED", "ONE_PRIMER_ONLY")
+
+
+def summarize_parameters(run_info: dict, prefix: str | None = None) -> dict:
+    """Parameters of the summarize run that wrote the tables of this prefix.
+
+    run_info keeps them per prefix; older files have only the latest run.
+    """
+    by_prefix = run_info.get("summarize_by_prefix", {}) or {}
+    entry = by_prefix.get(prefix) if prefix is not None else None
+    return ((entry or run_info.get("summarize", {})) or {}).get("parameters", {}) or {}
 
 
 def scheme_name(run_info: dict) -> str:
@@ -233,10 +251,10 @@ def _svg(fig) -> str:
     return text[text.index("<svg"):]
 
 
-def methods_text(run_info: dict) -> str:
+def methods_text(run_info: dict, prefix: str | None = None) -> str:
     """A methods paragraph generated from the recorded parameters."""
     search = run_info.get("search", {}).get("parameters", {}) or {}
-    summ = run_info.get("summarize", {}).get("parameters", {}) or {}
+    summ = summarize_parameters(run_info, prefix)
     merpcr = run_info.get("merpcr_version", "unknown")
     version = run_info.get("mlvatyper_version", __version__)
     parts = [
@@ -244,7 +262,10 @@ def methods_text(run_info: dict) -> str:
         f"(https://github.com/FOI-Bioinformatics/mlvatyper) using merPCR {merpcr}, a Python reimplementation "
         f"of me-PCR, allowing {search.get('mismatches', 2)} mismatches per primer outside the "
         f"{search.get('three_prime_match', 1)} protected 3' base(s), a hash word of {search.get('wordsize', 11)} "
-        f"bases and a product size window of the expected size plus or minus {search.get('margin', 500)} bp.",
+        f"bases and a product size window of the expected size plus or minus {search.get('margin', 500)} bp"
+        + (f"; for markers with a reference size and repeat number the window ran from the size of 0 to "
+           f"{search.get('max_repeats', 50)} repeats instead, unless the STS file gave a size range."
+           if search.get("markers") else "."),
     ]
     if search.get("iupac", True):
         parts.append("IUPAC ambiguity codes in primers were matched to the bases they stand for.")
@@ -373,7 +394,7 @@ def _summary_table(data: ReportData) -> pd.DataFrame:
     for sample in data.samples:
         row = data.alleles.loc[sample]
         typed.append(int(sum(str(v).lstrip("-").isdigit() for v in row)))
-        missing.append(int(sum(str(v) in STATUS_GLOSSARY for v in row)))
+        missing.append(int(sum(str(v) in ABSENT_CODES for v in row)))
     counts.insert(0, "markers typed", typed)
     counts.insert(1, "missing", missing)
     return counts
@@ -410,7 +431,7 @@ def render(data: ReportData) -> str:
     transposed = len(data.markers) > len(data.samples)
     alleles, status = (data.alleles.T, data.status.T) if transposed else (data.alleles, data.status)
     search = data.run_info.get("search", {}).get("parameters", {}) or {}
-    summ = data.run_info.get("summarize", {}).get("parameters", {}) or {}
+    summ = summarize_parameters(data.run_info, data.prefix)
     meta = [
         ("Scheme", scheme_name(data.run_info) or data.prefix),
         ("Samples", str(len(data.samples))), ("Markers", str(len(data.markers))),
@@ -431,7 +452,8 @@ def render(data: ReportData) -> str:
         discovery_table=_table_html(data.discovery, index=False) if data.discovery is not None else "",
         discovery_summary=_discovery_summary(data.discovery),
         definitions_table=_table_html(data.definitions, index=False) if data.definitions is not None else "",
-        methods=methods_text(data.run_info), inputs=data.run_info.get("inputs", []), glossary=STATUS_GLOSSARY,
+        methods=methods_text(data.run_info, data.prefix), inputs=data.run_info.get("inputs", []),
+        glossary=STATUS_GLOSSARY,
         software=SOFTWARE, prefix=data.prefix,
         parameters=json.dumps({k: v for k, v in data.run_info.items() if k not in ("inputs",)}, indent=2,
                               sort_keys=True),

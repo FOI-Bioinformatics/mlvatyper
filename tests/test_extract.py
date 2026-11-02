@@ -96,3 +96,12 @@ def test_hits_table_old_format_readable(tmp_path):
                     "s\tm\t1\tc\t1\t4\t+\t4\t0\tACGT\n")
     amps = read_hits_table(path)
     assert amps[0].hit.fwd_mismatches == -1 and amps[0].hit.n_alternatives == 0
+
+
+def test_load_fasta_drops_what_merpcr_drops(tmp_path, caplog):
+    """X masking and other characters merPCR removes must not shift the amplicon slice."""
+    from mlvatyper.extract import load_fasta
+    path = tmp_path / "masked.fasta"
+    path.write_text(">c1 desc\nXXXXacgt\nNNXX-GGu\n>c2\nACGT\n")
+    assert load_fasta(path) == {"c1": "ACGTNN-GG", "c2": "ACGT"}
+    assert "7 characters" in caplog.text

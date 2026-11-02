@@ -32,8 +32,9 @@ def test_run_writes_report_with_all_sections(fixture_dir):
     assert 'class="legend"' in html and "Table 1." in html and "Figure 3." in html and "Software" in html
     assert "markers as rows" not in html  # two samples, two markers: no transposition
     info = json.loads((out / "run_info.json").read_text())
-    assert len(info["inputs"]) == 3 and all(len(i["md5"]) == 32 and i["size"] > 0 for i in info["inputs"])
+    assert len(info["inputs"]) == 4 and all(len(i["md5"]) == 32 and i["size"] > 0 for i in info["inputs"])
     assert any(i["path"].endswith("primers.sts") for i in info["inputs"])
+    assert any(i["path"].endswith("m.tsv") for i in info["inputs"])  # the marker file is an input as well
 
 
 def test_report_subcommand_and_no_report(fixture_dir):
@@ -79,3 +80,18 @@ def test_report_with_amplicons_of_undefined_markers(fixture_dir):
     assert main(["summarize", "--outdir", str(out), "--prefix", "u", "--markers", str(fixture_dir / "sub.tsv")]) == 0
     assert main(["report", "--outdir", str(out), "--prefix", "u"]) == 0
     assert (out / "u_report.html").exists()
+
+
+def test_summary_counts_no_definition_as_found_and_methods_window(tmp_path):
+    import pandas as pd
+
+    from mlvatyper.report import ReportData, _summary_table
+    alleles = pd.DataFrame({"m1": ["5"], "m2": ["NO_DEFINITION"], "m3": ["NOT_DETECTED"]}, index=["s"])
+    status = pd.DataFrame({"m1": ["OK"], "m2": ["NO_DEFINITION"], "m3": ["NOT_DETECTED"]}, index=["s"])
+    data = ReportData(tmp_path, "p", "t", {}, ["s"], ["m1", "m2", "m3"], alleles, status, alleles, pd.DataFrame(),
+                      pd.DataFrame(), None, None)
+    row = _summary_table(data).loc["s"]
+    assert (row["markers typed"], row["missing"]) == (1, 1)
+    text = methods_text({"search": {"parameters": {"markers": "m.tsv", "max_repeats": 40, "margin": 500}}})
+    assert "0 to 40 repeats" in text
+    assert "repeats instead" not in methods_text({"search": {"parameters": {"margin": 500}}})

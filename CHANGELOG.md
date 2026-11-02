@@ -73,6 +73,35 @@ is below 1.0, so the output tables may still change between minor versions.
 - A `--fasta` path that does not exist stops the run instead of being
   left out without notice; a glob pattern that matches nothing is warned
   about.
+- CLUSTAL alignments (`*_aligned.clw`) keep the full sequence names;
+  names were cut to 30 characters, so copies of one sample or isolates with
+  a long shared prefix became indistinguishable.
+- `discover --engine trf` finds candidates for markers whose id contains a
+  space; TRF cut the name at the space, so those markers had none. Without
+  TRF on PATH, `--engine trf` now stops with a message instead of a
+  traceback.
+- Amplicon sequences are cut from the same text merPCR searched. merPCR
+  drops characters such as `X` (masking) before it computes coordinates;
+  the sequences were cut from the unfiltered FASTA, so in a masked assembly
+  they were shifted while their length and primer mismatches looked right.
+  A warning now gives the number of characters dropped.
+- A marker defined twice in a marker file is an error instead of a
+  duplicate column, and any error in a marker file is reported in one line
+  instead of a traceback; so is a `--reference-sample` without amplicons.
+- `<prefix>_lengths_summary.tsv` has a column for every STS marker, also
+  one without any amplicon, as the other tables do.
+- Several summarize runs in one output directory no longer mix in the
+  report: parameters are recorded per prefix, the definitions used are
+  written to `<prefix>_definitions.tsv`, and a summarize that calls nothing
+  removes the call tables an earlier run left under that prefix.
+- The report counts only absent markers as missing (not `NO_DEFINITION`)
+  and states the size window from the definitions when `--markers` set it.
+- `run_info.json` records the size and MD5 sum of the marker and bin files.
+- Tandem counts are NA rather than 0 for markers without repeat unit
+  sequences, and `COUNT_DISAGREES` is raised when the unit is not found at
+  all next to an allele of one or more.
+- Whitespace in a sample name (taken from the FASTA file name) becomes `_`,
+  since FASTA record ids end at the first space.
 
 ## 0.3.0 - 2026-10-23
 

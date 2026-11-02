@@ -115,3 +115,13 @@ def test_aligner_failure_is_reported(tmp_path, monkeypatch):
     fa = tmp_path / "m.fasta"
     write(fa, {"a_1": "ACGT", "b_1": "ACGG"})
     assert not align_marker("mafft", fa, tmp_path / "o.fa", tmp_path / "o.clw")
+
+
+def test_clustal_keeps_long_names_apart(tmp_path):
+    names = ["GCF_000006945.2_LT2_reference_1", "GCF_000006945.2_LT2_reference_2"]
+    seqs = ["ACGT-" * 20, "ACGTA" * 20]  # 100 columns, two CLUSTAL blocks
+    fasta = tmp_path / "a.fasta"
+    fasta.write_text("".join(f">{n}\n{s}\n" for n, s in zip(names, seqs, strict=True)))
+    fasta_to_clustal(fasta, tmp_path / "a.clw")
+    aln = AlignIO.read(tmp_path / "a.clw", "clustal")
+    assert [r.id for r in aln] == names and [str(r.seq) for r in aln] == seqs

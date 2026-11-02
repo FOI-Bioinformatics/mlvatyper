@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from Bio import AlignIO, SeqIO
+from Bio import SeqIO
 from Bio.Align import MultipleSeqAlignment
 
 from .log import get_logger
@@ -54,10 +54,25 @@ def run_aligner(aligner: str, in_fasta: Path, out_fasta: Path) -> None:
         raise ValueError(f"unknown aligner {aligner}")
 
 
+CLUSTAL_BLOCK = 60
+
+
 def fasta_to_clustal(aligned_fasta: Path, clustal_path: Path) -> None:
+    """Write the alignment in CLUSTAL format with the full sequence names.
+
+    Biopython's CLUSTAL writer cuts names to 30 characters, which makes
+    sample_1 and sample_2 of a long assembly name the same row; here the
+    name column is as wide as the longest name.
+    """
     records = list(SeqIO.parse(str(aligned_fasta), "fasta"))
-    aln = MultipleSeqAlignment(records)
-    AlignIO.write(aln, str(clustal_path), "clustal")
+    MultipleSeqAlignment(records)  # raises ValueError when the sequences differ in length
+    width = max((len(r.id) for r in records), default=0) + 6
+    length = len(records[0].seq) if records else 0
+    lines = ["CLUSTAL multiple sequence alignment", "", ""]
+    for start in range(0, length, CLUSTAL_BLOCK):
+        lines.extend(f"{r.id.ljust(width)}{str(r.seq)[start:start + CLUSTAL_BLOCK]}" for r in records)
+        lines.append("")
+    Path(clustal_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def align_marker(aligner: str | None, in_fasta: Path, out_fasta: Path, clustal_path: Path) -> bool:

@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from mlvatyper.calling import (
@@ -140,3 +141,15 @@ def test_derive_definitions_keeps_label_and_offset():
 def test_no_definition_is_the_allele_table_cell():
     c = call_amplicon(amp("s", "m2", 1, 3, n_alt=1, has_n=True), MarkerDef("m2", (UNIT,), 6), 0.25, "nearest")
     assert c.cell == "NO_DEFINITION" and set(c.status) == {"NO_DEFINITION", "HAS_N", "AMBIGUOUS"}
+
+
+def test_tandem_counts_only_for_markers_with_units():
+    no_units = MarkerDef("m1", (), 6, DEF.ref_size, DEF.ref_repeats)
+    c = call_amplicon(amp("s", "m1", 1, 5), no_units, 0.25, "nearest")
+    assert not c.counted and c.status_text == "OK"
+    assert tandem_count_table([c], ["s"], ["m1"]).loc["s", "m1"] == "NA"
+    assert long_table([c]).loc[0, "tandem_copies"] is pd.NA
+    # a unit that is not found at all next to an allele of five is a disagreement
+    wrong = MarkerDef("m1", ("TTTTTA",), 6, DEF.ref_size, DEF.ref_repeats)
+    c = call_amplicon(amp("s", "m1", 1, 5), wrong, 0.25, "nearest")
+    assert c.counted and c.array.copies == 0 and "COUNT_DISAGREES" in c.status

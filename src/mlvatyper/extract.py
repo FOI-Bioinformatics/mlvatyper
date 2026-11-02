@@ -24,13 +24,33 @@ HITS_COLUMNS = [
 ]
 
 
+# The characters merPCR keeps from a sequence line, after upper-casing (merpcr/io/fasta.py, as in me-PCR).
+# Hit coordinates refer to the sequence without the others, so the amplicons must be cut from the same text.
+MERPCR_SEQUENCE_CHARS = "GATCNBDHKMRSVWY-"
+DROPPED_RE = re.compile(f"[^{MERPCR_SEQUENCE_CHARS}]")
+
+
 def load_fasta(path: str | Path) -> dict[str, str]:
     """Load a FASTA file once, keyed by record id (text up to the first whitespace).
 
-    Files ending in .gz, .bz2 or .xz are decompressed on the fly.
+    Files ending in .gz, .bz2 or .xz are decompressed on the fly. Sequences
+    are upper-cased and stripped of the characters merPCR drops (X, U and
+    anything else outside IUPAC codes and '-'), so that hit coordinates
+    point at the same bases; a warning gives the number of characters
+    dropped, since coordinates then refer to the cleaned sequence.
     """
+    contigs: dict[str, str] = {}
+    dropped = 0
     with open_text(path) as handle:
-        return {rec.id: str(rec.seq) for rec in SeqIO.parse(handle, "fasta")}
+        for rec in SeqIO.parse(handle, "fasta"):
+            raw = str(rec.seq).upper()
+            clean = DROPPED_RE.sub("", raw)
+            dropped += len(raw) - len(clean)
+            contigs[rec.id] = clean
+    if dropped:
+        log.warning("%s: %d characters outside %s (such as X masking) dropped, as merPCR does; coordinates refer "
+                    "to the sequence without them", path, dropped, MERPCR_SEQUENCE_CHARS)
+    return contigs
 
 
 def primer_mismatches(observed: str, primer: str) -> int:

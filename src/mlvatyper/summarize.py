@@ -38,15 +38,18 @@ def _by_marker_sample(amplicons: list[Amplicon]) -> dict[str, dict[str, list[Amp
     return out
 
 
-def lengths_table(amplicons: list[Amplicon], samples: list[str], clean: bool = False) -> pd.DataFrame:
-    """Amplicon length per sample and marker; multiple copies joined with '/'."""
+def lengths_table(amplicons: list[Amplicon], samples: list[str], clean: bool = False,
+                  markers: list[str] | None = None) -> pd.DataFrame:
+    """Amplicon length per sample and marker; multiple copies joined with '/'.
+
+    markers (the STS ids) keeps a column for a marker without any amplicon.
+    """
     data: dict[str, dict[str, str | None]] = defaultdict(dict)
     grouped = _by_marker_sample(_select(amplicons, clean))
     for marker, per_sample in grouped.items():
         for sample, amps in per_sample.items():
             data[sample][marker] = "/".join(str(len(a.sequence)) for a in amps)
-    markers = sorted({a.hit.primer_id for a in amplicons})
-    return _frame(data, samples, markers)
+    return _frame(data, samples, sorted({a.hit.primer_id for a in amplicons} | set(markers or ())))
 
 
 def count_repeats(sequence: str, patterns: tuple[str, ...]) -> int:
@@ -111,13 +114,14 @@ def write_table(df: pd.DataFrame, path: str | Path) -> None:
 
 
 def write_all_summaries(amplicons: list[Amplicon], samples: list[str], outdir: Path, prefix: str,
-                        defs: list[MarkerDef] | None, clwclean: bool, legacy_tables: bool = False) -> list[Path]:
+                        defs: list[MarkerDef] | None, clwclean: bool, legacy_tables: bool = False,
+                        markers: list[str] | None = None) -> list[Path]:
     """Lengths tables, plus the legacy count tables when requested."""
     written = []
     variants = [("", False)] + ([("_clean", True)] if clwclean else [])
     for suffix, clean in variants:
         p = outdir / f"{prefix}_lengths_summary{suffix}.tsv"
-        write_table(lengths_table(amplicons, samples, clean), p)
+        write_table(lengths_table(amplicons, samples, clean, markers), p)
         written.append(p)
         if defs is not None and legacy_tables:
             p = outdir / f"{prefix}_count_summary{suffix}.tsv"

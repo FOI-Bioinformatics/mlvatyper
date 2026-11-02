@@ -73,7 +73,13 @@ def test_discover_cli_trf_missing(fixture_dir, monkeypatch):
     out = fixture_dir / "out"
     assert main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "sampleA.fasta"),
                  "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"]) == 0
-    with pytest.raises(FileNotFoundError):
-        main(["discover", "--outdir", str(out), "--engine", "trf"])
+    assert main(["discover", "--outdir", str(out), "--engine", "trf"]) == 1  # an error message, no traceback
     assert main(["discover", "--outdir", str(out)]) == 0  # auto falls back to builtin
     assert "\tbuiltin\t" in (out / "discover_report.tsv").read_text()
+
+
+@pytest.mark.skipif(not trf_available(), reason="trf not installed")
+def test_discover_with_trf_marker_ids_with_spaces():
+    amps = [Amplicon(Hit("ref", "c", 1, 1, "+", m), 1, make_amplicon(5)) for m in ("STTR 10", "Lp.ms 01", "m1")]
+    found, missing, _ = discover_with_trf(amps, "ref", min_score=20)
+    assert sorted(found) == ["Lp.ms 01", "STTR 10", "m1"] and missing == []

@@ -65,6 +65,7 @@ class Call:
     allele: str | None = None
     residual: float | None = None
     array: TandemArray = EMPTY
+    counted: bool = False  # whether the tandem array was counted (the marker has repeat unit sequences)
     status: list[str] = field(default_factory=list)
 
     @property
@@ -186,7 +187,8 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
 
 def _check_array(call: Call, d: MarkerDef, max_array_length: int | None) -> None:
     allele = _allele_value(call.allele)
-    if d.has_repeats and call.array.copies and allele is not None and abs(call.array.copies - allele) >= 1:
+    # no copy of the unit at all next to an allele of one or more is a disagreement too: a wrong unit sequence
+    if call.counted and allele is not None and abs(call.array.copies - allele) >= 1:
         call.status.append(COUNT_DISAGREES)
     if call.array.copies:
         array_length = call.array.span
@@ -212,6 +214,7 @@ def call_amplicon(
         call.status.append(PRIMER_INDEL)
     if d.has_repeats:
         call.array = count_tandem_array(amp.sequence, d.patterns, max_mismatch)
+        call.counted = True
     if not d.can_call:
         call.status.insert(0, NO_DEFINITION)  # first, so that the allele table shows it rather than e.g. HAS_N
         return call
@@ -283,7 +286,7 @@ def tandem_count_table(calls: list[Call], samples: list[str], markers: list[str]
     grouped: dict[tuple[str, str], list[str]] = defaultdict(list)
     for c in calls:
         if c.amplicon is not None:
-            grouped[(c.sample, c.marker)].append(str(c.array.copies))
+            grouped[(c.sample, c.marker)].append(str(c.array.copies) if c.counted else "NA")
     return _frame({k: ";".join(v) for k, v in grouped.items()}, samples, markers)
 
 
@@ -326,10 +329,10 @@ def long_table(calls: list[Call]) -> pd.DataFrame:
             "raw_repeats": None if c.raw is None else round(c.raw, 3),
             "allele": c.allele,
             "residual_bp": None if c.residual is None else round(c.residual, 1),
-            "tandem_copies": c.array.copies if c.amplicon else None,
-            "tandem_exact": c.array.exact if c.amplicon else None,
-            "tandem_variant": c.array.variant if c.amplicon else None,
-            "tandem_orientation": c.array.orientation if c.amplicon and c.array.copies else None,
+            "tandem_copies": c.array.copies if c.counted else None,  # None, not 0, for a marker without units
+            "tandem_exact": c.array.exact if c.counted else None,
+            "tandem_variant": c.array.variant if c.counted else None,
+            "tandem_orientation": c.array.orientation if c.counted and c.array.copies else None,
             "status": c.status_text,
         })
     df = pd.DataFrame(rows, columns=LONG_COLUMNS)
