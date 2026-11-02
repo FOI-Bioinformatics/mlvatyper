@@ -76,6 +76,10 @@ is below 1.0, so the output tables may still change between minor versions.
 - CLUSTAL alignments (`*_aligned.clw`) keep the full sequence names;
   names were cut to 30 characters, so copies of one sample or isolates with
   a long shared prefix became indistinguishable.
+- `discover --engine trf` finds candidates for markers whose id contains a
+  space; TRF cut the name at the space, so those markers had none. Without
+  TRF on PATH, `--engine trf` now stops with a message instead of a
+  traceback.
 
 ## 0.3.0 - 2026-10-23
 

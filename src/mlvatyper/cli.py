@@ -586,6 +586,9 @@ def _primer_lengths(outdir: Path) -> dict[str, tuple[int, int]]:
 def _discover_one(args: argparse.Namespace, amplicons: list, sample: str, engine: str, thresholds: Thresholds,
                   primer_lengths: dict[str, tuple[int, int]]) -> tuple[dict, list[str]]:
     if engine == "trf":
+        if not trf_available():
+            raise SystemExit("trf not found on PATH; install it with: conda install -c bioconda trf, "
+                             "or use --engine builtin")
         found, missing, command = discover_with_trf(amplicons, sample, args.min_score, args.max_unit,
                                                     args.unit_mismatches, args.min_copies, thresholds, primer_lengths)
         args.trf_command = " ".join(command)
