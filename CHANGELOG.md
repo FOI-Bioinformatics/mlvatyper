@@ -5,16 +5,6 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
-- `check-scheme` also rejects provenance that opens with a placeholder or
-  says it is still to be added, such as `url: not recorded; ... the DOI has
-  to be added here`. The Lpn_MLVA12 scheme, which had that `url`, now cites
-  Sobral et al. 2011 (doi:10.1128/AEM.05556-11) in full.
-- Schemes name their reference assembly by a GenBank or RefSeq accession
-  (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
-  NCBI Datasets into a local cache instead of needing a FASTA file, and the
-  reference assemblies that were committed under `tests/data` are removed.
-  The two bundled published schemes now carry their accessions.
-
 ### Added
 
 - Bundled scheme `STm_ECDC`, the EU harmonised five locus scheme for
@@ -23,26 +13,48 @@ is below 1.0, so the output tables may still change between minor versions.
 - Bundled scheme `Lpn_MLVA12`, the 12 locus MLVA panel for Legionella
   pneumophila, verified against Philadelphia-1 and called from length
   alone; a fixture of the twelve amplicon regions is checked in CI.
+- `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
+  template files, and `docs/schemes.md` describes how to build a scheme
+  from a publication and verify it against the reference strain.
 
 ### Changed
-
-- A file that is not FASTA now fails only its own sample instead of
-  stopping the run with a traceback.
-- An explicit size range in the STS file is kept when `--markers` derives
-  size windows, and hits keep the STS expected size rather than the
-  midpoint of a derived window.
-
-## Unreleased
 
 - Schemes name their reference assembly by a GenBank or RefSeq accession
   (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
   NCBI Datasets into a local cache instead of needing a FASTA file, and the
   reference assemblies that were committed under `tests/data` are removed.
   The two bundled published schemes now carry their accessions.
+- `check-scheme` also rejects provenance that opens with a placeholder or
+  says it is still to be added, such as `url: not recorded; ... the DOI has
+  to be added here`. The Lpn_MLVA12 scheme, which had that `url`, now cites
+  Sobral et al. 2011 (doi:10.1128/AEM.05556-11) in full.
+- A file that is not FASTA, or a corrupt or truncated compressed file, now
+  fails only its own sample instead of stopping the run with a traceback.
+  `run` still types and reports the other samples, leaves the failed ones
+  out of `samples.txt` and exits with status 1.
+- An explicit size range in the STS file is kept when `--markers` derives
+  size windows, and hits keep the STS expected size rather than the
+  midpoint of a derived window.
+- Rounding: `nearest` rounds halves up (2.5 to 3) instead of to the even
+  neighbour, and `intermediate` gives -0.5 rather than -1.5 for a raw
+  value of -0.4.
 
-- `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
-  template files, and `docs/schemes.md` describes how to build a scheme
-  from a publication and verify it against the reference strain.
+### Fixed
+
+- An option given on the command line now always wins over a scheme
+  default, also when its value equals the parser default.
+- A non-numeric allele in a bin table (for example `3a`) no longer stops
+  allele calling.
+- `--reference-sample` keeps the marker label and offset, so the MLVAbank
+  export uses the locus names.
+- The allele table shows `NO_DEFINITION` for a marker without a definition
+  instead of another flag such as `HAS_N`.
+- A product found by the primer indel alignment, and a product found more
+  than once by `check-scheme`, is counted once.
+- A `#` inside a `scheme.yml` value, such as a URL fragment, is no longer
+  cut off as a comment.
+- The command line in the report uses `--no-dedup` and `--no-iupac`
+  instead of flags that do not exist, and `NOT_FOUND` has an explanation.
 
 ## 0.3.0 - 2026-10-23
 
