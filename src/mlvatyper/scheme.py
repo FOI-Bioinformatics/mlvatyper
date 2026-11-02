@@ -46,7 +46,14 @@ PROVENANCE_FIELDS = ("citation", "url", "reference")
 RECOMMENDED_FIELDS = ("organism", "retrieved", "assembly")
 # values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
 PLACEHOLDERS = frozenset({"", "-", "?", "na", "n/a", "none", "unknown", "tbd", "todo", "fixme", "xxx",
-                          "to be added", "to be determined", "see publication", "see paper"})
+                          "to be added", "to be determined", "see publication", "see paper", "not recorded",
+                          "not given", "not known", "not available", "missing", "pending"})
+# a value that opens with a placeholder and explains it ("not recorded; the DOI has to be added") still states
+# nothing; the leading clause ends at the first ; : , ( or spaced dash
+LEADING_CLAUSE_RE = re.compile(r"[;:,(\u2013\u2014]|\s-\s")
+# wording that says the value is still to be filled in, anywhere in it
+UNFINISHED_RE = re.compile(r"\b(?:tbd|todo|fixme|(?:has|have|needs?) to be added|to be added|to be determined)\b",
+                           re.IGNORECASE)
 
 
 COMMENT_RE = re.compile(r"\s#")
@@ -94,8 +101,16 @@ class Scheme:
 
 
 def is_placeholder(value) -> bool:
-    """Whether a metadata value states nothing: empty, or one of the placeholder words."""
-    return str(value).strip().rstrip(".!,;:").lower() in PLACEHOLDERS
+    """Whether a metadata value states nothing.
+
+    That is a value that is empty or a placeholder word, one whose leading
+    clause is a placeholder ("not recorded; see the paper"), or one that
+    says it is still to be filled in ("the DOI has to be added here").
+    """
+    text = str(value).strip()
+    if text.rstrip(".!,;:").lower() in PLACEHOLDERS or UNFINISHED_RE.search(text):
+        return True
+    return LEADING_CLAUSE_RE.split(text, maxsplit=1)[0].strip().rstrip(".!").lower() in PLACEHOLDERS
 
 
 def parse_flat_yaml(text: str) -> dict:

@@ -113,10 +113,15 @@ def test_label_round_trip(tmp_path):
 
 
 def test_is_placeholder_and_missing_provenance(fixture_dir):
-    for value in ("", "  ", "none", "None.", "N/A", "unknown", "TBD", "to be added", "-"):
-        assert is_placeholder(value)
-    for value in ("Example et al. 2026", "https://example.test/x", "strain MINI-1", "0"):
-        assert not is_placeholder(value)
+    for value in ("", "  ", "none", "None.", "N/A", "unknown", "TBD", "to be added", "-",
+                  "not recorded; the table was supplied from Smith et al., and the DOI has to be added here",
+                  "Unknown (see notes)", "TBD - ask the authors", "Smith et al. 2020, DOI to be added",
+                  "https://doi.org/TODO"):
+        assert is_placeholder(value), value
+    for value in ("Example et al. 2026", "https://example.test/x", "strain MINI-1", "0",
+                  "https://doi.org/10.1128/AEM.05556-11 (Table 1)", "Missingham A. Title. J 2020;1:1-2",
+                  "Pending B, Unknown C. Typing. J 2019;3:4-5", "strain NA-12, chromosome CP000000.1"):
+        assert not is_placeholder(value), value
     d = _scheme_dir(fixture_dir)
     (d / "scheme.yml").write_text("name: mini\ncitation: none\nurl:\nreference: strain MINI-1\n")
     scheme = load_scheme(d)
