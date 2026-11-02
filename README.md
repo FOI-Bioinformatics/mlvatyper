@@ -42,8 +42,10 @@ a built-in repeat finder is used without it).
 
 ## Usage
 
-With a bundled scheme (`mlvatyper schemes` lists them), which supplies the
-primers, the marker definitions and the calling defaults:
+With a bundled scheme (`mlvatyper schemes` lists them; `STm_ECDC` for
+*Salmonella* Typhimurium, `Lpn_MLVA12` for *Legionella pneumophila* and
+`Bru_MLVA16` for *Brucella*), which supplies the primers, the marker
+definitions and the calling defaults:
 
     mlvatyper run --scheme STm_ECDC --fasta 'assemblies/*.fasta' \
         --outdir results --prefix study --mlvabank

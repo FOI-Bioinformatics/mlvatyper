@@ -183,6 +183,17 @@ Bundled schemes:
   to Philadelphia-1 are not whole multiples of 45 bp; read that locus
   against the published allele table.
 
+- `Bru_MLVA16`: the 16 locus *Brucella* panel (loci and primers from Le
+  Fleche et al. 2006; the panel 1 / 2A / 2B organisation from Al Dahouk et
+  al. 2007). Reference sizes and copy numbers are those of *B. melitensis*
+  16M (AE008917 and AE008918, assembly GCF_000007125.1, which the CI job
+  checks); all 16 products match the Table 1 sizes exactly and typing 16M
+  reproduces its published copy numbers. As for `Lpn_MLVA12` no unit
+  sequences are shipped, so alleles are called from length alone. The
+  panel 2 microsatellites (for example Bruce19, a 6 bp unit) form long
+  arrays that collapse in short-read assemblies; use `--max-array-length`
+  or long reads and read those loci against the published allele table.
+
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`
 (where the file came from) and `reference` (the strain or accession the

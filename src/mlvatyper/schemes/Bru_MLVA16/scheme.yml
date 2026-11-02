@@ -1,0 +1,12 @@
+# Bru_MLVA16: Brucella MLVA-16. Loci and primers from Le Fleche et al. 2006; the 16-locus panel
+# organisation (panel 1, panel 2A, panel 2B) is that of Al Dahouk et al. 2007.
+name: Bru_MLVA16
+organism: Brucella
+citation: Le Fleche P, Jacques I, Grayon M, Al Dahouk S, Bouchon P, Denoeud F, Nockler K, Neubauer H, Guilloteau LA, Vergnaud G. Evaluation and selection of tandem repeat loci for a Brucella MLVA typing assay. BMC Microbiol 2006;6:9. doi:10.1186/1471-2180-6-9 (Table 1, primers and B. melitensis 16M sizes); panel organisation from Al Dahouk S et al. J Microbiol Methods 2007;69:137-145. doi:10.1016/j.mimet.2006.12.015
+url: https://doi.org/10.1186/1471-2180-6-9 (open access; Table 1)
+reference: Brucella melitensis biovar Abortus 16M (GenBank AE008917 and AE008918); ref_size is the predicted product in 16M given in Le Fleche et al. 2006, Table 1, and ref_repeats the copy number encoded in the locus name
+assembly: GCF_000007125.1  # RefSeq assembly of B. melitensis 16M (chromosomes NC_003317.1 and NC_003318.1); downloaded by check-scheme
+retrieved: 2026-11-02
+notes: 16-locus panel (MLVA-16) of Le Fleche et al. 2006, assembled into panels by Al Dahouk et al. 2007. Panel 1 (MLVA-8, species level) is Bruce06, 08, 11, 12, 42, 43, 45, 55; panel 2A is Bruce18, 19, 21; panel 2B is Bruce04, 07, 09, 16, 30. No repeat unit sequences are shipped, so alleles are called from amplicon length against 16M and the tandem count is not a cross-check. Bruce19 (6 bp unit) and other panel 2 microsatellites form long arrays that collapse in short-read assemblies; use --max-array-length or long reads, and read such loci against the published allele table.
+rounding: intermediate
+allele_tolerance: 0.25
