@@ -6,23 +6,44 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
-
+- Bundled scheme `yersinia_mlva25_lefleche_2001`, the 25 loci of Le Fleche
+  et al. polymorphic among *Yersinia pestis* and used as a panel by Pourcel
+  et al. 2004, anchored on CO92. Unit length, repeat number and expected
+  product are published and all 25 products are reproduced in the reference.
+  Six loci are also in `yersinia_klevytska_2001`, which numbers them
+  differently, so profiles from the two are not interchangeable.
+- `mlvatyper schemes` prints an aligned table of the bundled schemes with
+  the organism, the number of loci, how many of them carry the reference
+  values a call needs, and the reference assembly accession.
+  `mlvatyper schemes NAME` describes one scheme, including its loci,
+  provenance, calling defaults and notes; a partial name or an organism
+  name filters the list instead. `--names` and `--tsv` give the machine
+  readable forms, and the bundled schemes are listed in `docs/method.md`.
+- Bundled scheme `coxiella_mlva17_arricau_bouvery_2006`, the Coxiella
+  burnetii panels of Arricau-Bouvery et al., ten panel 1 minisatellites
+  followed by seven panel 2 microsatellites, anchored on Nine Mile RSA 493.
+  Fourteen of the seventeen published amplicon sizes are reproduced there;
+  the scheme records the measured size for ms30, ms31 and ms36 and states
+  that alleles at ms30 and ms31 should not be compared with published
+  allele numbers until their primers are confirmed.
 - `ref_repeats` may be fractional, for schemes whose reference array ends
   in a partial unit and is numbered `n.5`. The alleles of such a marker
   lie on a half-integer grid, and a call on that grid is reported as `n.5`
   rather than flagged INTERMEDIATE. Whole numbers are unaffected.
+- Bundled scheme `bacillus_mlva31_mlvabank`, the 31 locus composite panel
+  for Bacillus anthracis: the eight MLVA-8 loci of Keim et al., seventeen
+  bams loci of Lista et al. and six vntr loci of Van Ert et al. All of its
+  reference values are read from the MLVAbank locus identifiers, and every
+  one of the 31 is reproduced in the Ames Ancestor assembly.
 - Bundled scheme `bacillus_mlva15_vanert_2007`, the MLVA-15 panel of Van
   Ert et al. for Bacillus anthracis, anchored on Ames Ancestor. It carries
   the eight MLVA-8 loci forward with the same primers and adds seven
   BaVNTR loci; its published repeat motifs and locations also corroborate
-  the units and reference sizes of `bacillus_mlva8_keim_2000`. The copy
-  numbers are still derived from the reference, because neither paper
-  gives allele definitions.
+  the units and reference sizes of `bacillus_mlva8_keim_2000`.
 - Bundled scheme `bacillus_mlva8_keim_2000`, the eight locus MLVA-8 panel
   of Keim et al. for Bacillus anthracis, anchored on Ames Ancestor. The
-  source table gives primers only, so the copy numbers are derived from
-  the reference; confirm them against the published allele table before
-  comparing a profile with published MLVA-8 genotypes.
+  primer table of Keim et al. carries no reference values, so these are
+  taken from the MLVAbank locus identifiers and verified in the assembly.
 - Bundled schemes `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`,
   the standardised MIRU-VNTR set for Mycobacterium tuberculosis and its
   discriminatory subset, anchored on H37Rv. The source table gives no
@@ -66,6 +87,13 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ### Changed
 
+- The copy numbers of `bacillus_mlva8_keim_2000` and
+  `bacillus_mlva15_vanert_2007` are now the published MLVAbank values that
+  `bacillus_mlva31_mlvabank` supplies, instead of counts derived from the
+  reference. Five of the eight MLVA-8 loci change, including vrrC1 and
+  vrrC2, which the panel numbers on a 9 bp and an 18 bp unit rather than
+  the 36 bp higher-order period, so profiles from an earlier version of
+  these two schemes are not comparable with profiles from this one.
 - Schemes name their reference assembly by a GenBank or RefSeq accession
   (`assembly: GCF_...` in `scheme.yml`); `check-scheme` downloads it from
   NCBI Datasets into a local cache instead of needing a FASTA file, and the
