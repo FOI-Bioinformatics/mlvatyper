@@ -6,7 +6,7 @@ Subcommands:
   summarize  rebuild summary tables and allele calls from an existing hits.tsv
   discover   find repeat units in the amplicons of one sample and write a marker definition file
   report     write a self-contained HTML report from the tables of a run
-  schemes    list the bundled schemes
+  schemes    list the bundled schemes, or describe one with its loci and provenance
   new-scheme   create a scheme directory with annotated template files
   check-scheme   check a scheme's files and, with an assembly, its reference values
   bins-from-table   build a bin file from a published allele size table
@@ -16,7 +16,9 @@ import argparse
 import glob
 import hashlib
 import json
+import logging
 import sys
+import textwrap
 from dataclasses import replace
 from datetime import datetime, UTC
 from pathlib import Path
@@ -181,7 +183,12 @@ def build_parser() -> argparse.ArgumentParser:
     summ.add_argument("--outdir", required=True, help="directory containing hits.tsv and samples.txt")
     _add_summary_args(summ)
 
-    sub.add_parser("schemes", help="list the bundled schemes")
+    schemes_p = sub.add_parser("schemes", help="list the bundled schemes, or describe one")
+    schemes_p.add_argument("name", nargs="?", help="scheme name, or part of a name or organism; one match is "
+                                                   "described in full, several are listed")
+    schemes_p.add_argument("--names", action="store_true", help="print the scheme names only, one per line")
+    schemes_p.add_argument("--tsv", action="store_true", help="print the table tab separated with the scheme "
+                                                             "directory as a last column, for scripts")
 
     new = sub.add_parser("new-scheme", help="create a scheme directory with annotated template files")
     new.add_argument("directory", help="directory to create")
@@ -461,6 +468,94 @@ def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
     if stage == "summarize":  # several prefixes can share an outdir; each report reads its own parameters
         info.setdefault("summarize_by_prefix", {})[args.prefix] = info[stage]
     path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+SCHEME_COLUMNS = ("scheme", "organism", "loci", "called", "assembly")
+SCHEME_DETAIL_WIDTH = 96  # the notes of a published scheme are a paragraph, so they are wrapped
+
+
+def _callable_loci(scheme) -> int:
+    """Markers with the reference values an allele call needs; a scheme may size the rest only.
+
+    Reading a marker file logs a line per file, which would bury a listing of
+    every bundled scheme, so the logger is quietened for the duration.
+    """
+    if scheme.markers is None:
+        return 0
+    level = log.level
+    log.setLevel(logging.WARNING)
+    try:
+        return sum(1 for d in read_markers(scheme.markers) if d.can_call)
+    finally:
+        log.setLevel(level)
+
+
+def _scheme_row(scheme, with_path: bool = False) -> tuple[str, ...]:
+    pairs, _ = read_sts(scheme.sts)
+    row = (scheme.name, str(scheme.meta.get("organism", "")).strip() or "-", str(len(pairs)),
+           str(_callable_loci(scheme)), scheme.assembly or "-")
+    return (*row, str(scheme.path)) if with_path else row
+
+
+def _print_table(header: tuple[str, ...], rows: list[tuple[str, ...]]) -> None:
+    widths = [max(len(row[i]) for row in (header, *rows)) for i in range(len(header))]
+    for row in (header, *rows):
+        print("  ".join(value.ljust(width) for value, width in zip(row, widths, strict=True)).rstrip())
+
+
+def _print_scheme(scheme) -> None:
+    """Everything one scheme records, including its loci and its notes."""
+    pairs, _ = read_sts(scheme.sts)
+    print(scheme.name)
+    fields = (
+        ("organism", str(scheme.meta.get("organism", "")).strip()),
+        ("loci", f"{len(pairs)}: " + ", ".join(p.id for p in pairs)),
+        ("reference", str(scheme.meta.get("reference", "")).strip()),
+        ("assembly", scheme.assembly or ""),
+        ("citation", str(scheme.meta.get("citation", "")).strip()),
+        ("url", str(scheme.meta.get("url", "")).strip()),
+        ("retrieved", str(scheme.meta.get("retrieved", "")).strip()),
+        ("defaults", ", ".join(f"{k}={v}" for k, v in scheme.calling_defaults().items())),
+        ("duplicated", ", ".join(scheme.known_multiple)),
+        ("called", f"{_callable_loci(scheme)} of {len(pairs)} loci carry the reference values an allele "
+                   "call needs; the rest are sized only"),
+        ("files", ", ".join(p.name for p in (scheme.sts, scheme.markers, scheme.bins) if p is not None)),
+        ("directory", str(scheme.path)),
+        ("notes", str(scheme.meta.get("notes", "")).strip()),
+    )
+    for label, value in fields:
+        if value:
+            print(textwrap.fill(value, width=SCHEME_DETAIL_WIDTH, break_long_words=False,
+                                break_on_hyphens=False,
+                                initial_indent=f"  {label:<11}", subsequent_indent=" " * 13))
+
+
+def do_schemes(args: argparse.Namespace) -> int:
+    """List the bundled schemes, or describe the one the name selects."""
+    schemes = list_schemes()
+    if args.name:
+        needle = args.name.lower()
+        exact = [s for s in schemes if s.name.lower() == needle]
+        schemes = exact or [s for s in schemes if needle in s.name.lower()
+                            or needle in str(s.meta.get("organism", "")).lower()]
+        if not schemes:
+            log.error("no bundled scheme matches %r; 'mlvatyper schemes' lists them all", args.name)
+            return 1
+    if args.names:
+        for scheme in schemes:
+            print(scheme.name)
+        return 0
+    if args.tsv:
+        for scheme in schemes:
+            print("\t".join(_scheme_row(scheme, with_path=True)))
+        return 0
+    if len(schemes) == 1:
+        _print_scheme(schemes[0])
+        return 0
+    _print_table(SCHEME_COLUMNS, [_scheme_row(s) for s in schemes])
+    print(f"\n{len(schemes)} schemes. 'mlvatyper schemes NAME' describes one and lists its loci; "
+          "'--scheme NAME' uses it in run, search and check-scheme.")
+    return 0
 
 
 def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
@@ -769,9 +864,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     configure_logging(args.verbose)
     if args.command == "schemes":
-        for scheme in list_schemes():
-            print(f"{scheme.name}\t{scheme.meta.get('organism', '')}\t{scheme.path}")
-        return 0
+        return do_schemes(args)
     if args.command == "new-scheme":
         try:
             scaffold_scheme(args.directory, args.name)

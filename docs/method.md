@@ -150,7 +150,12 @@ reference values taken from their publications, the provenance fields
 filled in, and a passing `check-scheme` against the assembly of the strain
 the publication used.
 
-Bundled schemes:
+Bundled schemes. `mlvatyper schemes` lists them with their organism, locus
+count, callable locus count and reference assembly; `mlvatyper schemes NAME`
+prints one scheme's loci, provenance, calling defaults and notes, and a
+partial name or an organism filters the list. The notes in `scheme.yml` are
+the full account of how a scheme's values were obtained, and the summaries
+below are shorter than they are.
 
 - `testM`: the example scheme of this repository, without reference
   repeat numbers.
@@ -193,6 +198,57 @@ Bundled schemes:
   panel 2 microsatellites (for example Bruce19, a 6 bp unit) form long
   arrays that collapse in short-read assemblies; use `--max-array-length`
   or long reads and read those loci against the published allele table.
+
+- `bacillus_mlva8_keim_2000`: the eight locus MLVA-8 panel for *Bacillus
+  anthracis* (Keim et al. 2000), anchored on Ames Ancestor. The primer table
+  carries no reference values, so these are the published MLVAbank values and
+  are verified in the assembly.
+
+- `bacillus_mlva15_vanert_2007`: MLVA-15 (Van Ert et al. 2007), the MLVA-8
+  loci with the same primers plus seven BaVNTR loci, also on Ames Ancestor.
+
+- `bacillus_mlva31_mlvabank`: the 31 locus composite panel of MLVAbank, the
+  MLVA-8 loci with 17 bams loci (Lista et al. 2006) and six vntr loci. Every
+  reference value is read from the MLVAbank locus identifiers and all 31 are
+  reproduced in Ames Ancestor, so this scheme supplies the published values
+  the two Bacillus schemes above use.
+
+- `brucella_mlva15_lefleche_2006`: panel 1 and panel 2 of the Brucella
+  MLVA-15 assay, anchored on *B. melitensis* 16M. Every locus reproduces the
+  published reference size and copy number on the stated chromosome.
+
+- `burkholderia_uren_2007`: the 32 locus panel for *Burkholderia
+  pseudomallei*, with reference sizes and copy numbers measured in strain
+  K96243 because the published copy numbers could not be reproduced there.
+
+- `coxiella_mlva17_arricau_bouvery_2006`: panel 1 and panel 2 for *Coxiella
+  burnetii*, anchored on Nine Mile RSA 493. Fourteen of the 17 published
+  amplicon sizes are reproduced; ms30, ms31 and ms36 are recorded with their
+  measured sizes, and ms30 and ms31 should not be compared with published
+  allele numbers until their primers are confirmed.
+
+- `francisella_johansson_2004` and `francisella_vogler_2008` for *Francisella
+  tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls 16 of
+  its 25 markers and sizes the rest, because the repeat units of the others
+  are not in the source table; the Vogler table gives amplicon sizes only, so
+  that scheme sizes its markers without calling them.
+
+- `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`: the standardised
+  MIRU-VNTR set for *Mycobacterium tuberculosis* and its discriminatory
+  subset, anchored on H37Rv. The source table gives no copy numbers, so these
+  are derived from the reference; confirm them against the published allele
+  calling table before comparing a profile with published MIRU codes.
+
+- `yersinia_klevytska_2001`: the 42 locus VNTR survey for *Yersinia pestis*,
+  anchored on CO92. Three loci are numbered with a half copy.
+
+- `yersinia_mlva25_lefleche_2001`: the 25 loci of Le Fleche et al. that are
+  polymorphic among *Yersinia pestis*, the panel of Pourcel et al. 2004, also
+  anchored on CO92. Unit length, repeat number and expected product are all
+  published and every product is reproduced in the reference at the position
+  the locus name encodes. Six loci are shared with
+  `yersinia_klevytska_2001`, which numbers them differently, so profiles from
+  the two schemes are not interchangeable.
 
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`

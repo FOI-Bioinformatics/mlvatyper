@@ -69,7 +69,8 @@ Subcommands: `run` (everything), `search` (hits, sequences, alignments only),
 for example with other rounding settings or an edited definition file),
 `discover` (seed a marker definition file from the amplicons), `report`
 (write the HTML report from the tables of a run), and for schemes
-`schemes`, `new-scheme`, `check-scheme` and `bins-from-table` (see [Method
+`schemes` (list the bundled MLVA schemes, or describe one with its loci and
+provenance), `new-scheme`, `check-scheme` and `bins-from-table` (see [Method
 and output](docs/method.md) and [Building a scheme](docs/schemes.md)).
 `mlvatyper <subcommand> --help` lists the options.
 

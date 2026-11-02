@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
@@ -6,6 +8,7 @@ from mlvatyper.markers import read_markers, write_markers
 from mlvatyper.mlvabank import bins_from_table, export_profiles
 from mlvatyper.models import MarkerDef
 from mlvatyper.scheme import SchemeError, is_placeholder, list_schemes, load_scheme, parse_flat_yaml
+from mlvatyper.sts import read_sts
 from tests.conftest import FWD, REV, UNIT
 
 
@@ -242,3 +245,60 @@ def test_known_multiple_declares_duplicated_loci(tmp_path):
     assert load_scheme(path).known_multiple == ()
     (path / "scheme.yml").write_text("name: s\n")
     assert load_scheme(path).known_multiple == ()
+
+
+def test_schemes_listing_is_a_table_with_one_line_per_scheme(capsys):
+    assert main(["schemes"]) == 0
+    lines = [line for line in capsys.readouterr().out.splitlines() if line.strip()]
+    assert lines[0].split() == ["scheme", "organism", "loci", "called", "assembly"]
+    names = {s.name for s in list_schemes()}
+    assert {line.split()[0] for line in lines[1:-1]} == names
+    assert lines[-1].startswith(f"{len(names)} schemes.")
+    # the loci count is the number of primer pairs, and the called count never exceeds it
+    row = next(line.split() for line in lines if line.startswith("testM"))
+    assert int(row[-3]) == len(read_sts(load_scheme("testM").sts)[0])
+    assert int(row[-2]) <= int(row[-3])
+
+
+def test_schemes_names_and_tsv_are_machine_readable(capsys):
+    assert main(["schemes", "--names"]) == 0
+    assert capsys.readouterr().out.split() == [s.name for s in list_schemes()]
+    assert main(["schemes", "--tsv"]) == 0
+    rows = [line.split("\t") for line in capsys.readouterr().out.splitlines()]
+    assert len(rows) == len(list_schemes())
+    assert all(len(row) == 6 for row in rows)
+    for row, scheme in zip(rows, list_schemes(), strict=True):
+        assert row[0] == scheme.name and row[-1] == str(scheme.path)
+
+
+def test_a_name_describes_one_scheme_and_a_partial_name_filters(capsys):
+    assert main(["schemes", "testM"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("testM\n")
+    for field in ("organism", "loci", "citation", "files", "directory", "notes"):
+        assert f"  {field}" in out, field
+    assert "testM01" in out, "the loci are listed"
+    # a partial name that matches several schemes lists them instead
+    assert main(["schemes", "bacillus"]) == 0
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].split()[0] == "scheme"
+    assert len([line for line in out.splitlines() if line.startswith("bacillus")]) == 3
+    # an organism name works as the filter too
+    assert main(["schemes", "mycobacterium"]) == 0
+    assert len([line for line in capsys.readouterr().out.splitlines() if line.startswith("mtb_")]) == 2
+    assert main(["schemes", "no-such-scheme"]) == 1
+
+
+def test_the_listing_does_not_log_a_line_per_marker_file(capsys, caplog):
+    """Reading every marker file to count the callable loci must stay quiet."""
+    with caplog.at_level("INFO", logger="mlvatyper"):
+        assert main(["schemes"]) == 0
+    assert "marker definitions" not in caplog.text
+    assert capsys.readouterr().out
+
+
+def test_every_bundled_scheme_is_named_in_the_method_documentation():
+    """The listing is authoritative, but docs/method.md must not fall behind it."""
+    text = Path("docs/method.md").read_text(encoding="utf-8")
+    missing = [s.name for s in list_schemes() if f"`{s.name}`" not in text]
+    assert missing == [], f"add these to the bundled schemes section: {missing}"

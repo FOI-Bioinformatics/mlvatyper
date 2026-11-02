@@ -56,7 +56,7 @@ jobs:
       - name: Check the bundled schemes against their reference assemblies
         run: |
           mlvatyper schemes
-          for scheme in $(mlvatyper schemes | cut -f1); do
+          for scheme in $(mlvatyper schemes --names); do
             mlvatyper check-scheme --scheme "$scheme" --outdir "example_out/check_$scheme"
           done
       - name: Every marker of a scheme with an assembly must give one product of the reference size
