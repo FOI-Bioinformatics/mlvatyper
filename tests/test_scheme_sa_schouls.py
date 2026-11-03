@@ -1,6 +1,7 @@
 """The bundled Staphylococcus aureus eight locus MLVA of Schouls et al. 2009 against N315.
 
-This scheme sizes its markers without calling them. The paper derives an allele
+Two of this scheme's loci are anchored to the Pourcel reference panel and call; the
+other six size their markers without calling. The paper derives an allele
 as the product length minus the flanking length over the repeat size, but
 publishes neither the flanking lengths nor the repeat unit sequences and does
 not state the repeat number of the sequenced reference, and the arrays are too
@@ -58,13 +59,21 @@ def test_scheme_files_are_consistent():
         assert d.label == d.primer_id
 
 
-def test_the_scheme_sizes_its_markers_without_calling_them():
-    """No reference repeat number is published or derivable, so no marker may be callable."""
-    defs = read_markers(load_scheme(SCHEME).markers)
-    assert all(not d.can_call for d in defs)
-    assert all(d.ref_repeats is None for d in defs)
-    # the sizes and unit lengths are still there, so only the one missing number blocks calling
-    assert all(d.ref_size is not None and d.unit_length > 0 for d in defs)
+# the two loci anchored to the Pourcel reference table, with their N315 repeat count
+ANCHORED = {"VNTR24_01": 10, "VNTR63_01": 6}
+SIZED_ONLY = [m for m in ORDER if m not in ANCHORED]
+
+
+def test_only_the_anchored_loci_call():
+    """Six loci have no published count; the two shared with the Pourcel panel are anchored."""
+    defs = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
+    assert {m for m, d in defs.items() if d.can_call} == set(ANCHORED)
+    for marker, count in ANCHORED.items():
+        assert defs[marker].ref_repeats == count, marker
+    for marker in SIZED_ONLY:
+        assert defs[marker].ref_repeats is None, marker
+    # the sizes and unit lengths are present everywhere, so only the missing count blocks the rest
+    assert all(d.ref_size is not None and d.unit_length > 0 for d in defs.values())
 
 
 def test_reference_sizes_equal_the_span_of_the_published_coordinates():
@@ -112,27 +121,31 @@ def test_check_scheme_against_n315(tmp_path):
     assert (table["hash_word_11"].astype(int) == 1).all()
     assert (table["search_pass"] == "main").all()
     assert not any(table.loc[m, "note"] for m in ORDER), "every primer matches N315 exactly"
-    # nothing is callable, so the repeat column stays empty for every marker
+    # the anchored loci carry a reference count; with no stored unit there is no tandem cross-check,
+    # so repeats_ok is empty everywhere and the count is verified by the run's residual instead
+    assert {m for m in ORDER if table.loc[m, "ref_repeats"]} == set(ANCHORED)
     assert (table["repeats_ok"] == "").all()
 
 
-def test_a_run_on_n315_sizes_every_amplicon_but_calls_no_allele(tmp_path):
+def test_a_run_on_n315_calls_the_two_anchored_loci(tmp_path):
     fixture = reference_assembly(ASSEMBLY)
     assert main(["run", "--scheme", SCHEME, "--fasta", str(fixture), "--outdir", str(tmp_path),
                  "--prefix", "n315", "--align", "none", "--no-report"]) == 0
-    sizes = {m: d.ref_size for m, d in
-             {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}.items()}
-    lengths = pd.read_csv(tmp_path / "n315_lengths_summary.tsv", sep="\t", index_col=0)
-    assert lengths.loc[ASSEMBLY].astype(int).to_dict() == sizes
-    # nothing can be called, so no allele table is written at all
-    assert not (tmp_path / "n315_alleles.tsv").exists()
-    assert not (tmp_path / "n315_status.tsv").exists()
-    assert not (tmp_path / "n315_profile.tsv").exists()
+    sizes = {d.primer_id: d.ref_size for d in read_markers(load_scheme(SCHEME).markers)}
     missing = pd.read_csv(tmp_path / "missing_markers.tsv", sep="\t", keep_default_na=False)
     assert len(missing) == 0, "every marker amplified"
     hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t", keep_default_na=False)
     assert hits.set_index("marker")["length"].astype(int).to_dict() == sizes
     assert set(hits["contig"]) == {CHROMOSOME}
+
+    long = pd.read_csv(tmp_path / "n315_calls_long.tsv", sep="\t").set_index("marker")
+    # the anchored loci return their published count with nothing left over
+    assert {m: int(long.loc[m, "allele"]) for m in ANCHORED} == ANCHORED
+    assert (long.loc[list(ANCHORED), "residual_bp"] == 0).all()
+    status = pd.read_csv(tmp_path / "n315_status.tsv", sep="\t", index_col=0, dtype=str)
+    # the other six report NO_DEFINITION; VNTR24_01 also notes its overlapping spa hits
+    assert {status.loc[ASSEMBLY, m] for m in SIZED_ONLY} == {"NO_DEFINITION"}
+    assert long.loc["VNTR63_01", "status"] == "OK"
 
 
 def test_the_corrected_unit_length_is_kept():

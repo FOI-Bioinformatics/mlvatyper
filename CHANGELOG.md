@@ -141,6 +141,17 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `saureus_mlva8_schouls_2009` calls two of its eight loci, where before it
+  called none. Bogut et al. 2024 (doi:10.2478/cipms-2024-0014) tabulate the
+  Pourcel MLVA-14 panel for the sequenced reference strain Mu50, and two of
+  its VNTRs are the same physical arrays this panel reads under other
+  primers, identified by matching genomic position and repeat unit:
+  VNTR24_01 is Pourcel Sa0122 (the spa repeat) and VNTR63_01 is Sa1132. The
+  shared array carries the same repeat count whichever primers flank it, so
+  the published Mu50 counts of 10 and 6, confirmed across that paper's 31
+  isolates, anchor these two loci. The scale is the Pourcel convention and
+  may differ from Schouls' own by a constant; the other six loci stay sized
+  only.
 - `francisella_vogler_2008` calls seven of its eleven loci, where before it
   called none. Its source table gives primers only, so both values an allele
   needs come from `francisella_johansson_2004`, which counts the same arrays
