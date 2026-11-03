@@ -59,8 +59,8 @@ def test_scheme_files_are_consistent():
         assert d.label == d.primer_id
 
 
-# the two loci anchored to the Pourcel reference table, with their N315 repeat count
-ANCHORED = {"VNTR24_01": 10, "VNTR63_01": 6}
+# the loci anchored to the Pourcel reference table, with their N315 repeat count
+ANCHORED = {"VNTR24_01": 10, "VNTR63_01": 6, "VNTR67_01": 4, "VNTR81_01": 6}
 SIZED_ONLY = [m for m in ORDER if m not in ANCHORED]
 
 

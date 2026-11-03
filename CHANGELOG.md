@@ -151,6 +151,13 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `saureus_mlva8_schouls_2009` now calls four of its eight loci, up from
+  two. Rechecking all eight against the full Pourcel panel confirmed two
+  more shared arrays: VNTR67_01 is Sa0704 and VNTR81_01 is the coa locus
+  Sa0266, anchored at the Mu50 counts 4 and 6. VNTR81_01 gives a whole
+  allele in every sequenced genome tested; VNTR67_01 is anchored for the
+  reference but its array mixes 67 and 66 bp units in some lineages, which
+  are reported INTERMEDIATE rather than rounded.
 - `saureus_mlva8_schouls_2009` calls two of its eight loci, where before it
   called none. Bogut et al. 2024 (doi:10.2478/cipms-2024-0014) tabulate the
   Pourcel MLVA-14 panel for the sequenced reference strain Mu50, and two of

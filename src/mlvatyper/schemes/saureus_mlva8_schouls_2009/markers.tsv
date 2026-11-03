@@ -2,11 +2,11 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 VNTR09_01	9	364		N/A	VNTR09_01
 VNTR61_01	60	363		N/A	VNTR61_01
 VNTR61_02	66	268		N/A	VNTR61_02
-VNTR67_01	67	346		N/A	VNTR67_01
+VNTR67_01	67	346	4	N/A	VNTR67_01
 VNTR21_01	21	150		N/A	VNTR21_01
 VNTR24_01	24	417	10	N/A	VNTR24_01
 VNTR63_01	63	647	6	N/A	VNTR63_01
-VNTR81_01	81	496		N/A	VNTR81_01
+VNTR81_01	81	496	6	N/A	VNTR81_01
 # unit_length is the Average repeat size of Table 1, except at VNTR63_01, and it is an average
 # because these arrays are imperfect: the same table counts the variable bases per locus, from
 # none at VNTR67_01 and VNTR21_01 to 23 of 66 at VNTR61_02 and 26 of 81 at VNTR81_01.
@@ -53,24 +53,33 @@ VNTR81_01	81	496		N/A	VNTR81_01
 # the repeat range over the 1681 isolates is 6-25 for VNTR09_01, 0-6 VNTR61_01, 0-5 VNTR61_02,
 # 0-10 VNTR67_01, 0-13 VNTR21_01, 1-18 VNTR24_01, 0-11 VNTR63_01 and 1-9 VNTR81_01.
 #
-# TWO LOCI ARE NOW ANCHORED TO PUBLISHED REFERENCE COUNTS. The Pourcel et al. 14 locus S. aureus
-# panel, as tabulated for the sequenced reference strain Mu50 (ATCC 700699) by Bogut et al. 2024
-# (Curr Issues Pharm Med Sci 37:85-91, doi:10.2478/cipms-2024-0014, Table 2), contains two VNTRs
-# that are the same physical arrays this panel reads under different primers. They are identified
-# by the Pourcel locus name, which encodes the genomic position in kb, together with the repeat
-# unit: VNTR24_01 is Pourcel Sa0122 at 122 kb, a 24 bp spa repeat, and VNTR63_01 is Pourcel Sa1132
-# at 1132 kb, a 63 bp repeat. Both sit at the same Mu50 position as this panel's amplicon and share
-# its unit length, and the array is the same piece of DNA whichever primers flank it.
+# FOUR LOCI ARE ANCHORED TO PUBLISHED REFERENCE COUNTS. The Pourcel et al. 14 locus S. aureus panel,
+# bundled here as saureus_mlva14_pourcel_2009 with its reference counts from Pourcel et al. 2009 and
+# Bogut et al. 2024 (doi:10.2478/cipms-2024-0014), contains four VNTRs that are the same physical
+# arrays this panel reads under different primers. They are identified by the Pourcel locus name,
+# which encodes the genomic position in kb, together with the repeat unit, each confirmed to sit at
+# the same Mu50 position as this panel's amplicon with the same unit length:
+#   VNTR24_01 = Sa0122, 122 kb, 24 bp (the spa repeat), Mu50 count 10
+#   VNTR63_01 = Sa1132, 1132 kb, 63 bp, Mu50 count 6
+#   VNTR67_01 = Sa0704, 704 kb, 67 bp, Mu50 count 4
+#   VNTR81_01 = Sa0266, 266 kb, 81 bp (the coa repeat), Mu50 count 6
+# The array is the same DNA whichever primers flank it, so its repeat count is the same for both
+# schemes. This panel's amplicon in Mu50 equals its amplicon in N315, the reference here, at all
+# four loci, so the Mu50 count transfers unchanged to ref_repeats, and a run on N315 returns it with
+# zero residual. The Pourcel Mu50 counts at Sa0122 and Sa1132 are further confirmed across the 31
+# isolates of Bogut et al. Table 3, where each leaves a constant flank.
 #
-# The Pourcel table gives 10 repeats at Sa0122 and 6 at Sa1132 in Mu50, and those counts are
-# internally confirmed across the 31 isolates of Bogut et al. Table 3, where Sa0122 always leaves a
-# 152 bp flank and Sa1132 a 154 bp flank. This panel's amplicon in Mu50 is identical to its
-# amplicon in N315, the reference here, at both loci, 417 bp and 647 bp, so the array and its count
-# transfer unchanged: ref_repeats is 10 and 6. Both loci passed the cross strain period test above,
-# so the allele steps cleanly, and a run on N315 returns these counts with zero residual.
+# VNTR67_01 is anchored for the reference but its array is not a clean single period in every
+# lineage: across eight sequenced genomes N315, Mu50 and MRSA252 give a whole allele while MW2,
+# MSSA476, COL, NCTC8325 and USA300 give a fractional one, because the array there mixes 67 bp and
+# 66 bp units. Those strains are reported INTERMEDIATE rather than rounded, which is the honest
+# signal that a single unit model does not fit them; the reference call is unaffected. VNTR81_01 is
+# the coa array, and this panel's primers lie inside it, so the flank is only about 10 bp; the allele
+# formula needs only ref_size and ref_repeats, which are consistent, and all eight genomes give a
+# whole allele, though coa also carries a half-repeat polymorphism that can give an n.5 allele in
+# other strains.
 #
-# The anchor does not reach the other six loci. Two more share a position with a Pourcel locus but
-# cannot use it: VNTR81_01 is the coa array, whose primers lie inside the repeats so the flank model
-# does not apply, and VNTR67_01 has the dual period array noted above. The remaining four are not in
-# the Pourcel 14 panel. Those six stay sized only, and the absolute scale of the two filled loci is
-# the Pourcel convention, which may differ from Schouls' own published allele numbers by a constant.
+# The anchor does not reach the other four loci, VNTR09_01, VNTR61_01, VNTR61_02 and VNTR21_01, which
+# are not in the Pourcel 14 panel, so they stay sized only. The absolute scale of the four filled
+# loci is the Pourcel convention, which may differ from Schouls' own published allele numbers by a
+# constant per locus.
