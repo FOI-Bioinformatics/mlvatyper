@@ -97,3 +97,24 @@ def test_minimum_spanning_tree_and_layout():
     status = pd.DataFrame("OK", index=alleles.index, columns=alleles.columns)
     assert mst_plot(alleles, status).startswith("<svg") and mds_plot(alleles).startswith("<svg")
     assert mst_plot(alleles.iloc[:3], status.iloc[:3]) is None and mds_plot(alleles.iloc[:3]) is None
+
+
+def test_the_tree_breaks_ties_by_single_locus_variants():
+    """goeBURST rule: among edges of equal length the node with more SLVs wins, whatever the sample order."""
+    from mlvatyper.plots import difference_counts, minimum_spanning_tree
+    base = [0] * MIN_SHARED
+    def profile(**changes):
+        row = list(base)
+        for locus, value in changes.items():
+            row[int(locus[1:])] = value
+        return row
+    # hub H has SLVs X, Y, Z and T; T is also an SLV of X, so the edge T-H and the edge T-X are equal
+    profiles = {"X": profile(l0=1), "T": profile(l0=2), "H": profile(), "Y": profile(l1=1), "Z": profile(l2=1)}
+    for names in (list(profiles), list(reversed(list(profiles)))):
+        values = np.array([profiles[n] for n in names], dtype=float)
+        counts = difference_counts(values)
+        dist = distance_matrix(values)
+        edges = minimum_spanning_tree(dist, counts)
+        linked = {frozenset((names[a], names[b])) for a, b, _ in edges}
+        assert frozenset(("T", "H")) in linked and frozenset(("T", "X")) not in linked, names
+        assert len(edges) == len(names) - 1

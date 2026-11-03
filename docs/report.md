@@ -61,7 +61,12 @@ distance matrix](images/report_heatmap.png)
    multidimensional scaling** of the distances in two dimensions, whose axis
    labels give the share of the distance structure each axis keeps. The distance is the
    share of loci that differ among those typed in both samples; pairs with
-   fewer than eight shared loci take the mean distance. Alleles are compared
+   fewer than eight shared loci take the mean distance. The clustering is
+   UPGMA on this categorical coefficient, which is how MLVA profiles are
+   usually compared; the minimum spanning tree uses the same distance and the
+   tie-breaking rules of goeBURST (Francisco et al. 2009), so that equal edges
+   are resolved by the number of single, double and triple locus variants and
+   then by the number of samples at a node. Alleles are compared
    as categories, so the tree describes how many loci differ and not how far
    the repeat numbers are apart. It is a view of the data, not a phylogeny.
 5. **Evidence per amplicon**: one collapsible table per sample with

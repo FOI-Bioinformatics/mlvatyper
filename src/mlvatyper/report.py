@@ -451,6 +451,11 @@ SOFTWARE = [
      "reimplementation of me-PCR: Schuler GD. Sequence mapping by electronic PCR. Genome Res 1997;7:541-550"),
     ("Tandem Repeats Finder", "https://tandem.bu.edu/trf/trf.html",
      "Benson G. Nucleic Acids Res 1999;27:573-580 (only when discover used the trf engine)"),
+    ("UPGMA clustering", "implemented in mlvatyper",
+     "Sokal RR, Michener CD. Univ Kansas Sci Bull 1958;38:1409-1438 (only for five or more samples)"),
+    ("Minimum spanning tree rules", "implemented in mlvatyper",
+     "goeBURST: Francisco AP, Bugalho M, Ramirez M, Carrico JA. BMC Bioinformatics 2009;10:152 "
+     "(only for five or more samples)"),
     ("MAFFT", "https://mafft.cbrc.jp/alignment/software/",
      "Katoh K, Standley DM. Mol Biol Evol 2013;30:772-780 (only when alignments were produced)"),
 ]
