@@ -39,7 +39,7 @@ distance matrix](images/report_heatmap.png)
    to review, a per-locus table (typed, OK, missing, most frequent flag and
    its share, distinct alleles, Simpson index, lowest allele) and the missing
    products by reason. A locus is listed for review when one flag is on more
-   than half of its typed calls or an allele is zero or below, which points at
+   than half of its typed calls or an allele is below zero (zero itself can be valid, for example an absent insertion), which points at
    the scheme (reference values, repeat unit, patterns) more often than at the
    strains. The same tables are written as `<prefix>_sample_summary.tsv` and
    `<prefix>_locus_summary.tsv`.

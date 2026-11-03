@@ -220,8 +220,9 @@ def call_rate_bars(status: pd.DataFrame) -> str | None:
     import matplotlib.pyplot as plt
     if status.empty:
         return None
-    per_locus = (status == "OK").mean(axis=0).sort_values()
-    per_sample = (status == "OK").mean(axis=1).sort_values()
+    good = status.isin(("OK", "BINNED"))
+    per_locus = good.mean(axis=0).sort_values()
+    per_sample = good.mean(axis=1).sort_values()
     n = len(per_sample)
     fig, (a1, a2) = plt.subplots(2, 1, figsize=(max(6.0, 0.28 * len(per_locus)), 2.4 + 0.1 * min(n, 60)),
                                  gridspec_kw={"height_ratios": [1, max(1.0, min(n, 60) / 20)]})
@@ -420,7 +421,7 @@ def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str |
     pos = tree_layout(len(groups), edges)
     loci_shared = np.array([[int((~np.isnan(values[a]) & ~np.isnan(values[b])).sum()) for b in reps] for a in reps])
     if status is not None:
-        ok_share = [float(np.mean([(status.loc[names[i]] == "OK").mean() for i in g])) for g in groups]
+        ok_share = [float(np.mean([status.loc[names[i]].isin(("OK", "BINNED")).mean() for i in g])) for g in groups]
     else:
         ok_share = [1.0] * len(groups)
     fig, ax = plt.subplots(figsize=(7.2, 6.0))

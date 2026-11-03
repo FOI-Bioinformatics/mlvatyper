@@ -18,7 +18,7 @@ import pandas as pd
 
 from . import __version__
 from .log import get_logger
-from .screening import MIN_SAMPLES
+from .screening import GOOD, MIN_SAMPLES
 
 log = get_logger()
 
@@ -180,7 +180,7 @@ def failures(data: ReportData) -> list[tuple[str, str, list[str]]]:
     for sample in data.samples:
         for marker in data.markers:
             for code in str(data.status.loc[sample, marker]).split(";"):
-                if code != "OK":
+                if code not in GOOD:
                     found.setdefault(code, []).append(f"{sample}: {marker}")
     return [(code, STATUS_GLOSSARY.get(code, ""), items) for code, items in found.items()]
 
@@ -505,7 +505,7 @@ def _scheme_rows(run_info: dict) -> list[tuple[str, str]]:
 def completeness(data: ReportData) -> str:
     """One line on how many calls are OK, for the header."""
     cells = data.status.shape[0] * data.status.shape[1]
-    ok = int((data.status == "OK").to_numpy().sum())
+    ok = int(data.status.isin(GOOD).to_numpy().sum())
     absent = int(data.status.isin(ABSENT_CODES).to_numpy().sum())
     if not cells:
         return ""

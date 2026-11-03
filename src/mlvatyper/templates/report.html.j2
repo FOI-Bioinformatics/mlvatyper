@@ -86,12 +86,11 @@
 The per-sample and per-locus tables are written as <code>{{ prefix }}_sample_summary.tsv</code> and
 <code>{{ prefix }}_locus_summary.tsv</code>.</p>
 {% if screening.concerns_table %}
-<p><b>Loci to review.</b> A flag on more than half of the typed calls of a locus, or an allele of zero or
-below, points at the scheme (reference values, repeat unit or patterns) more often than at the strains.</p>
+<p><b>Loci to review.</b> A flag on more than half of the typed calls of a locus, or an allele below zero, points at the scheme (reference values, repeat unit or patterns) more often than at the strains.</p>
 {{ tcap("Loci to review.") }}
 <div class="scroll">{{ screening.concerns_table | safe }}</div>
 {% else %}
-<p>No locus carries one flag on more than half of its calls, and no allele is zero or below.</p>
+<p>No locus carries one flag on more than half of its calls, and no allele is below zero.</p>
 {% endif %}
 <details><summary>Per locus: typed, OK, missing, most frequent flag and diversity</summary>
 {{ tcap("Calls per locus. Share is the part of the typed calls that carry the most frequent flag; the Simpson index is computed over the integer alleles.") }}

@@ -3,8 +3,8 @@
 The tables are built from the status and allele tables of a run. They are written as
 ``<prefix>_sample_summary.tsv`` and ``<prefix>_locus_summary.tsv`` and shown in the report. A locus
 is listed as a concern when more than half of its calls carry the same flag, or when an allele is
-zero or below; either points at the scheme (reference values, units or patterns) more often than at
-the strains.
+below zero (zero itself can be a valid state, for example an absent insertion); either points at the
+scheme (reference values, units or patterns) more often than at the strains.
 """
 
 import re
@@ -12,6 +12,7 @@ import re
 import pandas as pd
 
 ABSENT = ("NOT_DETECTED", "NEAR_CONTIG_END", "NOT_SEARCHED", "ONE_PRIMER_ONLY")
+GOOD = ("OK", "BINNED")  # BINNED is the normal result of a locus that is called from a bin table
 NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
 FLAG_SHARE = 0.5  # a flag on more than this share of the typed calls of a locus is reported as a concern
 LOW_CALL_RATE = 0.75  # samples with a smaller share of OK loci are listed as low call rate
@@ -28,7 +29,7 @@ def sample_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
     for sample in alleles.index:
         a, s = alleles.loc[sample], status.loc[sample]
         typed = sum(_is_number(v) for v in a)
-        ok = sum(v == "OK" for v in s)
+        ok = sum(v in GOOD for v in s)
         missing = sum(v in ABSENT for v in s)
         rows.append({"sample": sample, "loci": n, "typed": typed, "ok": ok, "flagged": typed - ok,
                      "missing": missing, "ok_fraction": round(ok / n, 3) if n else 0.0})
@@ -49,21 +50,21 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
         a, s = alleles[marker], status[marker]
         numeric = [str(v) for v in a if _is_number(v)]
         typed = len(numeric)
-        ok = int((s == "OK").sum())
+        ok = int(s.isin(GOOD).sum())
         missing = int(s.isin(ABSENT).sum())
         codes: dict[str, int] = {}
         for sample_status, value in zip(s, a, strict=True):
             if not _is_number(value):
                 continue
             for code in str(sample_status).split(";"):
-                if code != "OK":
+                if code not in GOOD:
                     codes[code] = codes.get(code, 0) + 1
         top, top_n = max(codes.items(), key=lambda kv: kv[1]) if codes else ("", 0)
         lowest = min((float(v) for v in numeric), default=float("nan"))
         concern = []
         if typed and top_n / typed > FLAG_SHARE:
             concern.append(f"{top} in {100 * top_n / typed:.0f}% of calls")
-        if typed and lowest <= 0:
+        if typed and lowest < 0:
             concern.append(f"allele {lowest:g}")
         share = round(top_n / typed, 3) if typed else 0.0
         rows.append({"marker": marker, "samples": len(a), "typed": typed, "ok": ok, "missing": missing,

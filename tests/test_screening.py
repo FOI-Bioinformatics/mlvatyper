@@ -56,3 +56,16 @@ def test_small_sets_get_no_overview():
     class Data:
         samples = ["a", "b"]
     assert len(Data.samples) < MIN_SAMPLES and screening_overview(Data()) is None
+
+
+def test_binned_counts_as_a_good_call():
+    """A locus called from a bin table reports BINNED for every normal result."""
+    samples = [f"s{i}" for i in range(5)]
+    alleles = pd.DataFrame({"a": ["3", "4", "3", "5", "4"], "b": ["7", "7", "8", "8", "8"]}, index=samples)
+    status = pd.DataFrame({"a": ["BINNED"] * 5, "b": ["BINNED", "BINNED", "BINNED", "OFF_TABLE", "BINNED;MULTIPLE"]},
+                          index=samples)
+    s = sample_summary(alleles, status)
+    assert s["ok"].tolist() == [2, 2, 2, 1, 1]
+    loci = locus_summary(alleles, status)
+    assert loci.loc["a", "ok"] == 5 and loci.loc["a", "concern"] == ""
+    assert loci.loc["b", "ok"] == 3
