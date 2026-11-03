@@ -171,3 +171,25 @@ def test_heatmap_orders_the_columns_by_their_clustering():
     # c and d split the samples identically, so they are next to each other among the column labels
     labels = re.findall(r'rotate\(-90\)">([a-d])</text>', svg)
     assert sorted(labels) == loci and abs(labels.index("c") - labels.index("d")) == 1
+
+
+def test_half_and_censored_alleles_are_kept_in_the_matrix():
+    """Bruce19 types as n.5 in nearly every strain; dropping half alleles emptied the locus."""
+    alleles = pd.DataFrame({"half": ["20.5", "21.5", "18"], "censored": [">=50", "3", "4"],
+                            "several": ["9/9", "2", "2"], "code": ["NOT_DETECTED", "1", "1"]},
+                           index=list("abc"))
+    values = allele_matrix(alleles)
+    assert values[:, 0].tolist() == [20.5, 21.5, 18.0]
+    assert values[:, 1].tolist() == [50.0, 3.0, 4.0]
+    assert np.isnan(values[0, 2]) and np.isnan(values[0, 3])
+
+
+def test_a_locus_of_half_alleles_still_clusters():
+    rng = np.random.default_rng(3)
+    base = rng.integers(2, 6, size=(6, 5))
+    alleles = pd.DataFrame([[f"{v}.5" for v in row] for row in base], index=[f"s{i}" for i in range(6)],
+                           columns=[f"m{j}" for j in range(5)])
+    svg, order = clustered_heatmap(alleles)
+    assert svg.startswith("<svg") and len(order) == 6
+    assert "20.5" not in svg  # the cells show the alleles that are there
+    assert ".5" in svg  # as half alleles, not truncated to integers

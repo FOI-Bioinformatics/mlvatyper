@@ -44,6 +44,10 @@ CENSORED = "CENSORED"
 HAS_N = "HAS_N"
 COUNT_DISAGREES = "COUNT_DISAGREES"
 NO_DEFINITION = "NO_DEFINITION"
+# status codes that mean no amplicon was found, and codes that need no review; both are used by the
+# summaries, the figures and the report, so they are defined here with the codes themselves
+ABSENT_CODES = (NOT_DETECTED, NEAR_CONTIG_END, NOT_SEARCHED, ONE_PRIMER_ONLY)
+GOOD_CODES = (OK, BINNED)  # BINNED is the normal result of a locus that is called from a bin table
 
 
 @dataclass
@@ -162,14 +166,20 @@ def round_repeats(raw: float, tolerance: float, policy: str, grid_offset: float 
     raise ValueError(f"unknown rounding policy {policy}")
 
 
-def _allele_value(text: str | None) -> float | None:
-    """Numeric value of an allele, or None for no allele or a non-numeric bin label such as '3a'."""
+def allele_value(text: str | None) -> float | None:
+    """Numeric value of an allele, or None for no allele, a status code or a non-numeric bin label.
+
+    A half allele ('20.5') and a censored allele ('>=50') are numbers; a status code, an empty cell and
+    several alleles for one marker ('9/9') are not. Every table that reads allele text uses this, so the
+    summaries, the figures and the report agree on what counts as typed.
+    """
     if text is None:
         return None
     try:
-        return float(text.lstrip(">="))
+        value = float(str(text).lstrip(">="))
     except ValueError:
         return None
+    return None if value != value else value  # a literal 'nan' is not an allele
 
 
 def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None,
@@ -194,13 +204,13 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
         return  # bins-only locus with no matching bin: sized, OFF_TABLE, no allele
     if call.raw is not None and call.raw < 0:
         call.status.append(NEGATIVE)
-    value = _allele_value(call.allele)
+    value = allele_value(call.allele)
     expected = None if value is None else d.expected_size(value)
     call.residual = None if expected is None else length - expected
 
 
 def _check_array(call: Call, d: MarkerDef, max_array_length: int | None) -> None:
-    allele = _allele_value(call.allele)
+    allele = allele_value(call.allele)
     # no copy of the unit at all next to an allele of one or more is a disagreement too: a wrong unit sequence
     if d.compare_count and call.counted and allele is not None and abs(call.array.copies - allele) >= 1:
         call.status.append(COUNT_DISAGREES)

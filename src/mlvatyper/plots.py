@@ -7,12 +7,11 @@ share fewer than shared_threshold loci have no distance and receive the mean of 
 a poorly typed sample does not pull the tree.
 """
 
-import re
-
 import numpy as np
 import pandas as pd
 
-NUMBER = re.compile(r"^-?\d+$")
+from .calling import GOOD_CODES, allele_value
+
 MIN_SHARED = 8  # loci that two samples must share for a distance, for a panel of 16 loci or more
 
 
@@ -23,12 +22,17 @@ ACCENT = "#1f5f8b"
 
 
 def allele_matrix(alleles: pd.DataFrame) -> np.ndarray:
-    """Integer alleles as floats; NaN where the cell has no single integer allele."""
+    """Alleles as floats; NaN where the cell holds no single allele (a status code or several alleles).
+
+    Half alleles and censored alleles are kept, so a locus whose alleles are n.5 in every sample is still
+    clustered and plotted.
+    """
     values = np.full(alleles.shape, np.nan)
     for i, (_, row) in enumerate(alleles.iterrows()):
         for j, cell in enumerate(row):
-            if NUMBER.match(str(cell)):
-                values[i, j] = int(str(cell))
+            value = allele_value(cell)
+            if value is not None:
+                values[i, j] = value
     return values
 
 
@@ -218,7 +222,9 @@ def _rank_shades(values: np.ndarray) -> np.ndarray:
 
 def _label_cells(ax, values: np.ndarray, shade: np.ndarray) -> None:
     for i, j in zip(*np.where(~np.isnan(values)), strict=True):
-        ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", fontsize=5.5,
+        value = values[i, j]
+        text = f"{value:g}" if value != int(value) else f"{int(value)}"
+        ax.text(j, i, text, ha="center", va="center", fontsize=5.5,
                 color="white" if shade[i, j] < 0.55 else "#222222")
 
 
@@ -275,7 +281,7 @@ def call_rate_bars(status: pd.DataFrame) -> str | None:
     import matplotlib.pyplot as plt
     if status.empty:
         return None
-    good = status.isin(("OK", "BINNED"))
+    good = status.isin(GOOD_CODES)
     per_locus = good.mean(axis=0).sort_values()
     per_sample = good.mean(axis=1).sort_values()
     n = len(per_sample)
@@ -477,7 +483,7 @@ def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str |
     pos = tree_layout(len(groups), edges)
     loci_shared = np.array([[int((~np.isnan(values[a]) & ~np.isnan(values[b])).sum()) for b in reps] for a in reps])
     if status is not None:
-        ok_share = [float(np.mean([status.loc[names[i]].isin(("OK", "BINNED")).mean() for i in g])) for g in groups]
+        ok_share = [float(np.mean([status.loc[names[i]].isin(GOOD_CODES).mean() for i in g])) for g in groups]
     else:
         ok_share = [1.0] * len(groups)
     fig, ax = plt.subplots(figsize=(7.2, 6.0))

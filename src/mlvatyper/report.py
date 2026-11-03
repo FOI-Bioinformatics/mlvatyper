@@ -17,8 +17,9 @@ from pathlib import Path
 import pandas as pd
 
 from . import __version__
+from .calling import ABSENT_CODES, GOOD_CODES, allele_value
 from .log import get_logger
-from .screening import GOOD, MIN_SAMPLES
+from .screening import MIN_SAMPLES
 
 log = get_logger()
 
@@ -119,10 +120,6 @@ def load_report_data(outdir: Path, prefix: str, title: str | None = None) -> Rep
                       alleles, status, profile, calls, missing, definitions, discovery)
 
 
-# codes that mean no amplicon was found; NO_DEFINITION is an amplicon without reference values
-ABSENT_CODES = ("NOT_DETECTED", "NEAR_CONTIG_END", "NOT_SEARCHED", "ONE_PRIMER_ONLY")
-
-
 def summarize_parameters(run_info: dict, prefix: str | None = None) -> dict:
     """Parameters of the summarize run that wrote the tables of this prefix.
 
@@ -180,7 +177,7 @@ def failures(data: ReportData) -> list[tuple[str, str, list[str]]]:
     for sample in data.samples:
         for marker in data.markers:
             for code in str(data.status.loc[sample, marker]).split(";"):
-                if code not in GOOD:
+                if code not in GOOD_CODES:
                     found.setdefault(code, []).append(f"{sample}: {marker}")
     return [(code, STATUS_GLOSSARY.get(code, ""), items) for code, items in found.items()]
 
@@ -389,7 +386,7 @@ EVIDENCE_COLUMNS = {
 # one width; the full code is in the cell's title and the key below the table
 SHORT_CODES = {"NOT_DETECTED": "ND", "NEAR_CONTIG_END": "CE", "ONE_PRIMER_ONLY": "1P", "NOT_SEARCHED": "NS",
                "NO_DEFINITION": "NDef", "OFF_TABLE": "OFF"}
-NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
+
 
 
 def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | None = None,
@@ -421,7 +418,7 @@ def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | Non
             shown, title = text, ""
             if abbreviate and text in SHORT_CODES:
                 shown, title = SHORT_CODES[text], f' title="{html.escape(text)}"'
-            cls = ' class="n"' if NUMBER.match(text) else ""
+            cls = ' class="n"' if allele_value(text) is not None else ""
             cells.append(f"<td{cls}{style}{title}>{html.escape(shown)}</td>")
         rows.append(f"<tr{row_style}>" + (f'<th scope="row">{html.escape(str(idx))}</th>' if index else "")
                     + "".join(cells) + "</tr>")
@@ -514,7 +511,7 @@ def _scheme_rows(run_info: dict) -> list[tuple[str, str]]:
 def completeness(data: ReportData) -> str:
     """One line on how many calls are OK, for the header."""
     cells = data.status.shape[0] * data.status.shape[1]
-    ok = int(data.status.isin(GOOD).to_numpy().sum())
+    ok = int(data.status.isin(GOOD_CODES).to_numpy().sum())
     absent = int(data.status.isin(ABSENT_CODES).to_numpy().sum())
     if not cells:
         return ""
