@@ -172,12 +172,12 @@ was found at any locus. *M. agalactiae* has the lowest mean call rate (57%,
 
 Each locus listed above was examined by aligning the amplicons of the genomes
 with different sizes against the reference amplicon and reading the scheme's
-own notes. Four have a scheme cause and three are real variation.
+own notes. Three have a scheme cause and three are real variation (two loci of one genome count as one).
 
 | Scheme and locus | Finding | Verdict |
 | --- | --- | --- |
 | `yersinia_klevytska_2001` M27 | The published copy number is 6 but the CO92 amplicon holds 19 units of 8 bp (the scheme notes record 6 against 19). The allele formula therefore places a product of 181 bp, which holds about 11 units, at allele -2, and allele 32 for a product of 453 bp. | Scheme cause: the published numbering cannot hold in other strains. |
-| `blongum_mlva5_matamoros_2011` VNTR23 | The published copy number is 3 but NCC2705 holds about 7 copies of the 10 bp unit (CTGATATTCG). Eleven of 12 genomes give 324 to 334 bp, which is 40 to 50 bp shorter than NCC2705, and the size is below the lower end of the range of the paper's table (344 to 574 bp). The array shortens by whole units and the remainder at the first copy, so the formula gives -2 and -1. | Scheme cause, as for M27. The publication could be checked for the range. |
+| `blongum_mlva5_matamoros_2011` VNTR23 | The published copy number is 3 but NCC2705 holds about 7 copies of the 10 bp unit (CTGATATTCG). Eleven of 12 genomes give 324 to 334 bp, which is 40 to 50 bp shorter than NCC2705, and the size is below the lower end of the range of the paper's table (344 to 574 bp). The formula therefore gives -2 and -1. | Scheme cause, as for M27. The publication could be checked for the range. |
 | `mtb_miru15_supply_2006` and `mtb_miru24_supply_2006` 580 | All 12 genomes give products of 98 + 77 n bp (252, 329, 406, 560, 637), whole units from a flank of 98 bp. H37Rv gives 353 bp, 24 bp more than three units, because its last unit is partial. The reference sits between two grid points, so every other genome is a half allele. | Scheme cause: the copy number is derived, not published (the scheme says so). The published allele table, as `bins.tsv`, is the fix. |
 | `saureus_mlva14_pourcel_2009` Sa0906, Sa1425 | One genome (NAS_AN_157) gives a 599 bp product at Sa0906 and a 272 bp product at Sa1425, with two further loci flagged. The other 11 give sizes in steps of the unit. | Real variation or an atypical assembly: NEGATIVE is the right flag. |
 | `paeruginosa_mlva8_onteniente_2003` ms077 | Seven genomes give 388 bp, 15 bp shorter than the 403 bp product and not a multiple of the 39 bp unit. The alignment shows a 15 bp deletion inside the array. | Real variation of an imperfect array: INTERMEDIATE is correct. |
