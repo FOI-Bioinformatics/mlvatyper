@@ -190,3 +190,69 @@ published number keeps the published numbering at the reference strain only;
 using the physical count removes the negative alleles but gives numbers that do
 not match the publication at the reference. This is a decision for the
 maintainer and has not been changed here.
+
+## Second pass: 20 genomes per scheme, with alignment and report
+
+Each of the 24 other schemes was run on 20 RefSeq genomes of its species or
+genus: 14 complete and 6 draft (scaffold or contig level), chosen at random with
+a fixed seed, with `--jobs 4 --align mafft` and the HTML report, on one
+laptop. Time is wall clock for the whole run including MAFFT and the report;
+memory is the peak of the main process. Call rate is the share of loci with
+status OK or BINNED, averaged over the complete and the draft genomes.
+
+| Scheme | Genomes | Loci | Time (s) | Memory (MB) | OK, complete | OK, draft |
+| --- | --- | --- | --- | --- | --- | --- |
+| `bacillus_mlva15_vanert_2007` | 20 | 15 | 8 | 192 | 89% | 68% |
+| `bacillus_mlva25_lista_2006` | 20 | 25 | 14 | 204 | 92% | 65% |
+| `bacillus_mlva31_mlvabank` | 20 | 31 | 16 | 203 | 94% | 75% |
+| `bacillus_mlva8_keim_2000` | 20 | 8 | 6 | 192 | 89% | 71% |
+| `blongum_mlva5_matamoros_2011` | 20 | 5 | 4 | 153 | 67% | 83% |
+| `Bru_MLVA16` | 20 | 16 | 8 | 170 | 60% | 89% |
+| `brucella_mlva15_lefleche_2006` | 20 | 15 | 7 | 155 | 64% | 94% |
+| `coxiella_mlva17_arricau_bouvery_2006` | 20 | 17 | 9 | 180 | 90% | 79% |
+| `francisella_johansson_2004` | 20 | 25 | 10 | 195 | 75% | 70% |
+| `francisella_vogler_2008` | 20 | 11 | 5 | 163 | 86% | 82% |
+| `Lpn_MLVA12` | 20 | 12 | 8 | 168 | 88% | 71% |
+| `magalactiae_mlva4_mcauliffe_2008` | 17 | 4 | 2 | 144 | 57% | 38% |
+| `mtb_miru15_supply_2006` | 20 | 15 | 13 | 185 | 92% | 66% |
+| `mtb_miru24_supply_2006` | 20 | 24 | 18 | 186 | 93% | 73% |
+| `nmeningitidis_mlva12_liao_2006` | 20 | 12 | 6 | 161 | 79% | 74% |
+| `paeruginosa_mlva8_onteniente_2003` | 20 | 8 | 10 | 249 | 88% | 52% |
+| `saureus_mlva14_pourcel_2009` | 20 | 14 | 9 | 159 | 91% | 77% |
+| `saureus_mlva5_sabat_2003` | 20 | 5 | 8 | 155 | 77% | 60% |
+| `saureus_mlva8_schouls_2009` | 20 | 8 | 5 | 160 | 87% | 77% |
+| `salmonella_enteritidis_mlva9_malorny_2008` | 20 | 9 | 6 | 180 | 99% | 89% |
+| `STm_ECDC` | 20 | 5 | 5 | 191 | 81% | 67% |
+| `yersinia_klevytska_2001` | 20 | 42 | 16 | 210 | 98% | 94% |
+| `yersinia_mlva25_lefleche_2001` | 20 | 25 | 10 | 192 | 96% | 96% |
+| `yersinia_mlva26_li_2013` | 20 | 26 | 10 | 193 | 100% | 93% |
+
+- **Speed and memory.** 2 to 18 s and 140 to 250 MB for 20 genomes, so the
+  time grows with the number of loci and not with genome size. A serial run
+  (`--jobs 1`) of four schemes gave files identical to the parallel run,
+  alignments included.
+- **Draft assemblies lose products.** The call rate of the drafts is 5 to
+  25 percentage points below that of the complete genomes for most schemes,
+  mostly from NEAR_CONTIG_END (an array that broke the assembly). The two
+  *Brucella* schemes are the exception: 5 of the 14 complete genomes belong to
+  other species of the genus (*B. anthropi*, *B. intermedia*), which the
+  primers do not amplify, so the comparison does not apply. For
+  *B. longum* the complete genomes score lower than the drafts because of the
+  negative alleles at VNTR23 (see above), not because of the assemblies.
+- **A bug found and fixed.** Five of the 24 runs stopped in the report step
+  with a numerical error (the schemes with 4 to 9 loci: `blongum_mlva5`,
+  `magalactiae_mlva4`, `STm_ECDC`, `salmonella_enteritidis_mlva9`,
+  `saureus_mlva5`). The distance between two samples needs 8 shared loci, which
+  a panel of fewer than 8 loci cannot give, so every distance was undefined and
+  the scaling failed. The threshold is now half of a small panel (at least 2),
+  a panel with no shared loci gives equal distances, and a figure that cannot be
+  drawn is left out with a warning and no longer stops the run. Tests added.
+- **More loci to review with 20 genomes.** The additional ones are
+  Ft-M19 (INTERMEDIATE in 63% of calls: 12 genomes give a product 30 bp shorter
+  than the others, which is not a multiple of the 13 bp unit, so the locus is
+  bimodal like Ft-M20B), Magal_VNTR17 and VNTR61_01 (half alleles because the
+  sizes are not on the unit grid of the reference), and Bruce19, where all 15
+  genomes are 15 or 21 bp longer than the reference 16M product (163 bp), so
+  16M itself is off the grid of the other strains. These belong to the same
+  class as the loci checked above: the allele formula is anchored on a reference
+  whose product does not sit on the grid of most other strains.

@@ -3,7 +3,7 @@
 Clustering uses the categorical distance between profiles and average linkage (UPGMA), written
 with NumPy so that the report needs no further dependency. The distance between two samples is
 the share of loci that differ among the loci with a single integer allele in both; pairs that
-share fewer than MIN_SHARED loci have no distance and receive the mean of the others, so that
+share fewer than shared_threshold loci have no distance and receive the mean of the others, so that
 a poorly typed sample does not pull the tree.
 """
 
@@ -13,7 +13,12 @@ import numpy as np
 import pandas as pd
 
 NUMBER = re.compile(r"^-?\d+$")
-MIN_SHARED = 8  # loci that two samples must share for a distance
+MIN_SHARED = 8  # loci that two samples must share for a distance, for a panel of 16 loci or more
+
+
+def shared_threshold(n_loci: int) -> int:
+    """Loci that two samples must share for a distance: 8, or half of a smaller panel (at least 2)."""
+    return max(2, min(MIN_SHARED, -(-n_loci // 2)))
 ACCENT = "#1f5f8b"
 
 
@@ -30,15 +35,18 @@ def allele_matrix(alleles: pd.DataFrame) -> np.ndarray:
 def distance_matrix(values: np.ndarray) -> np.ndarray:
     """Share of differing loci between every pair of samples, NaN-aware."""
     n = values.shape[0]
+    need = shared_threshold(values.shape[1])
     dist = np.full((n, n), np.nan)
     for i in range(n):
         for j in range(i, n):
             both = ~np.isnan(values[i]) & ~np.isnan(values[j])
-            if both.sum() >= MIN_SHARED:
+            if both.sum() >= need:
                 dist[i, j] = dist[j, i] = float((values[i][both] != values[j][both]).mean())
     np.fill_diagonal(dist, 0.0)
-    fill = np.nanmean(dist[~np.eye(n, dtype=bool)]) if n > 1 else 0.0
-    return np.where(np.isnan(dist), 0.0 if n < 2 else fill, dist)
+    pairs = dist[~np.eye(n, dtype=bool)] if n > 1 else np.array([])
+    known = pairs[~np.isnan(pairs)]
+    fill = float(known.mean()) if known.size else 0.0  # no pair shares enough loci: all distances are equal
+    return np.where(np.isnan(dist), fill, dist)
 
 
 def upgma(dist: np.ndarray) -> list[tuple[int, int, float, int]]:
@@ -289,15 +297,16 @@ def mds_plot(alleles: pd.DataFrame) -> str | None:
 
 
 def difference_counts(values: np.ndarray) -> np.ndarray:
-    """Number of loci that differ between every pair, among the loci typed in both; -1 below MIN_SHARED."""
+    """Number of loci that differ between every pair, among the loci typed in both; -1 below the shared threshold."""
     n = values.shape[0]
+    need = shared_threshold(values.shape[1])
     counts = np.zeros((n, n), dtype=int)
     for i in range(n):
         for j in range(i + 1, n):
             both = ~np.isnan(values[i]) & ~np.isnan(values[j])
             shared = int(both.sum())
             differ = int((values[i][both] != values[j][both]).sum())
-            counts[i, j] = counts[j, i] = differ if shared >= MIN_SHARED else -1
+            counts[i, j] = counts[j, i] = differ if shared >= need else -1
     return counts
 
 
