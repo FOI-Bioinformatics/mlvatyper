@@ -129,6 +129,24 @@ samples{% endif %}. Several amplicons for one marker are joined with a slash. Ce
 <div class="scroll">{{ profile_table | safe }}</div></details>
 
 <h2 id="figures">3. Figures</h2>
+{% if data.figures.heatmap %}
+<h3>Relationships between samples</h3>
+<figure>{{ data.figures.heatmap | safe }}
+<figcaption>{{ fcap("Clustered allele profiles. Rows are samples ordered by average linkage (UPGMA) clustering on the share of loci that differ; columns are loci in STS order. Each locus has its own colour scale, from the lowest to the highest repeat number seen in it, and the repeat number is printed in the cell when the matrix is small. Grey cells have no single integer allele. The tree shows distance on a scale of 0 to 1.") }}</figcaption></figure>
+{% if data.figures.distance %}
+<figure>{{ data.figures.distance | safe }}
+<figcaption>{{ fcap("Pairwise distances in the order of the heatmap: the share of loci that differ, among loci typed in both samples. Pairs that share fewer than 8 typed loci are given the mean distance. Alleles are compared as categories, so the distance does not reflect the size of the repeat difference.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.spectra %}
+<figure>{{ data.figures.spectra | safe }}
+<figcaption>{{ fcap("Allele spectrum per locus: the number of samples with each repeat number.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.callrate %}
+<figure>{{ data.figures.callrate | safe }}
+<figcaption>{{ fcap("Share of calls with status OK per locus (top) and per sample (bottom), sorted. Loci or samples at the left or top of the sorted bars are those to inspect first.") }}</figcaption></figure>
+{% endif %}
+<h3>Amplicons and status</h3>
+{% endif %}
 <figure>{{ data.figures.lengths | safe }}
 <figcaption>{{ fcap("Amplicon length per marker (points, one per amplicon) and the expected size from the STS file (grey tick).") }}</figcaption></figure>
 <figure>{{ data.figures.residuals | safe }}

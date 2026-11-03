@@ -125,3 +125,22 @@ def test_report_names_the_scheme_and_its_publication(tmp_path):
     assert "up to 2 mismatches" in text and "16 markers whose arrays hold variant units" in text
     assert scheme_info({"search": {"parameters": {}}}) is None
     assert scheme_info({"search": {"parameters": {"scheme": "no-such-scheme"}}}) is None
+
+
+def test_a_set_of_samples_gets_the_relationship_figures(tmp_path):
+    import pandas as pd
+
+    from mlvatyper.report import ReportData, figures
+    markers = [f"m{i}" for i in range(10)]
+    samples = [f"s{i}" for i in range(6)]
+    alleles = pd.DataFrame([[str(3 + (i + j) % 4) for j in range(10)] for i in range(6)], index=samples,
+                           columns=markers)
+    status = pd.DataFrame("OK", index=samples, columns=markers)
+    calls = pd.DataFrame(columns=["sample", "marker", "copy", "length", "expected_size", "residual_bp"])
+    data = ReportData(tmp_path, "p", "t", {}, samples, markers, alleles, status, alleles, calls,
+                      pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
+    figs = figures(data)
+    assert {"heatmap", "distance", "spectra", "callrate", "status"} <= set(figs)
+    few = ReportData(tmp_path, "p", "t", {}, samples[:2], markers, alleles.iloc[:2], status.iloc[:2], alleles.iloc[:2],
+                     calls, pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
+    assert "heatmap" not in figures(few)

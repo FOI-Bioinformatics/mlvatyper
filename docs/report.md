@@ -14,10 +14,15 @@ its own prefix. `--title` replaces the default title.
 
 Styles and figures are embedded and nothing is loaded over the network, so
 the file opens on a machine without internet access and prints to PDF from
-a browser. The example below is `examples/testM/testM_report.html`.
+a browser. The pictures below are from a run of the bundled
+`burkholderia_uren_2007` scheme on eight genomes; `examples/testM/testM_report.html`
+is an older report with the first layout.
 
-![Top of the report: metadata, section links, status summary and the allele
-profile table](images/report.png)
+![Top of the report: scheme and publication, completeness, across-sample
+summary and loci to review](images/report.png)
+
+![Clustered heatmap of the allele profiles with the tree, and the pairwise
+distance matrix](images/report_heatmap.png)
 
 ## Sections
 
@@ -43,7 +48,17 @@ profile table](images/report.png)
    The hyphen joined profile strings are in a collapsed block; a negative
    allele appears there in parentheses, `5-(-1)-3`.
 4. **Figures**: amplicon length per marker against the expected size,
-   residual per marker, and a status matrix of samples by markers.
+   residual per marker, and a status matrix of samples by markers (ordered
+   like the heatmap below for five or more samples). For five or more samples
+   there are four more: a **clustered heatmap of the allele profiles** (rows
+   ordered by average linkage clustering, with the tree; each locus on its own
+   colour scale; repeat numbers printed in the cells of small matrices), a
+   **pairwise distance matrix** in the same order, an **allele spectrum** per
+   locus, and **call rate bars** per locus and per sample. The distance is the
+   share of loci that differ among those typed in both samples; pairs with
+   fewer than eight shared loci take the mean distance. Alleles are compared
+   as categories, so the tree describes how many loci differ and not how far
+   the repeat numbers are apart. It is a view of the data, not a phylogeny.
 5. **Evidence per amplicon**: one collapsible table per sample with
    coordinates, length, expected size, residual, primer mismatches and
    indels, the search pass, the allele and the tandem array count. Rows

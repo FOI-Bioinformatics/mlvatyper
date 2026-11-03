@@ -18,6 +18,7 @@ import pandas as pd
 
 from . import __version__
 from .log import get_logger
+from .screening import MIN_SAMPLES
 
 log = get_logger()
 
@@ -238,17 +239,26 @@ def figures(data: ReportData) -> dict[str, str]:
     ax.spines[["top", "right"]].set_visible(False)
     out["residuals"] = _svg(fig)
 
+    samples = data.samples
+    if len(samples) >= MIN_SAMPLES:
+        from . import plots
+        heat = plots.clustered_heatmap(data.alleles)
+        if heat is not None:
+            out["heatmap"], samples = heat
+            out["distance"] = plots.distance_heatmap(data.alleles, samples) or ""
+            out["spectra"] = plots.allele_spectra(data.alleles) or ""
+            out["callrate"] = plots.call_rate_bars(data.status) or ""
     codes = list(STATUS_COLOURS)
-    matrix = [[codes.index(_first_flag(data.status.loc[s, m])) for m in markers] for s in data.samples]
-    fig, ax = plt.subplots(figsize=(width, max(1.5, 0.25 * len(data.samples) + 1.2)))
+    matrix = [[codes.index(_first_flag(data.status.loc[s, m])) for m in markers] for s in samples]
+    fig, ax = plt.subplots(figsize=(width, max(1.5, 0.25 * len(samples) + 1.2)))
     cmap = matplotlib.colors.ListedColormap([STATUS_COLOURS[c] for c in codes])
     ax.imshow(matrix, cmap=cmap, vmin=0, vmax=len(codes) - 1, aspect="auto")
     ax.set_xticks(range(len(markers)))
     ax.set_xticklabels(markers, rotation=90)
-    ax.set_yticks(range(len(data.samples)))
-    ax.set_yticklabels(data.samples)
+    ax.set_yticks(range(len(samples)))
+    ax.set_yticklabels(samples)
     ax.set_xticks([i - 0.5 for i in range(len(markers) + 1)], minor=True)
-    ax.set_yticks([i - 0.5 for i in range(len(data.samples) + 1)], minor=True)
+    ax.set_yticks([i - 0.5 for i in range(len(samples) + 1)], minor=True)
     ax.grid(which="minor", color="#e4e4e4", linewidth=0.5)
     ax.tick_params(which="minor", length=0)
     ax.set_xlabel("marker")
