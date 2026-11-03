@@ -287,22 +287,64 @@ def mds_plot(alleles: pd.DataFrame) -> str | None:
     return _short(fig)
 
 
-def minimum_spanning_tree(dist: np.ndarray) -> list[tuple[int, int, float]]:
-    """Prim's algorithm; ties go to the lowest index so the tree is the same on every run."""
+def difference_counts(values: np.ndarray) -> np.ndarray:
+    """Number of loci that differ between every pair, among the loci typed in both; -1 below MIN_SHARED."""
+    n = values.shape[0]
+    counts = np.zeros((n, n), dtype=int)
+    for i in range(n):
+        for j in range(i + 1, n):
+            both = ~np.isnan(values[i]) & ~np.isnan(values[j])
+            shared = int(both.sum())
+            differ = int((values[i][both] != values[j][both]).sum())
+            counts[i, j] = counts[j, i] = differ if shared >= MIN_SHARED else -1
+    return counts
+
+
+def minimum_spanning_tree(dist: np.ndarray, counts: np.ndarray | None = None,
+                          sizes: list[int] | None = None) -> list[tuple[int, int, float]]:
+    """Minimum spanning tree with the tie-breaking rules of goeBURST (Francisco et al. 2009).
+
+    MLVA profiles differ by a few loci, so many edges have the same length and the tree depends on how ties
+    are broken. Edges are taken in order of distance; among equal edges the one whose nodes have the most
+    single locus variants (SLV, differing at one locus) is taken first, then the most double locus variants
+    (DLV), then triple (TLV), then the node that stands for more samples, and last the lower index so the
+    tree is the same on every run. A node is joined only if it connects two separate parts (Kruskal).
+    """
     n = dist.shape[0]
     if n < 2:
         return []
-    in_tree = {0}
-    best = {j: (dist[0, j], 0) for j in range(1, n)}
+    if counts is None:
+        counts = np.rint(dist * 100).astype(int)  # a scale for ties when only a distance is known
+        step = 100
+    else:
+        step = 1
+    slv = (counts == step).sum(axis=1)
+    dlv = (counts == 2 * step).sum(axis=1)
+    tlv = (counts == 3 * step).sum(axis=1)
+    sizes = sizes or [1] * n
+
+    def key(i: int, j: int):
+        pair = (i, j)
+        return (float(dist[i, j]), -max(slv[x] for x in pair), -max(dlv[x] for x in pair),
+                -max(tlv[x] for x in pair), -max(sizes[x] for x in pair), min(pair), max(pair))
+
+    order = sorted(((i, j) for i in range(n) for j in range(i + 1, n)), key=lambda e: key(*e))
+    parent = list(range(n))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
     edges = []
-    while best:
-        j = min(best, key=lambda k: (best[k][0], k))
-        weight, parent = best.pop(j)
-        edges.append((parent, j, float(weight)))
-        in_tree.add(j)
-        for k in best:
-            if dist[j, k] < best[k][0]:
-                best[k] = (dist[j, k], j)
+    for i, j in order:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
+            edges.append((i, j, float(dist[i, j])))
+            if len(edges) == n - 1:
+                break
     return edges
 
 
@@ -374,7 +416,7 @@ def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str |
         return None
     reps = [g[0] for g in groups]
     dist = distance_matrix(values[reps])
-    edges = minimum_spanning_tree(dist)
+    edges = minimum_spanning_tree(dist, difference_counts(values[reps]), [len(g) for g in groups])
     pos = tree_layout(len(groups), edges)
     loci_shared = np.array([[int((~np.isnan(values[a]) & ~np.isnan(values[b])).sum()) for b in reps] for a in reps])
     if status is not None:
