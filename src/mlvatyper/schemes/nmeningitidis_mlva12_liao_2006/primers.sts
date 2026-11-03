@@ -1,0 +1,25 @@
+# Neisseria meningitidis, the 12 locus MLVA of Liao et al. 2006. The loci are in the order the
+# header of Table 2 gives for the MLVA allelic profile, NMTR1, 2, 6, 7, 9, 9a, 9b, 9c, 10, 12, 18
+# and 19, so a profile string reads as the published one.
+#
+# Primers are Table 5 as published. One primer of each pair is printed there with a 5' ABI dye,
+# 6-FAM, VIC, NED or PET, separated by a hyphen; the dye is an assay property and is not part of
+# the oligonucleotide, so it is not written here. The dye is on the forward primer at some loci
+# and on the reverse at others, as the table shows.
+#
+# The search window is derived, not published: it runs from the length of the amplicon with no
+# repeat, which Table 5 and Table 1 agree on, to twenty repeats beyond the largest of the three
+# sequenced genomes.
+
+NMTR1	GGGTCAAAAGACGGAAGTGA	AAAATCATCCGAATCAATAAAGAC	176-561
+NMTR2	GTGCGCCAGTAAGAAAATACAAT	TCAGAAAAGTTTTGCATTTTGAA	208-481
+NMTR6	GCGGCATCTTTCATTTTGTC	CGAAGAAGCGAAAGACCAAG	123-627
+NMTR7	CCATCCTTATCCGAATCTGAA	CTGAAACCCTGCCTGAAGAA	183-311
+NMTR9	GGAAAGAATGATGAAAATCAAAGC	CCGTCTGAAAAGCGGATACC	162-576
+NMTR9a	GTTGTTGCCGACCAAGTTTT	GAACCTTGCAATGCGTTCAC	158-848
+NMTR9b	CGACTTCATCGTCCACAAAA	GGCTTTGTCTGCCTGTACG	164-560
+NMTR9c	GGAAATCTGCGCTTTCGTAG	TCATGTCAGCAATTCCCTCA	157-502
+NMTR10	GGCATCGATGATGTGAAACA	GTGCTGAAGCACCAAGTGAA	197-371
+NMTR12	CAAAGAGAGAGTGGAAGAACATCA	AATGACGAAGAGTGGCAGGATT	180-808
+NMTR18	AACGGAAAATTCCTGCACAA	CGTTTTCCGTGTTCCTGATT	164-389
+NMTR19	GACATATTGTGCGATGTCGAG	CGCCAACAGAAAAGAATACGA	160-485

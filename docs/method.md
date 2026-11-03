@@ -264,6 +264,18 @@ below are shorter than they are.
   are derived from the reference; confirm them against the published allele
   calling table before comparing a profile with published MIRU codes.
 
+- `nmeningitidis_mlva12_liao_2006`: the 12 locus MLVA for *Neisseria
+  meningitidis* (Liao et al. 2006), anchored on Z2491. It is the best
+  specified of the bundled schemes: one table gives the consensus repeat
+  unit, its length and the repeat number in each of three sequenced genomes,
+  another gives the primers and the predicted amplicon size in the same
+  three, and the two agree exactly, so every value is published and none is
+  derived. All twelve sizes reproduce in Z2491, and the same primers run
+  against MC58 reproduce that genome's twelve sizes and eleven repeat
+  numbers as well. NMTR12 is a compound locus of 13 bp and 12 bp units which
+  the single unit formula cannot express, so it is reported by length only,
+  as STTR3 is in `STm_ECDC`.
+
 - `saureus_mlva5_sabat_2003`: the five locus gel based MLVA for
   *Staphylococcus aureus* (Sabat et al. 2003), anchored on NCTC 8325, the
   control strain the paper types. It is the thinnest bundled scheme: the

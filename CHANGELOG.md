@@ -6,6 +6,14 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `nmeningitidis_mlva12_liao_2006`, the 12 locus MLVA of Liao
+  et al. for *Neisseria meningitidis*, anchored on Z2491. Every value is
+  published: the paper's two tables give the repeat units, unit lengths and
+  repeat numbers in three sequenced genomes alongside the primers and the
+  predicted amplicon sizes, and they agree at every locus in all three. All
+  twelve sizes reproduce in the reference, and typing MC58, which the scheme
+  is not anchored on, reproduces its published numbers as well. NMTR12 is a
+  compound locus of 13 bp and 12 bp units and is reported by length only.
 - Bundled scheme `saureus_mlva5_sabat_2003`, the five locus gel based MLVA
   of Sabat et al. for *Staphylococcus aureus*, anchored on NCTC 8325. The
   paper publishes primers and no other quantitative value, and its pattern
