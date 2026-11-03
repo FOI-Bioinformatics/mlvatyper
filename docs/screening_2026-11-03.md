@@ -24,8 +24,10 @@ per-strain profiles. The checks are therefore internal: call rate, status
 codes, agreement between the length based allele and the tandem count,
 reproducibility, and a manual look at missing products. The analysis script
 used reads `_status.tsv`, `_alleles.tsv`, `_calls_long.tsv`, `hits.tsv` and
-`missing_markers.tsv`. The `--align mafft` comparison was not run because MAFFT
-was not installed on the machine used.
+`missing_markers.tsv`. The run was repeated with `--align mafft` (MAFFT 7.526):
+the allele, status, residual and tandem count of all 1,235 calls with a product
+are identical to the run without alignment, and the run time rises from 35 s to
+63 s.
 
 ## Findings from the first run, and what changed
 
@@ -85,7 +87,7 @@ and rises with N50 (+0.30).
 - No external truth for alleles. A call can be internally consistent and
   still differ from the published allele name.
 - 40 genomes, mostly from a few countries; rare lineages are not covered.
-- `--align mafft` was not compared.
+- The alignment step was compared on this set only; it does not feed the calls.
 - The copy numbers taken from the publication at five loci rest on the
   assumption that the published value counts the same array; the screen shows
   that the measured value cannot be right there, not that the published one is.
