@@ -137,6 +137,14 @@ samples{% endif %}. Several amplicons for one marker are joined with a slash. Ce
 <figure>{{ data.figures.distance | safe }}
 <figcaption>{{ fcap("Pairwise distances in the order of the heatmap: the share of loci that differ, among loci typed in both samples. Pairs that share fewer than 8 typed loci are given the mean distance. Alleles are compared as categories, so the distance does not reflect the size of the repeat difference.") }}</figcaption></figure>
 {% endif %}
+{% if data.figures.mst %}
+<figure>{{ data.figures.mst | safe }}
+<figcaption>{{ fcap("Minimum spanning tree of the distinct allele profiles. Samples with identical profiles share a node (size shows how many, the label gives the first sample and the number of others). Edge labels give the number of loci that differ between neighbours. Node colour is the share of OK calls, so a poorly typed sample can be told from a distant one. The layout places nodes so that straight-line distances approximate distances along the tree; it is a drawing, and only the tree and the edge labels carry information.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.mds %}
+<figure>{{ data.figures.mds | safe }}
+<figcaption>{{ fcap("Classical multidimensional scaling of the pairwise distances in two dimensions. The axis labels give the share of the distance structure that each axis keeps; a low total means that two dimensions describe the samples poorly and the heatmap and the tree should be read instead.") }}</figcaption></figure>
+{% endif %}
 {% if data.figures.spectra %}
 <figure>{{ data.figures.spectra | safe }}
 <figcaption>{{ fcap("Allele spectrum per locus: the number of samples with each repeat number.") }}</figcaption></figure>

@@ -50,11 +50,16 @@ distance matrix](images/report_heatmap.png)
 4. **Figures**: amplicon length per marker against the expected size,
    residual per marker, and a status matrix of samples by markers (ordered
    like the heatmap below for five or more samples). For five or more samples
-   there are four more: a **clustered heatmap of the allele profiles** (rows
+   there are six more: a **clustered heatmap of the allele profiles** (rows
    ordered by average linkage clustering, with the tree; each locus on its own
    colour scale; repeat numbers printed in the cells of small matrices), a
    **pairwise distance matrix** in the same order, an **allele spectrum** per
-   locus, and **call rate bars** per locus and per sample. The distance is the
+   locus, **call rate bars** per locus and per sample, a **minimum spanning tree** of
+   the distinct profiles (identical profiles share a node, edge labels give the
+   number of loci that differ, node colour is the share of OK calls, and the
+   layout approximates path lengths along the tree) and a **classical
+   multidimensional scaling** of the distances in two dimensions, whose axis
+   labels give the share of the distance structure each axis keeps. The distance is the
    share of loci that differ among those typed in both samples; pairs with
    fewer than eight shared loci take the mean distance. Alleles are compared
    as categories, so the tree describes how many loci differ and not how far

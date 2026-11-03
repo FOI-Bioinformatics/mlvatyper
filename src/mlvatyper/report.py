@@ -248,6 +248,8 @@ def figures(data: ReportData) -> dict[str, str]:
             out["distance"] = plots.distance_heatmap(data.alleles, samples) or ""
             out["spectra"] = plots.allele_spectra(data.alleles) or ""
             out["callrate"] = plots.call_rate_bars(data.status) or ""
+            out["mds"] = plots.mds_plot(data.alleles) or ""
+            out["mst"] = plots.mst_plot(data.alleles, data.status) or ""
     codes = list(STATUS_COLOURS)
     matrix = [[codes.index(_first_flag(data.status.loc[s, m])) for m in markers] for s in samples]
     fig, ax = plt.subplots(figsize=(width, max(1.5, 0.25 * len(samples) + 1.2)))

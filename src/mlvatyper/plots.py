@@ -243,3 +243,162 @@ def call_rate_bars(status: pd.DataFrame) -> str | None:
         a2.set_ylabel("samples")
     a2.spines[["top", "right"]].set_visible(False)
     return _short(fig)
+
+
+def classical_mds(dist: np.ndarray, dims: int = 2) -> tuple[np.ndarray, np.ndarray]:
+    """Classical (Torgerson) multidimensional scaling; returns coordinates and the variance share per axis.
+
+    The share is the eigenvalue over the sum of the positive eigenvalues, so it describes how much of the
+    distance structure each axis keeps.
+    """
+    n = dist.shape[0]
+    centring = np.eye(n) - np.ones((n, n)) / n
+    gram = -0.5 * centring @ (dist ** 2) @ centring
+    values, vectors = np.linalg.eigh(gram)
+    order = np.argsort(values)[::-1]
+    values, vectors = values[order], vectors[:, order]
+    positive = np.clip(values, 0, None)
+    total = positive.sum()
+    coords = vectors[:, :dims] * np.sqrt(positive[:dims])
+    if coords.shape[1] < dims:
+        coords = np.hstack([coords, np.zeros((n, dims - coords.shape[1]))])
+    share = positive[:dims] / total if total > 0 else np.zeros(dims)
+    return coords, share
+
+
+def mds_plot(alleles: pd.DataFrame) -> str | None:
+    import matplotlib.pyplot as plt
+    if alleles.shape[0] < 4:
+        return None
+    dist = distance_matrix(allele_matrix(alleles))
+    coords, share = classical_mds(dist)
+    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    ax.scatter(coords[:, 0], coords[:, 1], s=26, color=ACCENT, alpha=0.8, edgecolor="white", linewidth=0.5)
+    label_every = max(1, alleles.shape[0] // 40)
+    for i, name in enumerate(alleles.index):
+        if i % label_every == 0:
+            ax.annotate(str(name), coords[i], fontsize=5.5, xytext=(3, 3), textcoords="offset points")
+    ax.set_xlabel(f"axis 1 ({100 * share[0]:.0f}% of the distance structure)")
+    ax.set_ylabel(f"axis 2 ({100 * share[1]:.0f}%)")
+    ax.axhline(0, color="#dddddd", linewidth=0.6, zorder=0)
+    ax.axvline(0, color="#dddddd", linewidth=0.6, zorder=0)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.set_aspect("equal", adjustable="datalim")
+    return _short(fig)
+
+
+def minimum_spanning_tree(dist: np.ndarray) -> list[tuple[int, int, float]]:
+    """Prim's algorithm; ties go to the lowest index so the tree is the same on every run."""
+    n = dist.shape[0]
+    if n < 2:
+        return []
+    in_tree = {0}
+    best = {j: (dist[0, j], 0) for j in range(1, n)}
+    edges = []
+    while best:
+        j = min(best, key=lambda k: (best[k][0], k))
+        weight, parent = best.pop(j)
+        edges.append((parent, j, float(weight)))
+        in_tree.add(j)
+        for k in best:
+            if dist[j, k] < best[k][0]:
+                best[k] = (dist[j, k], j)
+    return edges
+
+
+def tree_distances(n: int, edges: list[tuple[int, int, float]]) -> np.ndarray:
+    """Path lengths along the tree between every pair of nodes, edge weights as given."""
+    adjacent: dict[int, list[tuple[int, float]]] = {i: [] for i in range(n)}
+    for a, b, w in edges:
+        adjacent[a].append((b, w))
+        adjacent[b].append((a, w))
+    out = np.zeros((n, n))
+    for root in range(n):
+        seen = {root}
+        stack = [(root, 0.0)]
+        while stack:
+            node, length = stack.pop()
+            out[root, node] = length
+            for nxt, w in adjacent[node]:
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append((nxt, length + w))
+    return out
+
+
+def tree_layout(n: int, edges: list[tuple[int, int, float]], iterations: int = 400, seed: int = 3) -> np.ndarray:
+    """Stress layout of the tree: Euclidean distances approximate the path lengths along the tree.
+
+    Localised stress majorisation with weights 1 / d^2, started from the first two axes of classical
+    scaling of the path lengths with a small random shift, so the result is the same on every run.
+    """
+    if n < 2:
+        return np.zeros((n, 2))
+    target = tree_distances(n, [(a, b, max(w, 1e-6)) for a, b, w in edges])
+    pos, _ = classical_mds(target)
+    pos = pos + np.random.default_rng(seed).normal(0, 1e-3 * (np.abs(pos).max() + 1e-9), pos.shape)
+    weight = np.zeros_like(target)
+    nonzero = target > 0
+    weight[nonzero] = 1.0 / target[nonzero] ** 2
+    for _ in range(iterations):
+        for i in range(n):
+            delta = pos[i] - pos
+            norm = np.linalg.norm(delta, axis=1)
+            norm[i] = 1.0
+            unit = delta / np.where(norm == 0, 1.0, norm)[:, None]
+            pull = pos + target[i][:, None] * unit
+            w = weight[i]
+            if w.sum() > 0:
+                pos[i] = (w[:, None] * pull).sum(axis=0) / w.sum()
+    return pos
+
+
+def profile_groups(values: np.ndarray, names: list[str]) -> list[list[int]]:
+    """Samples with identical typed alleles (and the same untyped loci) form one node."""
+    groups: dict[tuple, list[int]] = {}
+    for i in range(values.shape[0]):
+        key = tuple(np.where(np.isnan(values[i]), -9999, values[i]).tolist())
+        groups.setdefault(key, []).append(i)
+    return list(groups.values())
+
+
+def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str | None:
+    """Minimum spanning tree of the distinct profiles; edge labels give the number of loci that differ."""
+    import matplotlib.pyplot as plt
+    values = allele_matrix(alleles)
+    if values.shape[0] < 4:
+        return None
+    names = [str(s) for s in alleles.index]
+    groups = profile_groups(values, names)
+    if len(groups) < 3:
+        return None
+    reps = [g[0] for g in groups]
+    dist = distance_matrix(values[reps])
+    edges = minimum_spanning_tree(dist)
+    pos = tree_layout(len(groups), edges)
+    loci_shared = np.array([[int((~np.isnan(values[a]) & ~np.isnan(values[b])).sum()) for b in reps] for a in reps])
+    if status is not None:
+        ok_share = [float(np.mean([(status.loc[names[i]] == "OK").mean() for i in g])) for g in groups]
+    else:
+        ok_share = [1.0] * len(groups)
+    fig, ax = plt.subplots(figsize=(7.2, 6.0))
+    for a, b, w in edges:
+        ax.plot([pos[a, 0], pos[b, 0]], [pos[a, 1], pos[b, 1]], color="#888888", linewidth=0.9, zorder=1)
+        differ = int(round(w * loci_shared[a, b]))
+        mid = (pos[a] + pos[b]) / 2
+        if len(groups) <= 60:
+            ax.text(mid[0], mid[1], str(differ), fontsize=5.5, color="#555555", ha="center", va="center",
+                    bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.4, "alpha": 0.85}, zorder=2)
+    sizes = [30 + 40 * (len(g) - 1) for g in groups]
+    nodes = ax.scatter(pos[:, 0], pos[:, 1], s=sizes, c=ok_share, cmap="viridis", vmin=0.5, vmax=1.0,
+                       edgecolor="#333333", linewidth=0.6, zorder=3)
+    label_every = max(1, len(groups) // 40)
+    for i, g in enumerate(groups):
+        if i % label_every == 0:
+            text = names[g[0]] + (f" (+{len(g) - 1})" if len(g) > 1 else "")
+            ax.annotate(text, pos[i], fontsize=5.5, xytext=(4, 4), textcoords="offset points", zorder=4)
+    bar = fig.colorbar(nodes, ax=ax, orientation="horizontal", fraction=0.03, pad=0.02, shrink=0.4)
+    bar.set_label("share of OK calls")
+    ax.set_axis_off()
+    ax.set_aspect("equal", adjustable="datalim")
+    return _short(fig)

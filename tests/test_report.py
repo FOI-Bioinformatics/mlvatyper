@@ -140,7 +140,7 @@ def test_a_set_of_samples_gets_the_relationship_figures(tmp_path):
     data = ReportData(tmp_path, "p", "t", {}, samples, markers, alleles, status, alleles, calls,
                       pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
     figs = figures(data)
-    assert {"heatmap", "distance", "spectra", "callrate", "status"} <= set(figs)
+    assert {"heatmap", "distance", "spectra", "callrate", "status", "mst", "mds"} <= set(figs)
     few = ReportData(tmp_path, "p", "t", {}, samples[:2], markers, alleles.iloc[:2], status.iloc[:2], alleles.iloc[:2],
                      calls, pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
     assert "heatmap" not in figures(few)

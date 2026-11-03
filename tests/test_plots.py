@@ -67,3 +67,33 @@ def test_tick_labels_stay_inside_the_canvas():
     height = float(re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', svg).group(1))
     bottoms = [float(m) for m in re.findall(r'translate\([\d.]+ ([\d.]+)\) rotate\(-90\)', svg)]
     assert bottoms and max(bottoms) <= height + 0.5
+
+
+def test_minimum_spanning_tree_and_layout():
+    from mlvatyper.plots import classical_mds, mds_plot, minimum_spanning_tree, mst_plot, profile_groups, \
+        tree_distances, tree_layout
+    alleles = _alleles()
+    values = allele_matrix(alleles)
+    dist = distance_matrix(values)
+    edges = minimum_spanning_tree(dist)
+    assert len(edges) == len(alleles) - 1
+    # the pair of identical profiles is joined at zero distance
+    assert any(w == 0.0 for *_, w in edges)
+    # a chain a-b-c: path lengths add
+    path = tree_distances(3, [(0, 1, 2.0), (1, 2, 3.0)])
+    assert path[0, 2] == 5.0 and path[2, 0] == 5.0
+    layout = tree_layout(3, [(0, 1, 2.0), (1, 2, 3.0)])
+    assert abs(np.linalg.norm(layout[0] - layout[2]) - 5.0) < 0.2
+    # identical profiles share a node
+    groups = profile_groups(values, list(alleles.index))
+    assert sorted(len(g) for g in groups) == [1, 1, 1, 2]
+    coords, share = classical_mds(dist)
+    assert coords.shape == (len(alleles), 2) and 0 < share.sum() <= 1.0 + 1e-9
+    # distances along the first axes reproduce a Euclidean example exactly
+    pts = np.array([[0.0, 0.0], [3.0, 0.0], [0.0, 4.0], [3.0, 4.0]])
+    euclid = np.linalg.norm(pts[:, None] - pts[None], axis=2)
+    got, share = classical_mds(euclid)
+    assert np.allclose(np.linalg.norm(got[:, None] - got[None], axis=2), euclid) and share.sum() > 0.999
+    status = pd.DataFrame("OK", index=alleles.index, columns=alleles.columns)
+    assert mst_plot(alleles, status).startswith("<svg") and mds_plot(alleles).startswith("<svg")
+    assert mst_plot(alleles.iloc[:3], status.iloc[:3]) is None and mds_plot(alleles.iloc[:3]) is None
