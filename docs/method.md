@@ -57,8 +57,10 @@ How mlvatyper locates amplicons, calls alleles and reports them. The
    pass with a smaller word size (`--rescue-wordsize`, default 6; 0
    disables), one-sided search and a wider window (`--rescue-margin`,
    default twice `-M`) finds primers whose IUPAC codes leave no 11-mer for
-   the main pass. With `--rescue-indels`, one primer is then anchored by an
-   exact IUPAC-aware match and the other aligned with up to one indel.
+   the main pass. With `--rescue-indels`, one primer is then anchored by a
+   gap-free IUPAC-aware match with up to `-N` mismatches and the other aligned
+   with up to one indel. An exact anchor is not needed, so a product whose two
+   primers both differ from the template is found.
    Hits record their origin in the `search_pass` column (`main`, `rescue`,
    `aligned`) and the indel counts. Markers that stay missing are listed in
    `missing_markers.tsv` with a reason: NOT_SEARCHED (no primer holds a

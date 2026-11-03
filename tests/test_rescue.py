@@ -131,3 +131,33 @@ def test_a_split_product_is_explained_in_the_missing_table(tmp_path):
     assert missing.loc[0, "detail"] == detail
     # the detail does not survive a reread, which keeps only the reason
     assert str(read_missing(tmp_path / "o" / "missing_markers.tsv")[("s", "m")]) == "NEAR_CONTIG_END"
+
+
+def _substitute(seq: str, index: int) -> str:
+    return seq[:index] + ("A" if seq[index] != "A" else "C") + seq[index + 1:]
+
+
+def test_aligned_rescue_anchors_on_a_primer_with_a_mismatch():
+    """A product whose two primers both differ from the template has no exact anchor; one mismatch is enough."""
+    amplicon = make_amplicon(6)
+    fwd = _substitute(FWD, 12)
+    rev_site = _substitute(str(Seq(REV).reverse_complement()), 5)
+    genome = random_dna(200, 11) + fwd + amplicon[len(FWD):-len(REV)] + rev_site + random_dna(200, 12)
+    pair = PrimerPair("m", FWD, REV, len(amplicon))
+    assert find_with_indels({"c": genome}, pair, "s", 50, max_mismatch=0) == []
+    hits = find_with_indels({"c": genome}, pair, "s", 50, max_mismatch=2)
+    assert len(hits) == 1
+    h = hits[0]
+    assert (h.fwd_mismatches, h.rev_mismatches, h.search_pass) == (1, 1, "aligned")
+    assert h.end - h.start + 1 == len(amplicon)
+    # the reverse strand gives the same product
+    flipped = str(Seq(genome).reverse_complement())
+    assert [x.strand for x in find_with_indels({"c": flipped}, pair, "s", 50, max_mismatch=2)] == ["-"]
+
+
+def test_anchor_search_respects_the_mismatch_limit():
+    from mlvatyper.rescue import _anchors
+    text = random_dna(100, 13) + _substitute(_substitute(FWD, 3), 15) + random_dna(100, 14)
+    assert _anchors(text, FWD, 1) == []
+    assert _anchors(text, FWD, 2) == [(100, 2)]
+    assert _anchors(random_dna(100, 13) + FWD, FWD, 0) == [(100, 0)]
