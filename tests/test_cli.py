@@ -139,7 +139,7 @@ def test_non_fasta_input_fails_only_that_sample(fixture_dir, caplog):
     out = fixture_dir / "out"
     rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
                "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"])
-    assert rc == 1 and "1 samples failed" in caplog.text
+    assert rc == 2 and "1 samples failed" in caplog.text
     hits = pd.read_csv(out / "hits.tsv", sep="\t")
     assert set(hits["sample"]) == {"sampleA", "sampleB"}  # the valid samples were still processed and written
 
@@ -152,7 +152,7 @@ def test_run_types_the_good_samples_when_one_fails(fixture_dir, caplog):
                str(fixture_dir / "*.fasta.gz"), "--outdir", str(out), "--prefix", "t", "-N", "0", "-M", "50",
                "--skip-invalid", "--align", "none", "--markers", str(fixture_dir / "patterns.tsv"),
                "--reference-sample", "sampleA"])
-    assert rc == 1 and "corrupt" in caplog.text
+    assert rc == 2 and "corrupt" in caplog.text
     assert (out / "samples.txt").read_text().split() == ["sampleA", "sampleB"]
     alleles = read(out / "t_alleles.tsv")
     assert list(alleles.index) == ["sampleA", "sampleB"] and alleles.loc["sampleA", "VNTR1"] == "5"
@@ -255,7 +255,7 @@ def test_jobs_parallel_isolates_a_failed_sample(fixture_dir, caplog):
     rc = main(["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "*.fasta"),
                "--outdir", str(fixture_dir / "o"), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none",
                "--jobs", "3"])
-    assert rc == 1 and "broken" in caplog.text
+    assert rc == 2 and "broken" in caplog.text
     assert "broken" not in (fixture_dir / "o" / "samples.txt").read_text()
     assert {"sampleA", "sampleB"} <= set((fixture_dir / "o" / "samples.txt").read_text().split())
 
@@ -278,6 +278,68 @@ def test_log_json_records_a_failed_sample(fixture_dir):
     rc = main(["--log-json", str(log), "search", "--sts", str(fixture_dir / "primers.sts"),
                "--fasta", str(fixture_dir / "*.fasta"), "--outdir", str(fixture_dir / "o"),
                "-N", "0", "-M", "50", "--skip-invalid", "--align", "none"])
-    assert rc == 1
+    assert rc == 2
     events = [json.loads(line) for line in log.read_text().splitlines()]
     assert any(e["level"] == "ERROR" and "broken" in e["message"] for e in events)
+
+
+def _search_args(fixture_dir, out, *extra):
+    return ["search", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "sample*.fasta"),
+            "--outdir", str(out), "-N", "0", "-M", "50", "--skip-invalid", "--align", "none", *extra]
+
+
+def test_search_writes_a_result_per_sample(fixture_dir):
+    out = fixture_dir / "o"
+    assert main(_search_args(fixture_dir, out)) == 0
+    for sample in ("sampleA", "sampleB"):
+        assert (out / "per_sample" / f"{sample}.hits.tsv").exists()
+        assert (out / "per_sample" / f"{sample}.missing.tsv").exists()
+        assert (out / "per_sample" / f"{sample}.done.json").exists()
+
+
+def test_resume_reuses_finished_samples_and_gives_identical_files(fixture_dir, caplog):
+    first, second = fixture_dir / "first", fixture_dir / "second"
+    assert main(_search_args(fixture_dir, first)) == 0
+    # a second run into a copy of the per-sample results takes them from there
+    import shutil
+    shutil.copytree(first / "per_sample", second / "per_sample")
+    caplog.clear()
+    assert main(_search_args(fixture_dir, second, "--resume")) == 0
+    assert "Resuming: 2 of 2 samples" in caplog.text
+    for name in ("hits.tsv", "missing_markers.tsv", "samples.txt", "near_contig_end.tsv"):
+        assert (first / name).read_text() == (second / name).read_text(), name
+
+
+def test_resume_searches_again_what_changed(fixture_dir, caplog):
+    out = fixture_dir / "o"
+    assert main(_search_args(fixture_dir, out)) == 0
+    # a changed input file is searched again, the other sample is reused
+    sample = fixture_dir / "sampleB.fasta"
+    sample.write_text(sample.read_text() + ">extra\nACGTACGTAC\n")
+    caplog.clear()
+    assert main(_search_args(fixture_dir, out, "--resume")) == 0
+    assert "Resuming: 1 of 2 samples" in caplog.text
+    # a changed search setting invalidates every sample
+    caplog.clear()
+    assert main(_search_args(fixture_dir, out, "--resume", "--mismatches", "1")) == 0
+    assert "Resuming" not in caplog.text
+
+
+def test_resume_after_a_failed_sample_repeats_only_that_sample(fixture_dir, caplog):
+    (fixture_dir / "sampleC.fasta").write_text("not a fasta file\n")
+    out = fixture_dir / "o"
+    assert main(_search_args(fixture_dir, out)) == 2  # sampleC fails, the others are kept
+    (fixture_dir / "sampleC.fasta").write_text((fixture_dir / "sampleA.fasta").read_text())
+    caplog.clear()
+    assert main(_search_args(fixture_dir, out, "--resume")) == 0
+    assert "Resuming: 2 of 3 samples" in caplog.text
+    assert set((out / "samples.txt").read_text().split()) == {"sampleA", "sampleB", "sampleC"}
+
+
+def test_resume_works_with_parallel_jobs(fixture_dir, caplog):
+    out = fixture_dir / "o"
+    assert main(_search_args(fixture_dir, out, "--jobs", "2")) == 0
+    first = (out / "hits.tsv").read_text()
+    caplog.clear()
+    assert main(_search_args(fixture_dir, out, "--jobs", "2", "--resume")) == 0
+    assert "Resuming: 2 of 2 samples" in caplog.text and (out / "hits.tsv").read_text() == first

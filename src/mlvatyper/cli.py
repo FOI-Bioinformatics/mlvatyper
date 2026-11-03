@@ -19,7 +19,7 @@ import json
 import logging
 import sys
 import textwrap
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import replace
 from datetime import datetime, UTC
 from pathlib import Path
@@ -86,6 +86,10 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
                    help="number of 3' primer bases that must match exactly (default 1)")
     p.add_argument("-T", "--threads", type=int, default=1,
                    help="merPCR worker threads within one sample (default 1)")
+    p.add_argument("--resume", action="store_true",
+                   help="reuse the results in OUTDIR/per_sample for samples whose FASTA file and search "
+                        "settings are unchanged, and search only the others; each sample is written there "
+                        "as soon as it finishes, so an interrupted or failed run can be repeated")
     p.add_argument("--jobs", type=int, default=1,
                    help="samples searched in parallel, each in its own process (default 1); the total worker "
                         "count is --jobs times --threads")
@@ -421,10 +425,62 @@ def _search_one(fasta: Path):
     return fasta, amps, reasons
 
 
+PER_SAMPLE_DIR = "per_sample"
+
+
+def _fingerprint(fasta: Path, params_key: str) -> dict:
+    """What a per-sample result depends on: the input file as it is on disk and the search settings."""
+    stat = Path(fasta).stat()
+    return {"fasta": str(Path(fasta).resolve()), "size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
+            "params": params_key}
+
+
+def _sample_files(cache: Path, sample: str) -> tuple[Path, Path, Path]:
+    return cache / f"{sample}.hits.tsv", cache / f"{sample}.missing.tsv", cache / f"{sample}.done.json"
+
+
+def save_sample(cache: Path, fasta: Path, amps: list, reasons: dict[str, str], params_key: str) -> None:
+    """Write the result of one sample; the done file goes last, so a half written sample is never reused."""
+    sample = sample_name(fasta)
+    hits, missing, done = _sample_files(cache, sample)
+    done.unlink(missing_ok=True)
+    write_hits_table(amps, hits)
+    write_missing({(sample, m): r for m, r in reasons.items()}, missing)
+    done.write_text(json.dumps(_fingerprint(fasta, params_key)), encoding="utf-8")
+
+
+def load_sample(cache: Path, fasta: Path, params_key: str):
+    """The saved result of a sample as (amplicons, reasons), or None when it is missing or out of date."""
+    sample = sample_name(fasta)
+    hits, missing, done = _sample_files(cache, sample)
+    if not (hits.exists() and missing.exists() and done.exists()):
+        return None
+    try:
+        if json.loads(done.read_text(encoding="utf-8")) != _fingerprint(fasta, params_key):
+            return None
+        amps = read_hits_table(hits)
+        reasons = {m: r for (_, m), r in read_missing(missing).items()}
+    except (OSError, ValueError, KeyError):
+        return None
+    return amps, reasons
+
+
+def _search_key(sts_path: Path, args: argparse.Namespace) -> str:
+    """Hash of everything besides the input file that changes a search result."""
+    settings = {k: getattr(args, k, None) for k in (
+        "margin", "mismatches", "wordsize", "one_sided", "iupac", "three_prime_match", "dedup", "rescue_wordsize",
+        "rescue_margin", "rescue_indels", "max_repeats")}
+    digest = hashlib.md5(Path(sts_path).read_bytes())
+    digest.update(json.dumps(settings, sort_keys=True, default=str).encode())
+    digest.update(f"{__version__} {_merpcr_version()}".encode())
+    return digest.hexdigest()
+
+
 def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: list[PrimerPair], margin: int,
                    dedup: bool = True, rescue: RescueOptions | None = None, wordsize: int = 11,
                    one_sided: bool = False, jobs: int = 1, sts_path: str | Path | None = None,
-                   searcher_kwargs: dict | None = None) -> tuple[list, dict[tuple[str, str], str], list[Path]]:
+                   searcher_kwargs: dict | None = None, cache: Path | None = None, resume: bool = False,
+                   params_key: str = "") -> tuple[list, dict[tuple[str, str], str], list[Path]]:
     """Search and extract amplicons for every sample.
 
     With jobs > 1 the samples are searched in parallel, one process each, and
@@ -432,31 +488,62 @@ def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: lis
     serial run. Each process builds its own searcher from sts_path and
     searcher_kwargs, so those are required when jobs > 1. Returns (amplicons,
     reason per (sample, marker) without a hit, FASTA files that failed).
+
+    With a cache directory each finished sample is written there as it completes (its hits, its missing
+    markers and a done file that records the input file and the settings). With resume, a sample whose done
+    file matches is read back instead of searched, so a failed or interrupted run can be repeated for the
+    samples that are not finished.
     """
     rescue = rescue or RescueOptions(wordsize=0)
     params = (pairs, margin, dedup, rescue, wordsize, one_sided)
-    workers = max(1, min(jobs, len(fasta_files)))
+    if cache is not None:
+        cache.mkdir(parents=True, exist_ok=True)
+    done = _saved_samples(cache, fasta_files, params_key) if resume and cache is not None else {}
+    if done:
+        log.info("Resuming: %d of %d samples are read from %s", len(done), len(fasta_files), cache)
+    todo = [f for f in fasta_files if f not in done]
+
+    def keep(fasta, amps, sample_reasons) -> None:
+        if cache is not None and amps is not None:
+            save_sample(cache, fasta, amps, sample_reasons, params_key)
+        done[fasta] = (fasta, amps, sample_reasons)
+
+    workers = max(1, min(jobs, len(todo))) if todo else 1
     if workers == 1:
-        results = []
-        for fasta in fasta_files:
-            _WORKER_SERIAL = searcher  # noqa: N806 - keep the serial path a plain loop
+        for fasta in todo:
             try:
-                amps, sample_reasons = search_sample(_WORKER_SERIAL, fasta, pairs, margin, dedup, rescue,
-                                                      wordsize, one_sided)
+                amps, sample_reasons = search_sample(searcher, fasta, pairs, margin, dedup, rescue,
+                                                     wordsize, one_sided)
             except SAMPLE_ERRORS as exc:
-                results.append((fasta, None, str(exc).splitlines()[0] if str(exc) else type(exc).__name__))
+                keep(fasta, None, str(exc).splitlines()[0] if str(exc) else type(exc).__name__)
                 continue
-            results.append((fasta, amps, sample_reasons))
+            keep(fasta, amps, sample_reasons)
     else:
-        if sts_path is None or searcher_kwargs is None:
-            raise ValueError("parallel search needs sts_path and searcher_kwargs")
-        log.info("Searching %d samples with %d parallel jobs", len(fasta_files), workers)
-        by_fasta: dict[Path, tuple] = {}
-        with ProcessPoolExecutor(max_workers=workers, initializer=_init_worker,
-                                 initargs=(str(sts_path), searcher_kwargs, params)) as pool:
-            for fasta, amps, reasons in pool.map(_search_one, fasta_files):
-                by_fasta[fasta] = (fasta, amps, reasons)
-        results = [by_fasta[fasta] for fasta in fasta_files]  # input order, for deterministic output
+        _search_parallel(todo, workers, sts_path, searcher_kwargs, params, keep)
+    return _merge_results([done[fasta] for fasta in fasta_files], workers > 1)  # input order, deterministic
+
+
+def _saved_samples(cache: Path, fasta_files: list[Path], params_key: str) -> dict[Path, tuple]:
+    done = {}
+    for fasta in fasta_files:
+        saved = load_sample(cache, fasta, params_key)
+        if saved is not None:
+            done[fasta] = (fasta, saved[0], saved[1])
+    return done
+
+
+def _search_parallel(todo, workers, sts_path, searcher_kwargs, params, keep) -> None:
+    if sts_path is None or searcher_kwargs is None:
+        raise ValueError("parallel search needs sts_path and searcher_kwargs")
+    log.info("Searching %d samples with %d parallel jobs", len(todo), workers)
+    with ProcessPoolExecutor(max_workers=workers, initializer=_init_worker,
+                             initargs=(str(sts_path), searcher_kwargs, params)) as pool:
+        futures = [pool.submit(_search_one, fasta) for fasta in todo]
+        for future in as_completed(futures):  # kept as each sample finishes, so a crash loses only the running ones
+            keep(*future.result())
+
+
+def _merge_results(results: list[tuple], log_counts: bool):
     amplicons = []
     reasons: dict[tuple[str, str], str] = {}
     failed = []
@@ -465,7 +552,7 @@ def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: lis
             log.error("%s: %s", fasta, sample_reasons)
             failed.append(fasta)
             continue
-        if workers > 1:
+        if log_counts:
             log.info("%s: %d amplicons", sample_name(fasta), len(amps))
         amplicons.extend(amps)
         reasons.update({(sample_name(fasta), m): r for m, r in sample_reasons.items()})
@@ -495,17 +582,20 @@ def file_record(path: Path) -> dict:
     return {"path": str(path), "size": path.stat().st_size, "md5": digest.hexdigest()}
 
 
+def _merpcr_version() -> str:
+    try:
+        from importlib.metadata import version
+        return version("merpcr")
+    except Exception:  # pragma: no cover - metadata missing
+        return "unknown"
+
+
 def write_run_info(outdir: Path, args: argparse.Namespace, stage: str) -> None:
     """Record versions and parameters so a run can be reproduced."""
     path = outdir / RUN_INFO
     info = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    try:
-        from importlib.metadata import version
-        merpcr_version = version("merpcr")
-    except Exception:  # pragma: no cover - metadata missing
-        merpcr_version = "unknown"
     info["mlvatyper_version"] = __version__
-    info["merpcr_version"] = merpcr_version
+    info["merpcr_version"] = _merpcr_version()
     if stage == "search":
         info["inputs"] = [file_record(Path(p)) for p in [args.sts, *resolve_samples(args.fasta)]]
     # marker and bin files are inputs too; they are recorded when the stage that reads them runs
@@ -634,7 +724,8 @@ def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
                            args.mismatches, args.iupac, args.three_prime_match, args.threads)
     amplicons, reasons, failed = search_samples(searcher, fasta_files, pairs, args.margin, args.dedup, rescue,
                                                 args.wordsize, args.one_sided, jobs=jobs, sts_path=clean_sts,
-                                                searcher_kwargs=searcher_kwargs)
+                                                searcher_kwargs=searcher_kwargs, cache=outdir / PER_SAMPLE_DIR,
+                                                resume=args.resume, params_key=_search_key(clean_sts, args))
 
     # a failed sample is left out rather than listed with every marker NOT_DETECTED, which would read as typed
     write_samples([sample_name(f) for f in fasta_files if f not in failed], outdir / SAMPLES_FILE)
@@ -663,10 +754,19 @@ def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
     return failed
 
 
+EXIT_OK = 0
+EXIT_INPUT = 1  # an invalid input, option or file stops the run
+EXIT_SAMPLES_FAILED = 2  # the run finished but some samples could not be read; the others are typed
+
+
+class SamplesFailed(Exception):
+    """Some samples failed while the rest were processed."""
+
+
 def _failed_exit(failed: list[Path]) -> None:
     if failed:
-        raise SystemExit(f"{len(failed)} samples failed and are not in the results: "
-                         f"{', '.join(sample_name(f) for f in failed)}")
+        raise SamplesFailed(f"{len(failed)} samples failed and are not in the results: "
+                            f"{', '.join(sample_name(f) for f in failed)}")
 
 
 def load_definitions(args: argparse.Namespace, outdir: Path, sts_ids: list[str], amplicons: list) -> list[MarkerDef]:
@@ -947,10 +1047,13 @@ def main(argv: list[str] | None = None) -> int:
     outdir.mkdir(parents=True, exist_ok=True)
     try:
         _dispatch(args, outdir, explicit_options(argv))
+    except SamplesFailed as exc:
+        log.error("%s", exc)
+        return EXIT_SAMPLES_FAILED
     except SystemExit as exc:
         if exc.code not in (None, 0):
             log.error("%s", exc.code)
-            return 1
+            return EXIT_INPUT
     except (SchemeError, MarkerError) as exc:
         log.error("%s", exc)
         return 1

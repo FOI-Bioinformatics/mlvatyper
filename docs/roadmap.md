@@ -10,9 +10,10 @@ files it touches so that it can be picked up as its own task.
    `concurrent.futures.ProcessPoolExecutor`, each process building its own
    searcher; merPCR keeps `-T` for threads within a sample. Results are
    merged in input order so the outputs match a serial run byte for byte.
-2. Streaming large sample sets: write `hits.tsv` per sample under
-   `per_sample/` and concatenate at the end, so a failed sample can be
-   rerun alone (`--resume` skips samples whose per-sample file exists).
+2. Streaming large sample sets (done): each sample is written under
+   `per_sample/` as it finishes and `--resume` skips the samples whose
+   input file and search settings are unchanged. The combined tables are
+   still built in memory; for very large sets they could be streamed too.
 3. Packaging: Bioconda recipe (depends on merpcr, which needs its own
    recipe first, same owner), a Dockerfile and a Singularity definition
    built in CI from the conda environment, versioned with the git tag.
@@ -23,7 +24,7 @@ files it touches so that it can be picked up as its own task.
 5. Structured log (partly done): `--log-json FILE` writes one JSON object
    per log event (JSON Lines) for pipeline monitors. Distinct exit codes
    (0 ok, 1 input error, 2 some samples failed) are still to be decided;
-   the tool currently exits 1 for both an input error and a failed sample.
+   the exit codes are now 0, 1 (input error) and 2 (some samples failed).
 
 ### B. Scheme and database support (done 2026-10-23)
 
