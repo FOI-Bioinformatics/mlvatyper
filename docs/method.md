@@ -264,6 +264,18 @@ below are shorter than they are.
   are derived from the reference; confirm them against the published allele
   calling table before comparing a profile with published MIRU codes.
 
+- `saureus_mlva5_sabat_2003`: the five locus gel based MLVA for
+  *Staphylococcus aureus* (Sabat et al. 2003), anchored on NCTC 8325, the
+  control strain the paper types. It is the thinnest bundled scheme: the
+  paper publishes primers and nothing else quantitative, and its MLVA
+  pattern numbers are arbitrary labels for band patterns rather than per
+  locus alleles, so the scheme sizes its markers and calls none. `sdr` is
+  one primer pair that amplifies the tandem *sdrC*, *sdrD* and *sdrE* genes
+  together, so it is the only bundled locus declared in `known_multiple`;
+  it gives two products in the reference. The *sspA* primers are degenerate
+  and are found by the rescue pass rather than at word size 11. Its *spa*
+  locus overlaps `saureus_mlva8_schouls_2009` with different primers.
+
 - `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
   aureus* (Schouls et al. 2009), anchored on N315. All eight products are
   reproduced there and each equals the span of the coordinates the paper

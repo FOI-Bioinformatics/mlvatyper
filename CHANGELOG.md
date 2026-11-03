@@ -6,6 +6,14 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `saureus_mlva5_sabat_2003`, the five locus gel based MLVA
+  of Sabat et al. for *Staphylococcus aureus*, anchored on NCTC 8325. The
+  paper publishes primers and no other quantitative value, and its pattern
+  numbers label gel band patterns rather than per locus alleles, so the
+  scheme sizes its markers and calls none. It is the first bundled scheme to
+  use `known_multiple`: the `sdr` primer pair amplifies the tandem sdrC,
+  sdrD and sdrE genes together by design and gives two products in the
+  reference. The degenerate sspA primers are found by the rescue pass.
 - Bundled scheme `saureus_mlva8_schouls_2009`, the eight locus MLVA of
   Schouls et al. for *Staphylococcus aureus*, anchored on N315. All eight
   products are reproduced there and each equals the span of the published

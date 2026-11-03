@@ -1,0 +1,27 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+clfA	18	997		N/A	clfA
+clfB	18	828		N/A	clfB
+sdr	18			N/A	sdr
+spa	24	308		N/A	spa
+ssp	9	155		N/A	ssp
+# unit_length is the repeat unit each gene family is described with in the Introduction: an
+# 18 bp repeat encoding Ser-Asp dipeptides in the R region of clfA, clfB and the sdr genes, a 9 bp
+# tripeptide repeat in sspA, and a 24 bp repeat in spa. The paper tabulates none of these; they
+# are stated in its text.
+#
+# ref_size is the product these primers give in the NCTC 8325 assembly GCA_000013425.1 by in
+# silico PCR. NCTC 8325 is the control strain the paper itself types, as isolate 34. The paper
+# publishes no product sizes at all, so there is nothing to compare these with; they are recorded
+# because the scheme has to be anchored somewhere.
+#
+# sdr HAS NO ref_size BECAUSE IT HAS NO SINGLE PRODUCT. One primer pair amplifies sdrC, sdrD and
+# sdrE together by design, and in NCTC 8325 it gives two products, 640 bp and 796 bp. The locus is
+# declared in known_multiple so that the one product per marker checks skip it, and a call for it
+# is flagged MULTIPLE.
+#
+# ref_repeats IS EMPTY THROUGHOUT, SO THIS SCHEME SIZES ITS MARKERS WITHOUT CALLING THEM. The
+# method is read as a band pattern on a gel, not as a per locus allele: the paper assigns each
+# distinct pattern an arbitrary number, 1 to 26 in Table 1, and publishes no amplicon sizes, no
+# repeat numbers and no reference values of any kind. A profile from this scheme is therefore not
+# comparable with those pattern numbers, and no copy number is recorded because none is published
+# and none can be checked against anything.
