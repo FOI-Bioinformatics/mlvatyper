@@ -233,9 +233,12 @@ status OK or BINNED, averaged over the complete and the draft genomes.
   alignments included.
 - **Draft assemblies lose products.** The call rate of the drafts is 5 to
   25 percentage points below that of the complete genomes for most schemes,
-  mostly from NEAR_CONTIG_END (an array that broke the assembly). Brucella
-  and *B. longum* are the exceptions, where the complete set held genomes of
-  other species (*Brucella anthropi*), so the comparison does not apply.
+  mostly from NEAR_CONTIG_END (an array that broke the assembly). The two
+  *Brucella* schemes are the exception: 5 of the 14 complete genomes belong to
+  other species of the genus (*B. anthropi*, *B. intermedia*), which the
+  primers do not amplify, so the comparison does not apply. For
+  *B. longum* the complete genomes score lower than the drafts because of the
+  negative alleles at VNTR23 (see above), not because of the assemblies.
 - **A bug found and fixed.** Five of the 24 runs stopped in the report step
   with a numerical error (the schemes with 4 to 9 loci: `blongum_mlva5`,
   `magalactiae_mlva4`, `STm_ECDC`, `salmonella_enteritidis_mlva9`,
