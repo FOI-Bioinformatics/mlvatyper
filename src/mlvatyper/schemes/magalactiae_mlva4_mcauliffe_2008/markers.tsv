@@ -3,7 +3,7 @@ Magal_VNTR5	24	226	2.3	N/A	Magal_VNTR5
 Magal_VNTR14	13	158	2	N/A	Magal_VNTR14
 Magal_VNTR17	14	209	3.6	N/A	Magal_VNTR17
 Magal_VNTR19	22	184	2.3	N/A	Magal_VNTR19
-# unit_length and ref_repeats are Table 1 of Nouvel et al. 2008, which gives, for each of the four
+# unit_length and ref_repeats are Table 1 of McAuliffe et al. 2008, which gives, for each of the four
 # VNTRs in the sequenced type strain PG2, the repeat unit length and the copy number. The copy
 # numbers are fractional at three loci, 2.3, 3.6 and 2.3, because those arrays are imperfect, with
 # 72 to 83 per cent internal identity in the paper's own count, so the reference allele lies on a grid

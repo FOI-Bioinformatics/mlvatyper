@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -302,3 +303,42 @@ def test_every_bundled_scheme_is_named_in_the_method_documentation():
     text = Path("docs/method.md").read_text(encoding="utf-8")
     missing = [s.name for s in list_schemes() if f"`{s.name}`" not in text]
     assert missing == [], f"add these to the bundled schemes section: {missing}"
+
+
+DOI = re.compile(r"10\.\d{4,9}/[^\s;,()]+")
+
+
+def _scheme_dois(scheme) -> set[str]:
+    return {d.rstrip(".") for d in DOI.findall(f"{scheme.meta.get('citation', '')} {scheme.meta.get('url', '')}")}
+
+
+def test_the_reference_page_lists_every_scheme_with_its_dois_and_locus_count():
+    """docs/scheme_references.md is the scientific reference for the bundled schemes.
+
+    Every scheme must have a row, every DOI that a scheme.yml cites must appear on the page, and the
+    locus count in the row must match the primer file, so that adding or editing a scheme without
+    updating the page fails here.
+    """
+    text = Path("docs/scheme_references.md").read_text(encoding="utf-8")
+    rows = {m.group(1): m.group(0) for m in re.finditer(r"^\| `([^`]+)` .*$", text, flags=re.M)}
+    schemes = list_schemes()
+    assert [s.name for s in schemes if s.name not in rows] == [], "add a row for each of these schemes"
+    assert [n for n in rows if n not in {s.name for s in schemes}] == [], "these rows name no bundled scheme"
+    for scheme in schemes:
+        pairs, _ = read_sts(scheme.sts)
+        cells = [c.strip() for c in rows[scheme.name].strip("|").split("|")]
+        assert int(cells[2]) == len(pairs), (
+            f"{scheme.name}: the page gives {cells[2]} loci, the scheme has {len(pairs)}")
+        assert (scheme.assembly or "none") in cells[3], f"{scheme.name}: the assembly is not in the row"
+        for doi in _scheme_dois(scheme):
+            assert doi in text, f"{scheme.name} cites {doi}, which the reference page does not list"
+
+
+def test_every_doi_on_the_reference_page_is_in_the_bibliography_and_a_scheme_cites_it():
+    text = Path("docs/scheme_references.md").read_text(encoding="utf-8")
+    table, bibliography = text.split("## Bibliography")
+    in_table = {d.rstrip(").") for d in re.findall(r"https://doi\.org/(10\.\d{4,9}/[^\s)]+)", table)}
+    in_bibliography = {d.rstrip(".") for d in re.findall(r"doi:(10\.\d{4,9}/\S+)", bibliography)}
+    assert in_table <= in_bibliography, f"cited in the table but not in the bibliography: {in_table - in_bibliography}"
+    cited = set().union(*(_scheme_dois(s) for s in list_schemes()))
+    assert in_bibliography <= cited, f"in the bibliography but cited by no scheme: {in_bibliography - cited}"

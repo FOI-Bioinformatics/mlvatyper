@@ -6,6 +6,15 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- `docs/scheme_references.md`, a page that gives, for every bundled scheme,
+  its publication with a link to its DOI, the reference strain and assembly,
+  and the basis of its reference values: published, measured, derived,
+  calibrated through another scheme, or a convention of the scheme. It also
+  groups the schemes that overlap, lists the places where a count is not a
+  published value, and ends with a bibliography taken from the DOI registry.
+  Two tests keep it in step with the code: every bundled scheme and every DOI
+  that a `scheme.yml` cites must appear on it, and its locus counts and
+  assemblies must match the scheme files.
 - Bundled scheme `paeruginosa_mlva8_onteniente_2003`, the eight locus MLVA
   of Onteniente et al. for *Pseudomonas aeruginosa*, anchored on PAO1. Table
   1 gives the repeat unit and the number of units in PAO1 for each locus;
@@ -19,8 +28,8 @@ is below 1.0, so the output tables may still change between minor versions.
   NCC2705 reference profile 6-4-3-7-16 from Table 1; the primers reproduce
   every amplicon in the reference assembly and a run returns the published
   profile with zero residual. First scheme for this organism.
-- Bundled scheme `magalactiae_mlva4_nouvel_2008`, the four locus MLVA of
-  Nouvel et al. for *Mycoplasma agalactiae*, anchored on type strain PG2.
+- Bundled scheme `magalactiae_mlva4_mcauliffe_2008`, the four locus MLVA of
+  McAuliffe et al. for *Mycoplasma agalactiae*, anchored on type strain PG2.
   Table 1 gives the repeat unit and PG2 copy number for each locus; three
   are fractional, reflecting imperfect arrays, so the reference profile is
   2.3-2-3.6-2.3. Magal_VNTR5 carries a mismatched reverse primer and is
@@ -306,6 +315,24 @@ is below 1.0, so the output tables may still change between minor versions.
   value of -0.4.
 
 ### Fixed
+- Three scheme citations were checked against the DOI registry and corrected.
+  The DOI of `blongum_mlva5_matamoros_2011` belonged to a different paper by
+  other authors and is now `10.1016/j.mimet.2011.10.005`. The authors of the
+  *Mycoplasma agalactiae* paper were given wrongly: they are McAuliffe,
+  Churchward, Lawes, Loria, Ayling and Nicholas, and the scheme, which had not
+  yet been released, is renamed from `magalactiae_mlva4_nouvel_2008` to
+  `magalactiae_mlva4_mcauliffe_2008`. The Vogler paper is cited as 2009, the
+  year of its issue, with its full author list; the scheme keeps the id
+  `francisella_vogler_2008`.
+- Several statements in the documentation no longer matched the code and are
+  corrected. `docs/method.md` said that a marker without a unit length cannot
+  be called, that `bacillus_mlva25_lista_2006` was the only scheme with a
+  bin table, and that the Ft-M8 displacement is seen in one strain, and it
+  omitted `known_multiple` from the scheme file keys.
+  `docs/schemes.md` gains the third way of numbering alleles, for a locus with
+  no single repeat unit, a list of the checks that have caught errors in
+  bundled schemes, and checklist items for them. The roadmap and README
+  describe the 26 bundled schemes and the way compound loci are now called.
 
 - An option given on the command line now always wins over a scheme
   default, also when its value equals the parser default.

@@ -1,8 +1,8 @@
 # Bifidobacterium longum subsp. longum, the five locus MLVA of Matamoros et al. 2011.
 name: blongum_mlva5_matamoros_2011
 organism: Bifidobacterium longum subsp. longum
-citation: Matamoros S, Savard P, Roy D. Genotyping of Bifidobacterium longum subsp. longum strains by multilocus variable number of tandem repeat analysis. J Microbiol Methods 2011;87:378-380. doi:10.1016/j.mimet.2011.10.009, Table 2 (primers and amplicon size ranges), Table 3 (repeat unit lengths and consensus sequences) and Table 1 (the NCC2705 MLVA profile)
-url: https://doi.org/10.1016/j.mimet.2011.10.009 (Tables 1, 2 and 3)
+citation: Matamoros S, Savard P, Roy D. Genotyping of Bifidobacterium longum subsp. longum strains by multilocus variable number of tandem repeat analysis. J Microbiol Methods 2011;87:378-380. doi:10.1016/j.mimet.2011.10.005, Table 2 (primers and amplicon size ranges), Table 3 (repeat unit lengths and consensus sequences) and Table 1 (the NCC2705 MLVA profile)
+url: https://doi.org/10.1016/j.mimet.2011.10.005 (Tables 1, 2 and 3)
 reference: Bifidobacterium longum subsp. longum NCC2705, chromosome AE014295.3; ref_size is the product these primers give in that assembly and ref_repeats is the NCC2705 repeat number of Table 1
 assembly: GCA_000007525.1
 retrieved: 2026-11-03

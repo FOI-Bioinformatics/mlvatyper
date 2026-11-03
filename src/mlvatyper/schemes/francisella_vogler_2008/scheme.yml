@@ -1,6 +1,6 @@
 name: francisella_vogler_2008
 organism: Francisella tularensis
-citation: Vogler AJ, et al. An optimized, multiplexed multi-locus variable-number tandem repeat analysis system for genotyping Francisella tularensis. Lett Appl Microbiol 2008;48:140-144. doi:10.1111/j.1472-765X.2008.02484.x
+citation: Vogler AJ, Birdsell D, Wagner DM, Keim P. An optimized, multiplexed multi-locus variable-number tandem repeat analysis system for genotyping Francisella tularensis. Lett Appl Microbiol 2009;48:140-144. doi:10.1111/j.1472-765X.2008.02484.x, supplementary Table S1 (primers used in Francisella tularensis MLVA)
 url: https://doi.org/10.1111/j.1472-765X.2008.02484.x (supplementary Table S1, primers used in Francisella tularensis MLVA)
 reference: strain LVS (subsp. holarctica), chromosome AM233362.1 (RefSeq NC_007880.1) - anchor strain chosen here, not specified by Table S1
 assembly: GCA_000009245.1
