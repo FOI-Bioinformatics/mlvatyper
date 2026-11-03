@@ -49,6 +49,23 @@ Ft-M25		151		N/A	Ft-M25
 #   filled: Ft-M2 6bp x5; Ft-M3 9bp x21; Ft-M4 5bp x3; Ft-M5 16bp x3; Ft-M6 21bp x3; Ft-M7 16bp x4; Ft-M8 16bp x4; Ft-M9 16bp x4; Ft-M10 16bp x18; Ft-M14 6bp x5; Ft-M15 6bp x3; Ft-M16 10bp x3; Ft-M17 6bp x4; Ft-M18 6bp x5; Ft-M20 12bp x3; Ft-M21 7bp x3
 #   not filled: Ft-M1 (2 copies); Ft-M11 (2 copies); Ft-M12 (2 copies); Ft-M13 (2 copies); Ft-M19 (0 copies); Ft-M22 (77% match); Ft-M23 (2 copies); Ft-M24 (2 copies); Ft-M25 (2 bp unit)
 #
+# The derived unit lengths were tested across strains. A locus keeps the same flanking length in
+# every strain, so the sizes of its product must differ by whole multiples of its repeat unit.
+# Amplifying this panel in seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198,
+# NE061598 and TI0902, confirms 15 of the 16 filled units: every observed step at those loci is a
+# whole number of units. Ft-M8 is the exception and its steps, 15 and 33 bases, are not multiples
+# of its 16 bp unit, so a product of that locus from another strain can give a fractional allele,
+# which the caller flags INTERMEDIATE rather than reporting a whole number. The cause is the shared
+# repeat family described below: in WY96-3418 the Ft-M8 product comes from a position about 1.85 Mb
+# away from where it lies in the other genomes, so the primers have selected a different member of
+# the family rather than the array they amplify in SCHU S4. Read an Ft-M8 allele with that in mind.
+#
+# The same test also matches these loci to the other bundled Francisella scheme. Its names are
+# padded, Ft-M02 against Ft-M2 here, and the units derived independently there agree with the ones
+# derived here at Ft-M2, Ft-M3, Ft-M4, Ft-M5, Ft-M6, Ft-M10 and Ft-M20, which confirms that the
+# padded and unpadded names are the same VNTR. The two schemes use different primer pairs and
+# different references, so their sizes and alleles are not interchangeable.
+#
 # Ft-M5, Ft-M7, Ft-M8, Ft-M9 and Ft-M10 share the reverse primer and also share one 16 bp repeat unit,
 # AAAAAGATATTTGTAG, at five unrelated positions, so they sample one repeat family rather than five
 # independent loci. That oligo occurs 50 times in SCHU S4 inside a conserved element of at least 220 bp,

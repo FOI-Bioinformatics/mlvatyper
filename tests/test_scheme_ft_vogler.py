@@ -31,9 +31,35 @@ def test_scheme_files_are_consistent():
     for marker, size in REF_SIZES.items():
         d = defs[marker]
         assert d.ref_size == size
-        # the publication gives no unit or copy number, so no allele can be computed yet
-        assert not d.can_call and d.patterns == () and d.ref_repeats is None and d.unit_length == 0
+        # the publication gives no copy number, so no allele can be computed yet
+        assert not d.can_call and d.patterns == () and d.ref_repeats is None
         assert d.label == marker
+
+
+# the unit each locus steps by, where a cross strain test and the Johansson panel agree
+DERIVED_UNIT = {"Ft-M02": 6, "Ft-M03": 9, "Ft-M04": 5, "Ft-M05": 16,
+                "Ft-M06": 21, "Ft-M10": 16, "Ft-M20A": 12}
+# the Johansson spelling of the same locus, which pads the number differently
+JOHANSSON = {"Ft-M02": "Ft-M2", "Ft-M03": "Ft-M3", "Ft-M04": "Ft-M4", "Ft-M05": "Ft-M5",
+             "Ft-M06": "Ft-M6", "Ft-M10": "Ft-M10", "Ft-M20A": "Ft-M20"}
+
+
+def test_unit_lengths_are_filled_only_where_two_sources_agree():
+    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_vogler_2008").markers)}
+    filled = {m: d.unit_length for m, d in defs.items() if d.unit_length}
+    assert filled == DERIVED_UNIT
+    # the other four stay empty, so nothing is invented for them
+    assert {m for m, d in defs.items() if not d.unit_length} == set(MARKERS) - set(DERIVED_UNIT)
+
+
+def test_the_two_francisella_schemes_agree_on_the_shared_units():
+    """The locus names differ only in padding, and the units were derived independently."""
+    here = {d.primer_id: d for d in read_markers(load_scheme("francisella_vogler_2008").markers)}
+    there = {d.primer_id: d for d in read_markers(load_scheme("francisella_johansson_2004").markers)}
+    for mine, theirs in JOHANSSON.items():
+        assert there[theirs].unit_length == here[mine].unit_length, mine
+        # different primers and different references, so the products are not the same fragment
+        assert there[theirs].ref_size != here[mine].ref_size, mine
 
 
 def test_every_primer_carries_the_published_5_prime_g():

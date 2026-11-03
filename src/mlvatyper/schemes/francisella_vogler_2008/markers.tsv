@@ -2,21 +2,47 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 Ft-M22		178		N/A	Ft-M22
 Ft-M23		327		N/A	Ft-M23
 Ft-M24		417		N/A	Ft-M24
-Ft-M03		353		N/A	Ft-M03
-Ft-M20A		319		N/A	Ft-M20A
-Ft-M10		198		N/A	Ft-M10
-Ft-M05		300		N/A	Ft-M05
-Ft-M04		222		N/A	Ft-M04
+Ft-M03	9	353		N/A	Ft-M03
+Ft-M20A	12	319		N/A	Ft-M20A
+Ft-M10	16	198		N/A	Ft-M10
+Ft-M05	16	300		N/A	Ft-M05
+Ft-M04	5	222		N/A	Ft-M04
 Ft-M20B		153		N/A	Ft-M20B
-Ft-M06		272		N/A	Ft-M06
-Ft-M02		339		N/A	Ft-M02
+Ft-M06	21	272		N/A	Ft-M06
+Ft-M02	6	339		N/A	Ft-M02
 # ref_size is the product length measured in the LVS assembly GCA_000009245.1 (AM233362.1) by in silico
 # PCR with these primers, outer primer edge to outer primer edge. Every marker gave exactly one product.
-# The primers are used exactly as published, each carrying a non-genomic 5' G; removing that base from
-# both primers of a pair clears all primer mismatches and shortens every product by 2 bp, so ref_size is
-# only valid for the primers as written here.
-# unit_length, ref_repeats and patterns are still empty: Table S1 gives no repeat units, copy numbers or
-# product sizes, so no allele can be called yet. Take the unit lengths and consensus repeats from
-# Johansson et al. 2004 (doi:10.1128/JB.186.17.5808-5818.2004), which defines these loci, or derive them
-# with mlvatyper discover on a reference run; ref_repeats must then be counted in the LVS amplicons so
-# that it is consistent with the ref_size above.
+#
+# unit_length is not published in the source table. It is filled for the seven loci where two
+# independent lines of evidence agree, and left empty for the other four.
+#
+# The first line of evidence is a cross strain test. A locus keeps the same flanking length in every
+# strain, so the sizes of its product must differ by whole multiples of the repeat unit. Amplifying
+# this panel in seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198, NE061598 and
+# TI0902, gives the step sizes below. The second is the bundled scheme francisella_johansson_2004,
+# which derives a unit for the same locus from a different primer pair and a different reference.
+#
+#   locus    steps seen    Johansson locus and unit    unit recorded here
+#   Ft-M02   12            Ft-M2   6 bp                 6   (12 is two units)
+#   Ft-M03   9            Ft-M3   9 bp                 9
+#   Ft-M04   5            Ft-M4   5 bp                 5
+#   Ft-M05   16            Ft-M5  16 bp                16
+#   Ft-M06   21            Ft-M6  21 bp                21
+#   Ft-M10   256           Ft-M10 16 bp                16  (256 is sixteen units)
+#   Ft-M20A  12            Ft-M20 12 bp                12
+#   Ft-M20B  one size only Ft-M20 12 bp                none, no cross strain evidence
+#   Ft-M22   steps 6,6,19  no unit in Johansson        none
+#   Ft-M23   one step, 23  no unit in Johansson        none
+#   Ft-M24   steps 5,16    no unit in Johansson        none
+#
+# THE LOCUS NAMES OF THE TWO BUNDLED FRANCISELLA SCHEMES DIFFER ONLY IN SPELLING. This scheme pads
+# the number, Ft-M02, where francisella_johansson_2004 does not, Ft-M2, and the unit lengths above
+# confirm that the padded and unpadded names are the same VNTR. The two schemes still amplify it
+# with different primer pairs and are anchored on different strains, LVS here and SCHU S4 there, so
+# their products differ in size and their alleles are not interchangeable. Ft-M20 of that scheme is
+# split here into Ft-M20A and Ft-M20B.
+#
+# ref_repeats is not published either and is not filled. The cross strain test fixes a flanking
+# length only up to a whole number of repeats, so it cannot supply the absolute count, and the
+# source table gives no reference values. Every marker is therefore sized and reported
+# NO_DEFINITION rather than called.

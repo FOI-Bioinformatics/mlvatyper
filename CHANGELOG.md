@@ -141,6 +141,19 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- The two *Francisella* schemes were audited across seven genomes, where
+  every product of a locus must differ by whole multiples of its repeat
+  unit. It confirms 15 of the 16 derived units of
+  `francisella_johansson_2004` and fails at Ft-M8, whose steps of 15 and 33
+  bases are not multiples of its 16 bp unit because in WY96-3418 its primers
+  amplify a different member of the shared repeat family about 1.85 Mb away;
+  the scheme now says so, and a fractional allele there is flagged rather
+  than rounded. `francisella_vogler_2008` gains a unit length for seven of
+  its eleven loci, filled only where that test and the Johansson panel agree
+  independently, and still calls nothing because the test cannot supply an
+  absolute copy number. Both schemes now record that their locus names are
+  the same VNTRs under different spellings, Ft-M02 against Ft-M2, while
+  their primers, references and alleles differ.
 - The unit lengths of the two *Staphylococcus aureus* schemes were checked
   by amplifying each panel in eight *S. aureus* genomes, where every product
   of a locus must leave the same remainder when divided by its repeat unit,
