@@ -55,6 +55,17 @@ Ft-M02	6	339	2	N/A	Ft-M02
 # to an absolute count. It is diverse only in subspecies tularensis. The locus is therefore sized with
 # its published unit but not called.
 #
+# Three later studies were checked for a copy number and none gives one. Myrtennas et al. 2020
+# (Microorganisms 8:1784) report Ft-M20B invariable across 47 strains from Spain, and their genome
+# derived product size is 153 bp in all eleven genomes they sequenced, which independently confirms
+# the 153 bp ref_size measured here. Shevtsov et al. 2024 (Pathogens 13:581) find a single allele at
+# Ft-M20B across their Kazakh mediasiatica strains, a diversity index of zero. Neither reports a
+# repeat number. The Spanish paper lists the Ft-M20B repeat size as 12 bp, the same as Ft-M20A, where
+# the Vogler paper states 15 bp; that table appears to carry the Ft-M20 unit over to both assays,
+# and the 15 bp of the primary source is kept. The reference sequence cannot settle it: the 153 bp
+# product shows no tandem array at any period from 9 to 18 bp, the longest periodic stretch being
+# about one copy, so neither unit can be confirmed from the assembly and the count stays undefined.
+#
 # THE LOCUS NAMES OF THE TWO SCHEMES DIFFER ONLY IN SPELLING. This scheme pads the number, Ft-M02,
 # where francisella_johansson_2004 does not, Ft-M2, and the agreement above confirms the padded and
 # unpadded names are the same VNTR. Ft-M20 there is split here into Ft-M20A and Ft-M20B. The two still
