@@ -29,6 +29,15 @@ profile table](images/report.png)
    missing (no amplicon; a marker without definition is not missing), then
    the status code counts, followed by one line per flagged code naming
    the markers.
+   For five or more samples a subsection **Across samples** follows: the mean
+   and lowest share of loci with status OK, the samples below 75%, the loci
+   to review, a per-locus table (typed, OK, missing, most frequent flag and
+   its share, distinct alleles, Simpson index, lowest allele) and the missing
+   products by reason. A locus is listed for review when one flag is on more
+   than half of its typed calls or an allele is zero or below, which points at
+   the scheme (reference values, repeat unit, patterns) more often than at the
+   strains. The same tables are written as `<prefix>_sample_summary.tsv` and
+   `<prefix>_locus_summary.tsv`.
 3. **Allele profiles**: repeat numbers in STS order, shaded by status with
    a colour legend. The table is transposed when markers outnumber samples.
    The hyphen joined profile strings are in a collapsed block; a negative
