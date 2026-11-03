@@ -101,3 +101,69 @@ INTERMEDIATE, alleles of 0 or below, and the cause of each missing product.
 Treat a locus where more than half of the calls disagree with the tandem count,
 or where an allele is 0 or below, as a scheme problem and not as strain
 variation.
+
+## All bundled schemes on 12 genomes each
+
+The same method was applied to the 24 other published schemes, with up to 12
+complete RefSeq genomes of the scheme's species or genus chosen at random from
+NCBI (a fixed seed; the accession lists are not kept in the repository). This
+is a first look: 12 genomes show gross problems, not rare ones, and the genomes
+need not belong to the lineage the scheme was built on. Call rate is the
+share of loci with status OK or BINNED; typed is the share of calls with an
+integer allele.
+
+| Scheme | Genomes | Loci | Mean OK | Lowest OK | Typed |
+| --- | --- | --- | --- | --- | --- |
+| `bacillus_mlva15_vanert_2007` | 12 | 15 | 85% | 60% | 89% |
+| `bacillus_mlva25_lista_2006` | 12 | 25 | 85% | 20% | 94% |
+| `bacillus_mlva31_mlvabank` | 12 | 31 | 90% | 58% | 92% |
+| `bacillus_mlva8_keim_2000` | 12 | 8 | 86% | 62% | 91% |
+| `blongum_mlva5_matamoros_2011` | 12 | 5 | 68% | 20% | 93% |
+| `Bru_MLVA16` | 12 | 16 | 86% | 0% | 91% |
+| `brucella_mlva15_lefleche_2006` | 12 | 15 | 89% | 0% | 91% |
+| `coxiella_mlva17_arricau_bouvery_2006` | 12 | 17 | 93% | 71% | 98% |
+| `francisella_johansson_2004` | 12 | 25 | 90% | 84% | 94% |
+| `francisella_vogler_2008` | 12 | 11 | 98% | 91% | 98% |
+| `Lpn_MLVA12` | 12 | 12 | 92% | 75% | 94% |
+| `magalactiae_mlva4_mcauliffe_2008` | 11 | 4 | 57% | 25% | 70% |
+| `mtb_miru15_supply_2006` | 12 | 15 | 91% | 80% | 99% |
+| `mtb_miru24_supply_2006` | 12 | 24 | 93% | 88% | 98% |
+| `nmeningitidis_mlva12_liao_2006` | 12 | 12 | 86% | 75% | 92% |
+| `paeruginosa_mlva8_onteniente_2003` | 12 | 8 | 81% | 62% | 97% |
+| `saureus_mlva14_pourcel_2009` | 12 | 14 | 92% | 64% | 97% |
+| `saureus_mlva5_sabat_2003` | 12 | 5 | 80% | 60% | 82% |
+| `saureus_mlva8_schouls_2009` | 12 | 8 | 90% | 75% | 100% |
+| `salmonella_enteritidis_mlva9_malorny_2008` | 12 | 9 | 99% | 89% | 100% |
+| `STm_ECDC` | 12 | 5 | 83% | 40% | 83% |
+| `yersinia_klevytska_2001` | 12 | 42 | 97% | 93% | 98% |
+| `yersinia_mlva25_lefleche_2001` | 12 | 25 | 96% | 88% | 99% |
+| `yersinia_mlva26_li_2013` | 12 | 26 | 99% | 92% | 100% |
+
+Loci that the summary lists for review (one flag on more than half of the typed
+calls, or an allele below zero):
+
+| Scheme | Locus | Reason |
+| --- | --- | --- |
+| `blongum_mlva5_matamoros_2011` | VNTR23 | NEGATIVE in 92% of calls; allele -2 |
+| `Bru_MLVA16` | Bruce19 | INTERMEDIATE in 55% of calls |
+| `mtb_miru15_supply_2006` | 580 | INTERMEDIATE in 100% of calls |
+| `mtb_miru24_supply_2006` | 580 | INTERMEDIATE in 100% of calls |
+| `paeruginosa_mlva8_onteniente_2003` | ms077 | INTERMEDIATE in 70% of calls |
+| `saureus_mlva14_pourcel_2009` | Sa0906 | allele -1.5 |
+| `saureus_mlva14_pourcel_2009` | Sa1425 | allele -2 |
+| `yersinia_klevytska_2001` | M27 | allele -2 |
+
+These are candidates, not diagnoses. A negative allele means that the product
+is shorter than the reference calibration allows (a reference count that is too
+low, a flank deletion in these strains, or a wrong unit), and a flag on every
+call means that the reference size or unit does not match the strains; each
+needs checking against the publication and the genomes, as was done for the
+U'Ren scheme. An allele of 0 is not listed, because it can be a state of the
+scheme: at Ft-M20B it means no insertion, and MIRU 1955 has a single unit in
+the reference, so 0 is a genome without it (1 of 12 here).
+
+Two low values have other causes. The lowest OK for the two *Brucella* schemes
+(0%) is *Brucella anthropi* (strain PBO), which the genus level taxon query
+returned: it is not in the species the schemes were built for, and no product
+was found at any locus. *M. agalactiae* has the lowest mean call rate (57%,
+4 loci, 11 genomes), where one missing product weighs 25 percentage points.
