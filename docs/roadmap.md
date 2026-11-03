@@ -106,7 +106,7 @@ report as a section when present.
 
 ### E. Housekeeping before the next release (done 2026-10-23)
 
-Implemented: version 0.3.0 with `CHANGELOG.md` and a release from the tag;
+Implemented: versions 0.3.0 and 0.4.0 with `CHANGELOG.md` and a release from the tag;
 the method description moved to `docs/method.md` with `docs/report.md`
 alongside it, leaving the README as usage; and a CI job that checks every
 bundled scheme, runs the testM example end to end on the committed

@@ -97,7 +97,7 @@ def leaf_order(merges: list[tuple[int, int, float, int]], n: int) -> list[int]:
 def dendrogram_segments(merges, n: int, order: list[int]):
     """Line segments (x, y) pairs for a dendrogram with leaves on the y axis, root at the right."""
     position = {leaf: i for i, leaf in enumerate(order)}
-    coord = {i: (position[i], 0.0) for i in range(n)}
+    coord: dict[int, tuple[float, float]] = {i: (float(position[i]), 0.0) for i in range(n)}
     segments = []
     for k, (a, b, height, _) in enumerate(merges):
         (ya, xa), (yb, xb) = coord[a], coord[b]

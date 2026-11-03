@@ -14,6 +14,7 @@ numbers.
 
 import math
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
@@ -186,7 +187,7 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
                    tolerance: float, policy: str) -> None:
     # a compound locus (two interleaved unit sizes) carries no single unit, so it has no formula and
     # is called from its bins alone; the repeat formula runs only for a marker that can_call.
-    if d.can_call:
+    if d.ref_size is not None and d.ref_repeats is not None and d.unit_length > 0:
         call.raw = d.ref_repeats + (length - d.ref_size) / d.unit_length
     binned = None
     if bins:
@@ -196,7 +197,7 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
     if binned is not None:
         call.allele = binned
         call.status.append(BINNED)
-    elif d.can_call:
+    elif call.raw is not None:  # the formula ran above, so this marker can be called
         call.allele, intermediate = round_repeats(call.raw, tolerance, policy, d.grid_offset)
         if intermediate:
             call.status.append(INTERMEDIATE)
@@ -214,6 +215,7 @@ def _check_array(call: Call, d: MarkerDef, max_array_length: int | None) -> None
     # no copy of the unit at all next to an allele of one or more is a disagreement too: a wrong unit sequence
     if d.compare_count and call.counted and allele is not None and abs(call.array.copies - allele) >= 1:
         call.status.append(COUNT_DISAGREES)
+    array_length: float | None
     if call.array.copies:
         array_length = call.array.span
     elif allele is not None:
@@ -251,7 +253,7 @@ def call_all(
     amplicons: list[Amplicon], samples: list[str], defs: list[MarkerDef], tolerance: float, policy: str,
     bins: dict[str, list[Bin]] | None = None, max_mismatch: int = 1, max_array_length: int | None = None,
     near_contig_end: set[tuple[str, str]] | None = None,
-    missing_reasons: dict[tuple[str, str], str] | None = None,
+    missing_reasons: Mapping[tuple[str, str], str] | None = None,
 ) -> list[Call]:
     """One Call per amplicon, plus one Call per sample and marker without amplicon.
 

@@ -366,9 +366,9 @@ def discover_units(
         raw = merge_harmonics(builtin_arrays(seq, min_unit, max_unit, max_mismatch, t.weak_score))
         cands = [make_discovery(marker, sample, seq, r, "builtin", max_mismatch,
                                 (primer_lengths or {}).get(marker)) for r in raw if r.copies >= t.min_copies]
-        cands = finish_candidates([c for c in cands if c is not None], t)
-        if cands:
-            found[marker] = cands
+        ranked = finish_candidates([c for c in cands if c is not None], t)
+        if ranked:
+            found[marker] = ranked
         else:
             missing.append(marker)
     log.info("%s: repeat units found for %d markers, none for %d", sample, len(found), len(missing))

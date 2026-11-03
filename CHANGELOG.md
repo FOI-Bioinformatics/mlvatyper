@@ -5,6 +5,15 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+## 0.4.0 - 2026-11-03
+
+Highlights: 25 published schemes bundled and documented with their
+references, every locus of every scheme callable, the report extended with
+across-sample summaries and figures, `--resume` and distinct exit codes.
+Two changes alter existing results: the alleles of five
+`burkholderia_uren_2007` markers change with their corrected copy numbers,
+and a run that loses some samples now exits 2 rather than 1.
+
 ### Added
 - The clustered heatmap clusters the loci as well as the samples, with a tree on top. Two loci are close when they put the same pairs of samples together and apart (one minus the Rand index of the two partitions), so loci that carry the same information stand together.
 - `--resume`: each finished sample is written to `per_sample/` (hits, missing markers and a done file with the input file and a hash of the search settings) as soon as it finishes, and `--resume` reads the samples whose input and settings are unchanged instead of searching them again. Results are identical to a run without it.
@@ -206,6 +215,7 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `mypy` runs over `src/mlvatyper` in CI and is in the dev extra. Fixing what it found made the invariants of allele calling explicit: the places that relied on `can_call` now state the condition it stands for, and the summary parses allele text once instead of testing and parsing it separately.
 - The search of one sample, the parallel run and the per-sample cache that `--resume` reads moved from `cli.py` into a new `runner.py`, and the merPCR version helper into `search.py`. `cli.py` is 854 lines instead of 1064 and the search engine can be called without the command line.
 - `francisella_vogler_2008` calls all eleven loci. Ft-M20B, the last, is
   called from a bins table under a convention of the scheme, since no

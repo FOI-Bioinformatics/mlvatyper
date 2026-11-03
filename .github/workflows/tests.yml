@@ -29,6 +29,10 @@ jobs:
         run: |
           pip install ruff
           ruff check src tests
+      - name: Types
+        run: |
+          pip install mypy pandas-stubs
+          mypy src/mlvatyper
       - name: Test
         env:
           MLVATYPER_ONLINE: "1"

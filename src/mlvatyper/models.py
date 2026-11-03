@@ -144,12 +144,12 @@ class MarkerDef:
     def flanking(self) -> float | None:
         if self.offset is not None:
             return self.offset
-        if self.can_call:
-            return self.ref_size - self.ref_repeats * self.unit_length
-        return None
+        if self.ref_size is None or self.ref_repeats is None or self.unit_length <= 0:
+            return None
+        return self.ref_size - self.ref_repeats * self.unit_length
 
     def expected_size(self, repeats: float) -> float | None:
-        if not self.can_call:
+        if self.ref_size is None or self.ref_repeats is None or self.unit_length <= 0:
             return None
         return self.ref_size + (repeats - self.ref_repeats) * self.unit_length
 

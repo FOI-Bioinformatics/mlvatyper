@@ -257,7 +257,7 @@ def figures(data: ReportData) -> dict[str, str]:
             out["mds"] = _safe_figure("mds", plots.mds_plot, data.alleles) or ""
             out["mst"] = _safe_figure("mst", plots.mst_plot, data.alleles, data.status) or ""
     codes = list(STATUS_COLOURS)
-    matrix = [[codes.index(_first_flag(data.status.loc[s, m])) for m in markers] for s in samples]
+    matrix = [[codes.index(_first_flag(str(data.status[m][s]))) for m in markers] for s in samples]
     fig, ax = plt.subplots(figsize=(width, max(1.5, 0.25 * len(samples) + 1.2)))
     cmap = matplotlib.colors.ListedColormap([STATUS_COLOURS[c] for c in codes])
     ax.imshow(matrix, cmap=cmap, vmin=0, vmax=len(codes) - 1, aspect="auto")
@@ -404,6 +404,7 @@ def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | Non
             "<thead><tr>" + ("<th></th>" if index else "")
             + "".join(f'<th scope="col">{html.escape(str(names.get(c, c)))}</th>' for c in cols)
             + "</tr></thead>", "<tbody>"]
+    shades = colour.to_dict("index") if colour is not None else {}
     for idx, row in df.iterrows():
         cells = []
         row_style = ""
@@ -413,7 +414,7 @@ def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | Non
         for c in cols:
             style = ""
             if colour is not None:
-                style = f' style="background:{cell_colour(colour.loc[idx, c])}"'
+                style = f' style="background:{cell_colour(str(shades[idx][c]))}"'
             text = str(row[c])
             shown, title = text, ""
             if abbreviate and text in SHORT_CODES:

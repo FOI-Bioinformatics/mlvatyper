@@ -54,5 +54,5 @@ def configure_logging(verbose: bool = False, json_path: str | None = None) -> No
         handler = logging.FileHandler(json_path, mode="w", encoding="utf-8")
         handler.setFormatter(JsonLineFormatter())
         handler.setLevel(level)
-        handler._mlvatyper_json = True  # tag so a later call replaces this one
+        handler._mlvatyper_json = True  # type: ignore[attr-defined]  # tag so a later call replaces this one
         root.addHandler(handler)
