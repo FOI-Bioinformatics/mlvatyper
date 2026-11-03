@@ -95,3 +95,33 @@ def test_summary_counts_no_definition_as_found_and_methods_window(tmp_path):
     text = methods_text({"search": {"parameters": {"markers": "m.tsv", "max_repeats": 40, "margin": 500}}})
     assert "0 to 40 repeats" in text
     assert "repeats instead" not in methods_text({"search": {"parameters": {"margin": 500}}})
+
+
+def test_report_layout_conventions(fixture_dir):
+    """Captions above tables and in sequence, short codes with a key, no favicon request, print styles."""
+    out = _run(fixture_dir)
+    html = (out / "t_report.html").read_text()
+    assert '<link rel="icon" href="data:,">' in html and "@page" in html
+    numbers = [int(n) for n in re.findall(r'<p class="tcap"><b>Table (\d+)\.', html)]
+    assert numbers == list(range(1, len(numbers) + 1)) and len(numbers) >= 4
+    # a table caption comes before its table, a figure caption after its figure
+    assert html.index("Table 1.") < html.index("<table", html.index("Table 1."))
+    assert html.index("<svg") < html.index("<figcaption>")
+    assert 'scope="col"' in html and 'scope="row"' in html
+    assert "In place of an allele:" in html and "ND</b> NOT_DETECTED" in html
+    # the missing marker shows its short code and keeps the full one in the title
+    assert '<td title="NOT_DETECTED"' in html or 'title="NOT_DETECTED">ND<' in html
+
+
+def test_report_names_the_scheme_and_its_publication(tmp_path):
+    from mlvatyper.report import methods_text, scheme_info
+    run_info = {"search": {"parameters": {"scheme": "burkholderia_uren_2007", "mismatches": 2,
+                                          "rescue_wordsize": 6, "rescue_indels": True}}}
+    info = scheme_info(run_info)
+    assert info["doi"] == "10.1186/1471-2180-7-23" and info["organism"] == "Burkholderia pseudomallei"
+    assert len(info["interrupted"]) == 16
+    text = methods_text(run_info)
+    assert "burkholderia_uren_2007 scheme for Burkholderia pseudomallei" in text and "BMC Microbiol 2007;7:23" in text
+    assert "up to 2 mismatches" in text and "16 markers whose arrays hold variant units" in text
+    assert scheme_info({"search": {"parameters": {}}}) is None
+    assert scheme_info({"search": {"parameters": {"scheme": "no-such-scheme"}}}) is None

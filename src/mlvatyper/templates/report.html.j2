@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ data.title }}</title>
+<link rel="icon" href="data:,">
 <style>
   :root { --accent: #1f5f8b; --rule: #d0d0d0; --muted: #666666; }
   body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #222; margin: 0 auto;
@@ -18,8 +19,17 @@
   table { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
   th, td { border: 1px solid var(--rule); padding: 2px 6px; text-align: left; white-space: nowrap; }
   th { background: #f4f4f4; font-weight: 600; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  table.alleles td { text-align: center; min-width: 34px; }
+  table.alleles thead th { text-align: center; }
+  table.wide thead th { white-space: normal; vertical-align: bottom; max-width: 90px; word-break: break-word; }
+  thead th { position: sticky; top: 0; z-index: 2; }
+  tbody th { position: sticky; left: 0; z-index: 1; }
+  tbody tr:hover td, tbody tr:hover th { filter: brightness(0.96); }
+  table.kv th, table.kv td { white-space: normal; }
+  table.kv { max-width: 100%; }
   table.kv th { width: 160px; }
-  .scroll { overflow-x: auto; max-width: 100%; }
+  .scroll { overflow: auto; max-width: 100%; max-height: 78vh; }
   details summary { cursor: pointer; color: var(--accent); margin: 6px 0; }
   code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; }
   pre { background: #f7f7f7; border: 1px solid var(--rule); padding: 8px; overflow-x: auto; white-space: pre-wrap;
@@ -28,6 +38,9 @@
   figure svg { max-width: 100%; height: auto; }
   figcaption, .caption { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .caption b, figcaption b { color: #222; }
+  p.tcap { font-size: 12px; color: var(--muted); margin: 14px 0 2px 0; }
+  p.tcap b { color: #222; }
+  .lead { background: #f4f8fb; border-left: 3px solid var(--accent); padding: 6px 10px; margin: 10px 0; }
   .methods { max-width: 900px; text-align: justify; }
   ul.failures li { margin-bottom: 4px; }
   .legend { font-size: 12px; color: var(--muted); }
@@ -35,8 +48,13 @@
             vertical-align: middle; }
   footer { margin-top: 40px; border-top: 1px solid var(--rule); padding-top: 8px; font-size: 12px;
            color: var(--muted); }
-  @media print { details { display: block; } details > *:not(summary) { display: block; } nav { display: none; }
-                 h2 { page-break-after: avoid; } table, figure { page-break-inside: avoid; } }
+  @page { size: A4 landscape; margin: 12mm; }
+  @media print { body { max-width: none; font-size: 11px; padding: 0; }
+                 details { display: block; } details > *:not(summary) { display: block; } nav { display: none; }
+                 h2 { page-break-after: avoid; } figure, tr { page-break-inside: avoid; }
+                 .scroll { max-height: none; overflow: visible; }
+                 table { font-size: 9px; } thead th, tbody th { position: static; } th, td { padding: 1px 4px; }
+                 a { color: inherit; text-decoration: none; } }
 </style>
 </head>
 <body>
@@ -55,11 +73,41 @@
   <a href="#methods">Methods</a><a href="#appendix">Appendix</a>
 </nav>
 
+{% set n = namespace(t=0, f=0) %}
+{% macro tcap(text) %}{% set n.t = n.t + 1 %}<p class="tcap"><b>Table {{ n.t }}.</b> {{ text }}</p>{% endmacro %}
+{% macro fcap(text) %}{% set n.f = n.f + 1 %}<b>Figure {{ n.f }}.</b> {{ text }}{% endmacro %}
+
 <h2 id="summary">1. Summary</h2>
+<p class="lead">{{ meta_completeness }}</p>
+{% if screening %}
+<h3 id="across">Across samples</h3>
+<p>Share of loci with status OK per sample: mean {{ screening.mean }}, lowest {{ screening.min }}.
+{% if screening.low %}Samples below 75%: {{ screening.low | join(", ") }}.{% else %}No sample is below 75%.{% endif %}
+The per-sample and per-locus tables are written as <code>{{ prefix }}_sample_summary.tsv</code> and
+<code>{{ prefix }}_locus_summary.tsv</code>.</p>
+{% if screening.concerns_table %}
+<p><b>Loci to review.</b> A flag on more than half of the typed calls of a locus, or an allele of zero or
+below, points at the scheme (reference values, repeat unit or patterns) more often than at the strains.</p>
+{{ tcap("Loci to review.") }}
+<div class="scroll">{{ screening.concerns_table | safe }}</div>
+{% else %}
+<p>No locus carries one flag on more than half of its calls, and no allele is zero or below.</p>
+{% endif %}
+<details><summary>Per locus: typed, OK, missing, most frequent flag and diversity</summary>
+{{ tcap("Calls per locus. Share is the part of the typed calls that carry the most frequent flag; the Simpson index is computed over the integer alleles.") }}
+<div class="scroll">{{ screening.loci_table | safe }}</div></details>
+{% if screening.missing_table %}
+<details><summary>Missing products by reason</summary>
+{{ tcap("Combinations of sample and marker without a product, by the reason established by the search.") }}
+<div class="scroll">{{ screening.missing_table | safe }}</div></details>
+{% endif %}
+{% endif %}
+<h3>Per sample</h3>
 <p>Markers typed are those with an integer repeat number; missing markers have no amplicon. The remaining
 columns count status codes per sample; a marker can carry several codes.</p>
-<div class="scroll">{{ summary_table | safe }}</div>
-<p class="caption"><b>Table 1.</b> Typing completeness and status codes per sample.</p>
+<details{% if n_samples <= 20 %} open{% endif %}><summary>Typing completeness and status codes for {{ n_samples }} samples</summary>
+{{ tcap("Typing completeness and status codes per sample.") }}
+<div class="scroll">{{ summary_table | safe }}</div></details>
 {% if failures %}
 <ul class="failures">
 {% for code, explanation, items in failures %}
@@ -70,45 +118,23 @@ columns count status codes per sample; a marker can carry several codes.</p>
 {% else %}
 <p>Every marker was found in every sample without flags.</p>
 {% endif %}
-{% if screening %}
-<h3 id="across">Across samples</h3>
-<p>Share of loci with status OK per sample: mean {{ screening.mean }}, lowest {{ screening.min }}.
-{% if screening.low %}Samples below 75%: {{ screening.low | join(", ") }}.{% else %}No sample is below 75%.{% endif %}
-The per-sample and per-locus tables are written as <code>{{ prefix }}_sample_summary.tsv</code> and
-<code>{{ prefix }}_locus_summary.tsv</code>.</p>
-{% if screening.concerns_table %}
-<p><b>Loci to review.</b> A flag on more than half of the typed calls of a locus, or an allele of zero or
-below, points at the scheme (reference values, repeat unit or patterns) more often than at the strains.</p>
-<div class="scroll">{{ screening.concerns_table | safe }}</div>
-{% else %}
-<p>No locus carries one flag on more than half of its calls, and no allele is zero or below.</p>
-{% endif %}
-<details><summary>Per locus: typed, OK, missing, most frequent flag and diversity</summary>
-<div class="scroll">{{ screening.loci_table | safe }}</div></details>
-{% if screening.missing_table %}
-<details><summary>Missing products by reason</summary>
-<div class="scroll">{{ screening.missing_table | safe }}</div></details>
-{% endif %}
-{% endif %}
 
 <h2 id="alleles">2. Allele profiles</h2>
 <p>Repeat numbers per marker in STS order{% if transposed %}, markers as rows because they outnumber the
 samples{% endif %}. Several amplicons for one marker are joined with a slash. Cells are shaded by status code.</p>
 {{ legend | safe }}
+{{ tcap("Allele profiles. Abbreviations in place of a number are explained above and in the appendix; hover over a cell for the full code.") }}
 <div class="scroll">{{ alleles_table | safe }}</div>
-<p class="caption"><b>Table 2.</b> Allele profiles. Codes in place of a number are explained in the appendix.</p>
 <details><summary>Profile strings (hyphen joined, the MLVAbank input format)</summary>
 <div class="scroll">{{ profile_table | safe }}</div></details>
 
 <h2 id="figures">3. Figures</h2>
 <figure>{{ data.figures.lengths | safe }}
-<figcaption><b>Figure 1.</b> Amplicon length per marker (points, one per amplicon) and the expected size from
-the STS file (grey tick).</figcaption></figure>
+<figcaption>{{ fcap("Amplicon length per marker (points, one per amplicon) and the expected size from the STS file (grey tick).") }}</figcaption></figure>
 <figure>{{ data.figures.residuals | safe }}
-<figcaption><b>Figure 2.</b> Residual between the amplicon length and the expected size of the called allele.
-Values other than zero indicate flanking indels, primer indels or a wrong unit length.</figcaption></figure>
+<figcaption>{{ fcap("Residual between the amplicon length and the expected size of the called allele. Values other than zero indicate flanking indels, primer indels or a wrong unit length.") }}</figcaption></figure>
 <figure>{{ data.figures.status | safe }}
-<figcaption><b>Figure 3.</b> Status per sample and marker, with the colours of the legend above.</figcaption>
+<figcaption>{{ fcap("Status per sample and marker; the first flag of a call sets the colour, and white cells are OK.") }}</figcaption>
 </figure>
 
 <h2 id="evidence">4. Evidence per amplicon</h2>
@@ -117,14 +143,14 @@ and indels, the search pass that found it (main, rescue, aligned), the allele an
 its exact and variant windows. Rows with a flag are shaded.</p>
 {% for sample in data.samples %}
 <details{% if loop.first %} open{% endif %}><summary>{{ sample }}</summary>
+{% if loop.first %}{{ tcap("Evidence per amplicon, one table per sample.") }}{% endif %}
 <div class="scroll">{{ evidence[sample] | safe }}</div></details>
 {% endfor %}
-<p class="caption"><b>Table 3.</b> Evidence per amplicon, one table per sample.</p>
 
 <h2 id="missing">5. Markers without amplicon</h2>
 {% if missing_table %}
+{{ tcap("Markers without an amplicon and the reason established by the search.") }}
 <div class="scroll">{{ missing_table | safe }}</div>
-<p class="caption"><b>Table 4.</b> Markers without an amplicon and the reason established by the search.</p>
 {% else %}
 <p>None.</p>
 {% endif %}
@@ -141,6 +167,7 @@ markers hold two or more non-overlapping A or B candidates.</p>
 <h2 id="methods">{{ "7" if discovery_table else "6" }}. Methods</h2>
 <p class="methods">{{ methods }}</p>
 <h3>Software</h3>
+{{ tcap("Software used and the references to cite.") }}
 <table><thead><tr><th>software</th><th>reference</th></tr></thead><tbody>
 {% for name, url, reference in software %}
 <tr><td>{{ name }} ({{ url }})</td><td>{{ reference }}</td></tr>
@@ -150,6 +177,7 @@ markers hold two or more non-overlapping A or B candidates.</p>
 <pre>{{ command }}</pre>
 {% if inputs %}
 <h3>Input files</h3>
+{{ tcap("Input files with size and MD5 checksum.") }}
 <table><thead><tr><th>file</th><th>size (bytes)</th><th>MD5</th></tr></thead><tbody>
 {% for item in inputs %}
 <tr><td>{{ item.path }}</td><td>{{ item.size }}</td><td><code>{{ item.md5 }}</code></td></tr>
@@ -161,9 +189,10 @@ markers hold two or more non-overlapping A or B candidates.</p>
 <h2 id="appendix">{{ "8" if discovery_table else "7" }}. Appendix</h2>
 {% if definitions_table %}
 <h3>Marker definitions used</h3>
-<details><summary>Definitions</summary><div class="scroll">{{ definitions_table | safe }}</div></details>
+<details><summary>Definitions</summary>{{ tcap("Marker definitions used for this prefix.") }}<div class="scroll">{{ definitions_table | safe }}</div></details>
 {% endif %}
 <h3>Status codes</h3>
+{{ tcap("Status codes and their meaning.") }}
 <table><thead><tr><th>code</th><th>meaning</th></tr></thead><tbody>
 {% for code, meaning in glossary.items() %}
 <tr><td>{{ code }}</td><td>{{ meaning }}</td></tr>
