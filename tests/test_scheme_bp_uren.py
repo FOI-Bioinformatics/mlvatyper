@@ -92,17 +92,18 @@ def test_the_scheme_turns_on_the_indel_rescue():
 
 
 def test_the_indel_rescue_recovers_loci_in_a_second_strain(tmp_path):
-    """In B. pseudomallei 1106a two loci are missed by the main search and found by the aligned rescue.
+    """In B. pseudomallei 1106a four loci are missed by the main search and found by the aligned rescue.
 
-    The default search finds 28 of the 32 loci in this strain; the rescue gives 1764k and 2445k, the
-    remaining four have primer sites that differ too much or a product outside the size window.
+    The main search finds 26 of the 32 loci in this strain. The rescue gives 1764k and 2445k (one primer
+    with an indel) and 2341k and 3671k (a mismatch in both primers, so no exact anchor). The other two have
+    primer sites that differ too much or a product outside the size window.
     """
     fixture = reference_assembly("GCF_000756145.1")
     assert main(["run", "--scheme", "burkholderia_uren_2007", "--fasta", str(fixture), "--outdir",
                  str(tmp_path), "--prefix", "s", "--align", "none", "--no-report"]) == 0
     hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t").set_index("marker")
-    assert set(hits.index[hits["search_pass"] != "main"]) == {"1764k", "2445k"}
-    assert len(hits) == 28
+    assert set(hits.index[hits["search_pass"] != "main"]) == {"1764k", "2445k", "2341k", "3671k"}
+    assert len(hits) == 30
 
 
 def test_five_markers_use_the_published_count_and_sixteen_skip_the_count_check():
@@ -126,3 +127,13 @@ def test_a_second_strain_gives_positive_alleles_and_no_flag_at_interrupted_array
     skip = set(load_scheme("burkholderia_uren_2007").interrupted_arrays)
     flagged = long[long["marker"].isin(skip)]["status"].str.contains("COUNT_DISAGREES", na=False)
     assert not flagged.any()
+
+
+def test_the_rescue_finds_3671k_when_both_primers_have_a_mismatch(tmp_path):
+    """In this draft genome both 3671k primers carry one mismatch, so no exact anchor exists."""
+    fixture = reference_assembly("GCF_001327535.1")
+    assert main(["run", "--scheme", "burkholderia_uren_2007", "--fasta", str(fixture), "--outdir",
+                 str(tmp_path), "--prefix", "d", "--align", "none", "--no-report"]) == 0
+    hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t").set_index("marker")
+    row = hits.loc["3671k"]
+    assert (row["length"], row["fwd_mismatches"], row["rev_mismatches"], row["search_pass"]) == (225, 1, 1, "aligned")

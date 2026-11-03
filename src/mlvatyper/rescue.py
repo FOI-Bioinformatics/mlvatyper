@@ -10,8 +10,9 @@ sample, so that the main scan keeps its speed and specificity:
 1. A second merPCR pass with a smaller word size, one-sided search (a record
    whose other primer cannot be hashed is still searched) and a wider size
    window. Hits carry search_pass "rescue".
-2. An alignment of one primer with up to one indel, anchored on an exact
-   IUPAC-aware match of the other primer, within the size window. Hits
+2. An alignment of one primer with up to one indel, anchored on a gap-free
+   IUPAC-aware match of the other primer with up to -N mismatches, within the
+   size window. Hits
    carry search_pass "aligned" and the indel counts.
 
 Markers that remain missing are given one reason:
@@ -126,6 +127,30 @@ def _gapped(primer: str, segment: str) -> tuple[int, int]:
     return best, 1
 
 
+def _anchors(text: str, primer: str, max_mismatch: int) -> list[tuple[int, int]]:
+    """Start positions where the primer matches without gaps, as (start, mismatches).
+
+    With at most k mismatches, one of k + 1 consecutive parts of the primer matches exactly, so the
+    parts are searched as seeds and each candidate is checked over the whole primer.
+    """
+    n = len(primer)
+    parts = max_mismatch + 1
+    if max_mismatch <= 0 or n < 2 * parts:
+        return [(m.start(), 0) for m in re.finditer(f"(?={_iupac_regex(primer)})", text)]
+    bounds = [round(i * n / parts) for i in range(parts + 1)]
+    candidates: set[int] = set()
+    for lo, hi in zip(bounds, bounds[1:], strict=False):
+        for m in re.finditer(f"(?={_iupac_regex(primer[lo:hi])})", text):
+            if 0 <= m.start() - lo <= len(text) - n:
+                candidates.add(m.start() - lo)
+    found = []
+    for start in sorted(candidates):
+        mismatches = sum(not _matches(b, c) for b, c in zip(text[start:start + n], primer, strict=True))
+        if mismatches <= max_mismatch:
+            found.append((start, mismatches))
+    return found
+
+
 def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, max_mismatch: int):
     """Products on one strand as (start, end, fwd_mm, rev_mm, fwd_indels, rev_indels), 0-based half open.
 
@@ -136,28 +161,30 @@ def _products(text: str, fwd: str, rev_rc: str, pair: PrimerPair, margin: int, m
     low = pair.expected_size if pair.size_low is None else pair.size_low
     high = pair.expected_size if pair.size_high is None else pair.size_high
     found = []
-    for m in re.finditer(f"(?={_iupac_regex(fwd)})", text):
-        p = m.start()
+    for p, anchor_mm in _anchors(text, fwd, max_mismatch):
         lo, hi = max(p + len(fwd), p + low - margin - len(rev_rc)), min(len(text), p + high + margin)
         if hi <= lo:
             continue
         best = align_primer(rev_rc, text[lo:hi])
         if best and best[0] <= max_mismatch and best[1] <= 1:
-            found.append((p, lo + best[3], 0, best[0], 0, best[1]))
-    for m in re.finditer(f"(?={_iupac_regex(rev_rc)})", text):
-        e = m.start() + len(rev_rc)
+            found.append((p, lo + best[3], anchor_mm, best[0], 0, best[1]))
+    for start, anchor_mm in _anchors(text, rev_rc, max_mismatch):
+        e = start + len(rev_rc)
         lo, hi = max(0, e - high - margin), min(e - len(rev_rc), e - low + margin + len(fwd))
         if hi <= lo:
             continue
         best = align_primer(fwd, text[lo:hi])
         if best and best[0] <= max_mismatch and best[1] <= 1:
-            found.append((lo + best[2], e, best[0], 0, best[1], 0))
+            found.append((lo + best[2], e, best[0], anchor_mm, best[1], 0))
     return list(dict.fromkeys(found))
 
 
 def find_with_indels(contigs: dict[str, str], pair: PrimerPair, sample: str, margin: int,
                      max_mismatch: int = 2) -> list[Hit]:
-    """Hits for one marker where one primer matches exactly and the other with up to one indel.
+    """Hits for one marker where one primer matches without gaps and the other with up to one indel.
+
+    The anchoring primer may carry up to max_mismatch mismatches, so a product whose two primers
+    both differ from the template is found too.
 
     A product without indels is also reported, since the marker reached this
     step only because merPCR did not find it.

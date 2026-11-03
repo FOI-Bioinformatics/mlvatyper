@@ -114,8 +114,8 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
                    help="largest repeat number of the per-marker size window written from --markers "
                         "(default 50)")
     p.add_argument("--rescue-indels", action="store_true",
-                   help="for markers still missing, anchor on an exact match of one primer and align the other "
-                        "with up to one indel")
+                   help="for markers still missing, anchor on a gap-free match of one primer (up to -N "
+                        "mismatches) and align the other with up to one indel")
 
 
 def _add_scheme_arg(p: argparse.ArgumentParser) -> None:
