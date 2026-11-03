@@ -1,7 +1,7 @@
-# Mycoplasma agalactiae, the four locus MLVA of Nouvel et al. 2008, anchored on type strain PG2.
-name: magalactiae_mlva4_nouvel_2008
+# Mycoplasma agalactiae, the four locus MLVA of McAuliffe et al. 2008, anchored on type strain PG2.
+name: magalactiae_mlva4_mcauliffe_2008
 organism: Mycoplasma agalactiae
-citation: Nouvel LX, Sirand-Pugnet P, Marenda MS, Sagne E, Barbe V, Mangenot S, Schenowitz C, Jacob D, Barre A, Claverol S, Blanchard A, Citti C. VNTR analysis reveals unexpected genetic diversity within Mycoplasma agalactiae, the main causative agent of contagious agalactia. BMC Microbiol 2008;8:193. doi:10.1186/1471-2180-8-193, Table 1 (VNTR genomic positions, repeat unit lengths, PG2 copy numbers and primers)
+citation: McAuliffe L, Churchward CP, Lawes JR, Loria G, Ayling RD, Nicholas RAJ. VNTR analysis reveals unexpected genetic diversity within Mycoplasma agalactiae, the main causative agent of contagious agalactia. BMC Microbiol 2008;8:193. doi:10.1186/1471-2180-8-193, Table 1 (VNTR genomic positions, repeat unit lengths, PG2 copy numbers and primers)
 url: https://doi.org/10.1186/1471-2180-8-193 (Table 1)
 reference: Mycoplasma agalactiae PG2, chromosome CU179680.1; ref_size is the product these primers give in that assembly and ref_repeats is the PG2 copy number of Table 1
 assembly: GCA_000063605.1

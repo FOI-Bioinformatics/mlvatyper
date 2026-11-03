@@ -1,4 +1,4 @@
-# Mycoplasma agalactiae, the four locus MLVA of Nouvel et al. 2008, anchored on the type strain PG2.
+# Mycoplasma agalactiae, the four locus MLVA of McAuliffe et al. 2008, anchored on the type strain PG2.
 # Primers are Table 1 as published. The Magal_VNTR5 reverse primer carries mismatches to the PG2
 # genome, so that locus is found by the aligned rescue pass rather than at word size 11; it gives the
 # published 226 bp product there. The search window is wide because the paper reports no per-locus

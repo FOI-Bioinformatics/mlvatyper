@@ -34,13 +34,18 @@ requires the provenance fields citation, url and reference.
 The Salmonella Typhimurium scheme `STm_ECDC` and the Legionella
 pneumophila scheme `Lpn_MLVA12` are bundled, verified against LT2 and
 Philadelphia-1, and checked in CI against those assemblies, downloaded by
-accession. The STTR3 locus of `STm_ECDC` shows a limit of the data model:
+accession. The STTR3 locus of `STm_ECDC` showed a limit of the data model:
 compound loci with two unit lengths (27 and 33 bp here) cannot be called
-by the single unit formula and are reported by length only. Supporting a
-second unit per marker, counted separately and named as the nomenclature
-does, is a candidate item.
+by the single unit formula. Such a locus is now called from a `bins.tsv`
+alone, as are NMTR12 of `nmeningitidis_mlva12_liao_2006` and Ft-M20B of
+`francisella_vogler_2008`, and a size outside the table gets no allele and
+OFF_TABLE. Counting each of the two units separately and naming the allele
+from the pair of counts remains a candidate item, since a table covers only
+the sizes it lists.
 
-Further published schemes need reference values from their publication,
+Twenty-five published schemes are bundled and every locus of each calls; the
+publication, reference strain and basis of the values of each are in
+[scheme_references.md](scheme_references.md). Further published schemes need reference values from their publication,
 the provenance fields filled in, and a passing `check-scheme` against the
 assembly of the strain the publication used, so that a transcription
 error shows up as a marker that misses its stated size or repeat count

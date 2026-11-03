@@ -7,7 +7,7 @@ A scheme is a directory with four files that mlvatyper reads through
 |---|---|---|
 | `primers.sts` | marker id, forward primer, reverse primer, expected size | yes |
 | `markers.tsv` | repeat unit, unit length, reference size and repeats, export label | recommended |
-| `bins.tsv` | amplicon size to allele table | only for schemes numbered by a size table |
+| `bins.tsv` | amplicon size to allele table | for schemes numbered by a size table, and for loci with no single repeat unit |
 | `scheme.yml` | name, organism, provenance, calling defaults | yes |
 
 This page describes how to fill them from an MLVA publication and how to
@@ -32,6 +32,13 @@ and swaps the forward and reverse columns of wide tables. When only the
 PDF is available, copy each primer, then compare the primer length with
 the length the paper states and read the sequence back once against the
 table.
+
+A table printed sideways, or as an image, is the worst case. Read it both ways, from the text layer of
+the PDF and from the rendered page, and do not trust either until `check-scheme` has searched the
+reference: a primer that does not amplify its own reference strain is a transcription error until
+shown otherwise. In one scheme the primers read from the image of a rotated table failed to amplify at
+four of eight loci, while the text layer gave primers that amplified at all eight, seven of them at the
+published size to the base.
 
 In `primers.sts`, one line per marker, tab separated:
 
@@ -89,7 +96,7 @@ in the columns.
 
 ## 4. Decide how alleles are numbered
 
-Publications number alleles in one of two ways, and the scheme must say
+Publications number alleles in one of three ways, and the scheme must say
 which:
 
 - **By the formula**: the allele is the repeat number, computed from the
@@ -110,6 +117,24 @@ which:
   log for those. Alleles from the bin table take precedence over the
   formula and need not be numbers; sizes outside every bin are flagged
   OFF_TABLE and fall back to the formula.
+- **By a table alone, for a locus with no single repeat unit**: a compound
+  locus interleaves two repeat unit sizes, for example the 27 and 33 bp
+  units of STTR3, so no one unit length can express its array and the
+  formula cannot be used. The same holds when a locus has two states that
+  do not lie on one repeat ladder, such as an insertion that is present in
+  some strains and absent in others. Give the marker a `bins.tsv` and no
+  `ref_repeats`. A size in the table gets that allele and is flagged
+  BINNED; any other size gets no allele and OFF_TABLE, which is the
+  honest result, since a formula that does not apply would give a wrong
+  number. Cover as many sizes as the data support, state in the notes which
+  genomes the table was built from, and say how a size that is not listed
+  should be added.
+
+When the publication gives no count at all, as in a gel based fingerprint,
+the scheme may define one, but it must be a rule that needs no outside
+value and it must be recorded as a convention in `notes` and in the comments
+of `markers.tsv`. Alleles from such a locus compare only with each other and
+not with any published scale.
 
 Record the rounding convention of the paper in `scheme.yml`: `rounding:
 nearest`, `up`, `down` or `intermediate` (the default, which reports
@@ -154,6 +179,37 @@ sizes rather than the primers. A single marker off by a multiple of its
 unit length means the downloaded assembly is not the strain the paper
 used, or the strain carries a different allele; note it in `scheme.yml`.
 
+### Checks that have caught errors
+
+`check-scheme` confirms that the primers reproduce the stated sizes in one
+assembly. These further checks have each found a mistake in a bundled scheme,
+and are worth making for a new one.
+
+- **Read the header of the assembly.** `check-scheme` cannot know that an
+  accession is the strain the paper used. An earlier audit of two schemes
+  named genomes it had not looked at, and two of its accessions were
+  unrelated bacteria. Print the first line of each FASTA file and read it.
+- **Reproduce the published reference profile**, not only the sizes: a run on
+  the reference strain should return the paper's allele string, in the
+  paper's locus order.
+- **Verify the bibliographic details against the DOI registry.** A DOI
+  written from memory pointed at a different paper by other authors, and a
+  first author was wrong in a scheme's name. Look the DOI up and compare the
+  authors, year, journal and pages with the paper in front of you.
+- **Amplify more strains.** A locus keeps one flanking length, so its
+  products in different strains should differ by whole multiples of the
+  repeat unit. A locus that does not follow this has an indel in the flank,
+  an insertion present in some lineages, a duplicated copy or a wrong unit;
+  the test cannot tell these apart, so each exception needs an explanation
+  in the notes and not just a mention. Use genomes from the whole species and
+  record which subspecies they belong to.
+- **Cross-check against a sibling scheme.** Where two schemes read the same
+  array with different primers, run both on the same genomes: they should
+  give the same allele wherever the array is the same, and the places they
+  differ are informative. This is also how one scheme's counts can be taken
+  over by another, by measuring the second scheme's product in a genome the
+  first one counts.
+
 When the paper gives no reference repeats, run the reference assembly
 through mlvatyper and take the values from it:
 
@@ -189,6 +245,11 @@ Write in `notes` every correction made in sections 2 to 5. The next
 person to use the scheme, including you a year later, can then tell a
 deliberate change from a mistake.
 
+Add the scheme to [scheme_references.md](scheme_references.md), with its
+publication, its DOI, the reference strain and a line on the basis of its
+values; a test fails until every bundled scheme and every DOI it cites is
+there.
+
 `known_multiple` lists the markers that give more than one product in the
 reference because the locus really is duplicated there, separated by
 commas. Checks that require one product per marker skip them, so a
@@ -222,7 +283,10 @@ does not reproduce.
 - sizes in the outer-edge convention, or corrected and noted
 - unit sequences in forward primer orientation, variants separated by `;`
 - reference size and repeats from the paper or from the reference assembly
-- allele numbering decided: formula or `bins.tsv`, rounding stated
+- allele numbering decided: formula, `bins.tsv` or both, rounding stated, and any count that is a
+  convention of the scheme recorded as one
+- header of the downloaded assembly read, and the published reference profile reproduced
+- DOI and bibliographic details checked against the registry
 - `check-scheme` run against the reference assembly, every marker with one
   product of the stated size and repeat count, exceptions noted
 - citation, url, reference, assembly accession and retrieval date in

@@ -1,4 +1,4 @@
-"""The bundled Mycoplasma agalactiae MLVA of Nouvel et al. 2008 against type strain PG2.
+"""The bundled Mycoplasma agalactiae MLVA of McAuliffe et al. 2008 against type strain PG2.
 
 Table 1 gives the repeat unit and the PG2 copy number for all four VNTRs. Three
 counts are fractional because the arrays are imperfect, so the reference alleles
@@ -15,7 +15,7 @@ from mlvatyper.sts import read_sts
 from tests.conftest import reference_assembly
 
 ASSEMBLY = "GCA_000063605.1"
-SCHEME = "magalactiae_mlva4_nouvel_2008"
+SCHEME = "magalactiae_mlva4_mcauliffe_2008"
 CHROMOSOME = "CU179680.1"
 
 ORDER = ["Magal_VNTR5", "Magal_VNTR14", "Magal_VNTR17", "Magal_VNTR19"]

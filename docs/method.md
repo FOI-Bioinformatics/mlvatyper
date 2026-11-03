@@ -128,7 +128,9 @@ Marker definitions come from three sources, which are merged:
   reference sample without any amplicon is an error.
 
 The definitions a summarize used, from all three sources, are written to
-`<prefix>_definitions.tsv`. Markers without unit length cannot be called.
+`<prefix>_definitions.tsv`. Markers without unit length cannot use the formula; a marker that has
+entries in a bin table is called from that table alone (see below), which is how a compound locus with
+two repeat unit sizes is handled.
 Without any definition only the lengths table is produced, and the call
 tables an earlier run wrote under the same prefix are removed.
 
@@ -136,7 +138,8 @@ tables an earlier run wrote under the same prefix are removed.
 
 A scheme directory bundles `primers.sts`, `markers.tsv`, an optional
 `bins.tsv` and `scheme.yml`, flat `key: value` metadata (name, organism,
-reference, assembly, citation, url, retrieved, notes; `#` starts a comment
+reference, assembly, citation, url, retrieved, notes, and `known_multiple`, the
+markers that really give more than one product in the reference; `#` starts a comment
 at the start of a line or after a space) that may also set the calling defaults
 `rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
 and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
@@ -145,12 +148,15 @@ and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
 templates, and [schemes.md](schemes.md) describes how to fill them from a
 publication. An option given on the command line wins over the scheme
 default, also when it is given at its default value. Schemes are bundled
-under `src/mlvatyper/schemes/`. Published schemes should be added only with
+under `src/mlvatyper/schemes/`. Published schemes should be added with
 reference values taken from their publications, the provenance fields
 filled in, and a passing `check-scheme` against the assembly of the strain
-the publication used.
+the publication used. Where a publication gives no count, a scheme may define
+one by a stated convention, and its notes must say so; the page
+[scheme_references.md](scheme_references.md) lists which schemes do.
 
-Bundled schemes. `mlvatyper schemes` lists them with their organism, locus
+Bundled schemes. [scheme_references.md](scheme_references.md) gives each one's publication, DOI,
+reference strain and the basis of its values. `mlvatyper schemes` lists them with their organism, locus
 count, callable locus count and reference assembly; `mlvatyper schemes NAME`
 prints one scheme's loci, provenance, calling defaults and notes, and a
 partial name or an organism filters the list. The notes in `scheme.yml` are
@@ -158,7 +164,9 @@ the full account of how a scheme's values were obtained, and the summaries
 below are shorter than they are.
 
 - `testM`: the example scheme of this repository, without reference
-  repeat numbers.
+  repeat numbers, which a run takes from `--reference-sample`. It is built on the Johansson
+  *Francisella* panel: 22 of its 31 markers use a Johansson primer pair and repeat unit, and it adds
+  testM3a, 3b, 20a, 20b, 25_2 and 26. Its expected sizes are those of a *holarctica* strain.
 - `STm_ECDC`: the five locus scheme for *Salmonella* Typhimurium
   harmonised in the EU (Lindstedt et al. 2004; nomenclature of Larsson et
   al. 2009; ECDC SOP). Reference sizes are the in silico products in strain
@@ -216,8 +224,8 @@ below are shorter than they are.
   NCC2705 profile 6-4-3-7-16 from Table 1; a run on NCC2705 reproduces it.
   VNTR12 can take a half-repeat allele.
 
-- `magalactiae_mlva4_nouvel_2008`: the four locus MLVA for *Mycoplasma
-  agalactiae* (Nouvel et al. 2008), anchored on type strain PG2. Table 1
+- `magalactiae_mlva4_mcauliffe_2008`: the four locus MLVA for *Mycoplasma
+  agalactiae* (McAuliffe et al. 2008), anchored on type strain PG2. Table 1
   gives the unit and the PG2 copy number for each; three are fractional
   because the arrays are imperfect, so the reference profile is 2.3-2-3.6-2.3.
   Magal_VNTR5 has a mismatched reverse primer and is found by the rescue
@@ -248,10 +256,10 @@ below are shorter than they are.
   `bacillus_mlva31_mlvabank`, of which this panel is the first 25 loci, but
   the repeat numbering is the paper's own and differs from the MLVAbank one at
   vrrA, vrrB1, vrrB2, pXO2-at and bams34; the reference sizes agree at every
-  locus. This is the only bundled scheme with a `bins.tsv`: the paper numbers
-  alleles from a table of sequenced amplicon size against repeat number, which
-  ships here in full, so a profile is comparable with published MLVA-25
-  genotypes while one from the other Bacillus schemes is not.
+  locus. The paper numbers alleles from a table of sequenced amplicon size
+  against repeat number, which ships here in full as a `bins.tsv`, so a profile
+  is comparable with published MLVA-25 genotypes while one from the other
+  Bacillus schemes is not.
 
 - `bacillus_mlva31_mlvabank`: the 31 locus composite panel of MLVAbank, the
   MLVA-8 loci with 17 bams loci (Lista et al. 2006) and six vntr loci. Every
@@ -286,8 +294,8 @@ below are shorter than they are.
   the two are the same VNTRs spelled differently, Ft-M02 against Ft-M2, but
   the primers and references differ so the alleles are not interchangeable.
   Five Johansson loci share a reverse primer and one repeat family and are
-  selected by size alone; at Ft-M8 that is shown to pick a different family
-  member in one strain, so read its allele with care.
+  selected by size alone; at Ft-M8 that picks a different family member in
+  four of 13 genomes outside *novicida*, so read its allele with care.
 
 - `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`: the standardised
   MIRU-VNTR set for *Mycobacterium tuberculosis* and its discriminatory
@@ -489,7 +497,14 @@ range, allele; a header and `#` comment lines are optional) maps amplicon
 sizes directly to allele names, which need not be numbers, and takes
 precedence over the formula, as some schemes (for example Brucella) number alleles by
 convention. A size outside every bin for that marker is flagged OFF_TABLE
-and falls back to the formula.
+and falls back to the formula when the marker has one.
+
+A marker with no unit length or reference count has no formula, and for it the bin table is the whole
+definition. This is the case for a compound locus, whose array interleaves two repeat unit sizes, and
+for a locus whose states cannot be placed on one repeat ladder. A size that matches a bin gets that
+allele and is flagged BINNED; a size outside every bin gets no allele and OFF_TABLE, because a number
+from a formula that does not apply would be wrong. `STm_ECDC` (STTR3), `nmeningitidis_mlva12_liao_2006`
+(NMTR12) and `francisella_vogler_2008` (Ft-M20B) are called this way.
 
 `--max-array-length L` censors calls whose repeat array is at least L bp
 long, reported as `>=n` with CENSORED. Long tandem arrays collapse in short
@@ -560,7 +575,7 @@ flanking region), BINNED, OFF_TABLE, MULTIPLE (several loci in the sample),
 AMBIGUOUS (overlapping hits were collapsed), PRIMER_INDEL (hit from the
 indel rescue), CENSORED, HAS_N, COUNT_DISAGREES and NO_DEFINITION (an
 amplicon was found, but the marker has no unit length or reference
-values). The codes are text so that they cannot be confused with the
+values and no bin table). The codes are text so that they cannot be confused with the
 allele 0, which is a valid call.
 
 `--legacy-tables` additionally writes the two tables of the original script:
@@ -601,6 +616,12 @@ there as NOT_DETECTED). The reasons are:
 - Short read assemblies collapse long tandem arrays; use `--max-array-length`
   and prefer long reads or large k-mers for such loci.
 - Loci sharing a repeat unit are distinguished by their primers only.
+- Some counts are a convention of the scheme and not a published value: the five loci of
+  `saureus_mlva5_sabat_2003`, Ft-M20B of `francisella_vogler_2008`, and NMTR12 of
+  `nmeningitidis_mlva12_liao_2006`, which is binned for three genomes only. Alleles from such a locus
+  compare only with each other, and [scheme_references.md](scheme_references.md) lists them.
+- Several schemes read the same array with different primers and numbering, for example the *spa*
+  repeat in three *S. aureus* schemes, so a count from one scheme is not a count from another.
 
 ## Differences from the legacy script
 

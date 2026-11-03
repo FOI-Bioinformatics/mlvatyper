@@ -13,6 +13,9 @@ single-file script (`vntr_searcher_9.py`).
   every output table, the status codes, the limitations and the differences
   from the legacy script.
 - [Run report](docs/report.md): the HTML report written for each run.
+- [Bundled schemes and their references](docs/scheme_references.md): the
+  publication, DOI, reference strain and basis of the values for each of the
+  bundled schemes, with a bibliography.
 - [Building a scheme from a publication](docs/schemes.md): step by step
   from the primer table to a verified scheme directory.
 - [Roadmap](docs/roadmap.md): planned work.
@@ -42,10 +45,15 @@ a built-in repeat finder is used without it).
 
 ## Usage
 
-With a bundled scheme (`mlvatyper schemes` lists them; `STm_ECDC` for
-*Salmonella* Typhimurium, `Lpn_MLVA12` for *Legionella pneumophila* and
-`Bru_MLVA16` for *Brucella*), which supplies the primers, the marker
-definitions and the calling defaults:
+With a bundled scheme, which supplies the primers, the marker definitions
+and the calling defaults. Twenty-five published schemes are bundled, for
+*Bacillus anthracis*, *Bifidobacterium longum*, *Brucella*, *Burkholderia
+pseudomallei*, *Coxiella burnetii*, *Francisella tularensis*, *Legionella
+pneumophila*, *Mycobacterium tuberculosis*, *Mycoplasma agalactiae*,
+*Neisseria meningitidis*, *Pseudomonas aeruginosa*, *Salmonella enterica*,
+*Staphylococcus aureus* and *Yersinia pestis*. `mlvatyper schemes` lists them,
+`mlvatyper schemes NAME` describes one, and the
+[scheme references](docs/scheme_references.md) give the publication behind each:
 
     mlvatyper run --scheme STm_ECDC --fasta 'assemblies/*.fasta' \
         --outdir results --prefix study --mlvabank
@@ -80,8 +88,10 @@ other samples are still typed and reported.
 ## Example
 
 `examples/testM/` holds a 31 marker scheme, also bundled as `--scheme
-testM`: `testM.sts` (primers and expected sizes from the strain the scheme
-was designed on) and `testM_pattern.txt`, the legacy pattern file with the
+testM`. It is built on the Johansson *Francisella* panel: 22 of its markers
+use a Johansson primer pair and repeat unit, and its expected sizes are those
+of a *holarctica* strain. It holds `testM.sts` (primers and expected sizes from
+the strain the scheme was designed on) and `testM_pattern.txt`, the legacy pattern file with the
 repeat unit of every marker, converted to `testM_markers.tsv` (patterns and
 unit length, no reference values). The assembly used below is not included
 in the repository; four slices of it around six of the markers are kept
@@ -147,8 +157,10 @@ First columns of `hits.tsv`:
 
 Tests that need TRF, an aligner or a reference assembly are skipped when
 these are missing. `MLVATYPER_ONLINE=1 pytest` downloads the assemblies of
-the bundled schemes from NCBI into the cache and runs the scheme tests
-against them. Tests run in GitHub Actions on every push
+the bundled schemes from NCBI into the cache, with the few further genomes that
+individual scheme tests use, and runs the scheme tests against them. A test
+checks that [docs/scheme_references.md](docs/scheme_references.md) lists every
+bundled scheme and every DOI its `scheme.yml` cites. Tests run in GitHub Actions on every push
 (`.github/workflows/tests.yml`), with all of these enabled.
 
 ## License
