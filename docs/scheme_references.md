@@ -100,7 +100,7 @@ number printed in the paper. Each scheme's notes give the detail.
   cover the three sequenced genomes only, and any other size is OFF_TABLE.
 - `mtb_miru15_supply_2006` and `mtb_miru24_supply_2006`, all loci, and the repeat numbers of
   `STm_ECDC`. Derived from the reference.
-- `burkholderia_uren_2007`, all loci. Measured in K96243; copy numbers of five loci from the paper (see the scheme notes). Sixteen loci have arrays the repeat patterns cannot follow across strains and are not compared with the tandem count.
+- `burkholderia_uren_2007`, all loci. Measured in K96243; copy numbers of five loci from the paper (see the scheme notes). Seventeen loci have arrays the repeat patterns cannot follow across strains and are not compared with the tandem count.
 - `salmonella_enteritidis_mlva9_malorny_2008`. The repeat numbers are published, but the paper's own MLVA
   type is a string of arbitrary allele indices whose table is not printed, so it cannot be reproduced.
 
