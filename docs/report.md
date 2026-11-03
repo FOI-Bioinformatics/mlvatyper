@@ -21,8 +21,8 @@ is an older report with the first layout.
 ![Top of the report: scheme and publication, completeness, across-sample
 summary and loci to review](images/report.png)
 
-![Clustered heatmap of the allele profiles with the tree, and the pairwise
-distance matrix](images/report_heatmap.png)
+![Clustered heatmap of the allele profiles, with the trees of the samples
+(left) and of the loci (top)](images/report_heatmap.png)
 
 ## Sections
 
@@ -51,7 +51,10 @@ distance matrix](images/report_heatmap.png)
    residual per marker, and a status matrix of samples by markers (ordered
    like the heatmap below for five or more samples). For five or more samples
    there are six more: a **clustered heatmap of the allele profiles** (rows
-   ordered by average linkage clustering, with the tree; each locus on its own
+   ordered by average linkage clustering of the samples and columns by
+   clustering of the loci, with both trees; two loci are close when they
+   divide the samples into the same groups of equal allele, one minus the
+   Rand index; each locus on its own
    colour scale; repeat numbers printed in the cells of small matrices), a
    **pairwise distance matrix** in the same order, an **allele spectrum** per
    locus, **call rate bars** per locus and per sample, a **minimum spanning tree** of
