@@ -203,6 +203,19 @@ below are shorter than they are.
   to Philadelphia-1 are not whole multiples of 45 bp; read that locus
   against the published allele table.
 
+- `blongum_mlva5_matamoros_2011`: the five locus MLVA for *Bifidobacterium
+  longum* subsp. *longum* (Matamoros et al. 2011), anchored on NCC2705.
+  Every value is published, the units and motifs from Table 3 and the
+  NCC2705 profile 6-4-3-7-16 from Table 1; a run on NCC2705 reproduces it.
+  VNTR12 can take a half-repeat allele.
+
+- `magalactiae_mlva4_nouvel_2008`: the four locus MLVA for *Mycoplasma
+  agalactiae* (Nouvel et al. 2008), anchored on type strain PG2. Table 1
+  gives the unit and the PG2 copy number for each; three are fractional
+  because the arrays are imperfect, so the reference profile is 2.3-2-3.6-2.3.
+  Magal_VNTR5 has a mismatched reverse primer and is found by the rescue
+  pass.
+
 - `Bru_MLVA16`: the 16 locus *Brucella* panel (loci and primers from Le
   Fleche et al. 2006; the panel 1 / 2A / 2B organisation from Al Dahouk et
   al. 2007). Reference sizes and copy numbers are those of *B. melitensis*

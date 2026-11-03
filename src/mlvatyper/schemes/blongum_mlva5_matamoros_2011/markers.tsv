@@ -1,0 +1,18 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+VNTR12	14	481	6	N/A	VNTR12
+VNTR21	9	386	4	N/A	VNTR21
+VNTR23	10	374	3	N/A	VNTR23
+VNTR25	12	415	7	N/A	VNTR25
+VNTR26	10	274	16	N/A	VNTR26
+# unit_length and ref_repeats are Table 3 and Table 1 of Matamoros et
+# al. 2011: Table 3 gives the consensus repeat unit and its length, and Table 1 gives the NCC2705 MLVA
+# profile, 6-4-3-7-16 in this locus order. ref_size is the product these primers give in the NCC2705
+# assembly GCA_000007525.1, which lies inside the published size range of every locus. A run on
+# NCC2705 returns the published profile with a residual of zero at every locus. VNTR12 can take a half
+# repeat allele, 2.5 or 5.5, as the paper notes; NCC2705 is a whole 6.
+#
+# patterns is N/A at every locus: counting the published consensus motif in the NCC2705 amplicon does
+# not return the published copy number at any of the five, because the arrays are imperfect and the
+# flank carries partial motifs, so a stored pattern would raise a false COUNT_DISAGREES. The motifs
+# from Table 3 are recorded here instead: VNTR12 TCGTGGGTAGCAAC, VNTR21 AGCCGAATC, VNTR23 CTGATATTCG,
+# VNTR25 CACAACCTGTTT, VNTR26 AGCCATATCA.

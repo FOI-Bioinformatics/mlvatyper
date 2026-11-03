@@ -6,6 +6,18 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `blongum_mlva5_matamoros_2011`, the five locus MLVA of
+  Matamoros et al. for *Bifidobacterium longum* subsp. *longum*, anchored on
+  NCC2705. The repeat units and motifs are from the paper's Table 3 and the
+  NCC2705 reference profile 6-4-3-7-16 from Table 1; the primers reproduce
+  every amplicon in the reference assembly and a run returns the published
+  profile with zero residual. First scheme for this organism.
+- Bundled scheme `magalactiae_mlva4_nouvel_2008`, the four locus MLVA of
+  Nouvel et al. for *Mycoplasma agalactiae*, anchored on type strain PG2.
+  Table 1 gives the repeat unit and PG2 copy number for each locus; three
+  are fractional, reflecting imperfect arrays, so the reference profile is
+  2.3-2-3.6-2.3. Magal_VNTR5 carries a mismatched reverse primer and is
+  found by the rescue pass. First scheme for this organism.
 - A locus can now be called from a bins table alone, without a repeat unit.
   This makes a compound locus callable, one that interleaves two repeat unit
   sizes and so has no single unit for the allele formula. STTR3 of `STm_ECDC`
