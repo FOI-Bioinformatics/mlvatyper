@@ -57,12 +57,23 @@ Ft-M25	2	151	5	N/A	Ft-M25
 # Ft-M23 AAGTAGCATTGTCACGACCTCCT, Ft-M24 ATAAATTATTTATTTTGATTA, Ft-M25 GT.
 #
 # The unit lengths were also tested across strains. A locus keeps the same flanking length in every
-# strain, so its product sizes must differ by whole multiples of the unit. Amplifying this panel in
-# seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198, NE061598 and TI0902, confirms the
-# unit at the loci that vary. Ft-M8 is a special case: its steps of 15 and 33 bases are not multiples
-# of 16, because in WY96-3418 its product comes from a position about 1.85 Mb away, a different member
-# of the shared repeat family below, so a non-reference Ft-M8 allele can be fractional and is flagged
-# INTERMEDIATE rather than rounded.
+# strain, so its product sizes must differ by whole multiples of the unit. The panel was amplified in
+# 22 Francisella genomes whose identity was read from the assembly headers: nine subspecies tularensis,
+# among them SCHU S4, three holarctica, one mediasiatica and nine novicida. In the 13 genomes outside
+# novicida 19 of the 25 loci obey the rule. Six do not, and the test cannot say whether a unit is wrong
+# or a flank has an indel; the published units stand. Ft-M19 fits the 30 bp holarctica deletion that the
+# paper itself reports. Ft-M20 fits the roughly 200 bp insertion that Vogler et al. 2008 describe in type
+# A.II isolates, which francisella_vogler_2008 splits off as Ft-M20B. Ft-M11, Ft-M22 and Ft-M24 have steps
+# of 24, 19, and 5 and 16 bp, which are not multiples of the unit and are most simply indels in the flank,
+# a reading not tested here. Ft-M8 is displaced, as described next. In novicida, the more divergent subspecies, seven loci
+# break the rule, which is expected of a panel built on tularensis. A product off the unit grid comes out
+# fractional and is flagged INTERMEDIATE and not rounded.
+#
+# Ft-M8 is displaced in four of the 13 genomes outside novicida. Its product lies at 8 to 17 kb in SCHU S4,
+# the holarctica strains and the other tularensis strains, but at 325 kb in NIH B-38, 1857 kb in the
+# mediasiatica strain FSC147 and 1871 kb in WY96-3418 and WY-00W4114. There the primers have selected
+# another member of the repeat family described below, not the array they amplify in SCHU S4, so an Ft-M8
+# allele in those strains is not comparable with the reference.
 #
 # The same test matches these loci to the other bundled Francisella scheme, whose names are the padded
 # spelling of these, Ft-M02 against Ft-M2, and which took its copy numbers from this scheme's SCHU S4

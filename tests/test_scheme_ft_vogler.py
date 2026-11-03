@@ -7,6 +7,7 @@ and no allele is reported until the missing definitions are supplied.
 """
 
 import pandas as pd
+import pytest
 
 from mlvatyper.cli import main
 from mlvatyper.markers import read_markers
@@ -48,17 +49,36 @@ JOHANSSON = {"Ft-M02": "Ft-M2", "Ft-M03": "Ft-M3", "Ft-M04": "Ft-M4", "Ft-M05": 
 # the LVS copy number calibrated through SCHU S4, where the Johansson panel counts the same array
 CALIBRATED = {"Ft-M02": 2, "Ft-M03": 16, "Ft-M04": 4, "Ft-M05": 2, "Ft-M06": 4, "Ft-M10": 2,
               "Ft-M20A": 4, "Ft-M22": 4, "Ft-M23": 1, "Ft-M24": 2}
-SIZED_ONLY = ["Ft-M20B"]  # published 15 bp unit, but no published copy number
+BINNED_ONLY = ["Ft-M20B"]  # called from bins.tsv, a convention of this scheme
 
 
-def test_seven_loci_call_and_four_are_sized_only():
-    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_vogler_2008").markers)}
+def test_ten_loci_use_the_formula_and_ft_m20b_uses_bins():
+    scheme = load_scheme("francisella_vogler_2008")
+    defs = {d.primer_id: d for d in read_markers(scheme.markers)}
     assert {m for m, d in defs.items() if d.can_call} == set(CALIBRATED)
-    assert {m for m, d in defs.items() if not d.can_call} == set(SIZED_ONLY)
+    assert {m for m, d in defs.items() if not d.can_call} == set(BINNED_ONLY)
     for marker, count in CALIBRATED.items():
         assert defs[marker].ref_repeats == count, marker
-    for marker in SIZED_ONLY:
-        assert defs[marker].ref_repeats is None, marker
+    # Ft-M20B has a published unit and a reference size but no count, so the formula is not available
+    assert defs["Ft-M20B"].unit_length == 15 and defs["Ft-M20B"].ref_repeats is None
+    assert scheme.bins is not None
+
+
+# the Ft-M20B alleles: 0 without the insertion, and (size - 306) / 15 with it
+M20B_BINS = {153: "0", 351: "3", 366: "4", 381: "5", 396: "6", 411: "7"}
+
+
+def test_ft_m20b_bins_follow_the_stated_rule():
+    from mlvatyper.calling import read_bins
+    bins = read_bins(load_scheme("francisella_vogler_2008").bins)
+    assert set(bins) == {"Ft-M20B"}, "only Ft-M20B is binned"
+    assert {b.low: b.allele for b in bins["Ft-M20B"]} == M20B_BINS
+    assert all(b.low == b.high for b in bins["Ft-M20B"])
+    for size, allele in M20B_BINS.items():
+        if size != 153:
+            assert (size - 306) % 15 == 0 and (size - 306) // 15 == int(allele), size
+    # the 153 bp state is not on the 15 bp ladder, which is why a formula cannot link it to the rest
+    assert (351 - 153) % 15 != 0
 
 
 def test_the_calibrated_flanks_are_whole_repeats_and_fit_the_primers():
@@ -79,7 +99,7 @@ def test_unit_lengths_are_filled_only_where_a_source_gives_them():
     # the ten calibrated loci get their unit from the cross-strain test and Johansson, plus Ft-M20B
     # carries the 15 bp unit the Vogler paper publishes even though it has no copy number
     assert filled == {**DERIVED_UNIT, "Ft-M20B": 15}
-    # every marker now carries a unit; only Ft-M20B lacks a count and so cannot call
+    # every marker carries a unit; only Ft-M20B lacks a count, and it is called from bins instead
     assert all(d.unit_length for d in defs.values())
     assert {m for m, d in defs.items() if not d.can_call} == {"Ft-M20B"}
 
@@ -118,8 +138,8 @@ def test_check_scheme_against_lvs(tmp_path):
     assert (table["repeats_ok"] == "").all()  # no units, so the tandem cross-check is skipped
 
 
-def test_lvs_run_sizes_every_amplicon_and_calls_the_seven(tmp_path):
-    """Seven loci return their calibrated count; the other four report NO_DEFINITION."""
+def test_lvs_run_calls_all_eleven_loci(tmp_path):
+    """Ten loci return their calibrated count and Ft-M20B its bin, allele 0 for no insertion."""
     fixture = reference_assembly(ASSEMBLY)
     assert main(["run", "--scheme", "francisella_vogler_2008", "--fasta", str(fixture), "--outdir",
                  str(tmp_path), "--prefix", "lvs", "--align", "none", "--no-report"]) == 0
@@ -136,4 +156,27 @@ def test_lvs_run_sizes_every_amplicon_and_calls_the_seven(tmp_path):
     assert (long.loc[list(CALIBRATED), "residual_bp"] == 0).all()
     status = pd.read_csv(tmp_path / "lvs_status.tsv", sep="\t", index_col=0, dtype=str)
     assert {status.loc[ASSEMBLY, m] for m in CALIBRATED} == {"OK"}
-    assert {status.loc[ASSEMBLY, m] for m in SIZED_ONLY} == {"NO_DEFINITION"}
+    assert int(long.loc["Ft-M20B", "allele"]) == 0, "LVS has no insertion, so allele 0"
+    assert status.loc[ASSEMBLY, "Ft-M20B"] == "BINNED" == long.loc["Ft-M20B", "status"]
+    assert pd.isna(long.loc["Ft-M20B", "residual_bp"]), "a binned locus has no formula residual"
+
+
+# genomes that carry the Ft-M20B insertion, with the product the primers give and the allele it maps to
+INSERTION_GENOMES = [
+    ("GCA_000016105.1", "WY96-3418", 351, "3"),
+    ("GCA_000014645.1", "novicida U112", 351, "3"),
+    ("GCA_000833165.1", "novicida F6168", 411, "7"),
+]
+
+
+@pytest.mark.parametrize("accession,name,size,allele", INSERTION_GENOMES)
+def test_ft_m20b_calls_the_insertion_alleles_in_real_genomes(tmp_path, accession, name, size, allele):
+    """The bins were built from these sizes; a run must give the allele (size - 306) / 15 for each."""
+    fixture = reference_assembly(accession)
+    assert main(["run", "--scheme", "francisella_vogler_2008", "--fasta", str(fixture),
+                 "--outdir", str(tmp_path), "--prefix", "g", "--align", "none", "--no-report"]) == 0
+    long = pd.read_csv(tmp_path / "g_calls_long.tsv", sep="\t").set_index("marker")
+    assert int(long.loc["Ft-M20B", "length"]) == size, name
+    assert str(int(long.loc["Ft-M20B", "allele"])) == allele, name
+    assert long.loc["Ft-M20B", "status"] == "BINNED", name
+    assert (size - 306) // 15 == int(allele)

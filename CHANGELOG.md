@@ -177,6 +177,19 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `francisella_vogler_2008` calls all eleven loci. Ft-M20B, the last, is
+  called from a bins table under a convention of the scheme, since no
+  publication gives its copy number. Vogler et al. describe it as a roughly
+  200 bp insertion with a 15 bp repeat that is present in type A.II and
+  *novicida* isolates. In 22 genomes the products are 153 bp without the
+  insertion and 351, 366, 381, 396 or 411 bp with it, five sizes in steps of
+  exactly 15 bp, which confirms the 15 bp unit and not the 12 bp in one later
+  table. The 153 bp state has no array and is allele 0; the others are
+  `(size - 306) / 15`, from 3 to 7. The 153 bp state does not lie on the
+  15 bp ladder, so the repeat formula cannot link it to the rest, which is
+  why the locus is binned, and an unlisted size is reported OFF_TABLE. A
+  note that the 153 bp product held one copy of the unit was wrong, since
+  the sequence counted lies inside the forward primer.
 - `saureus_mlva5_sabat_2003` now calls all five loci, where before it sized
   them only. The paper publishes no repeat counts and its primers lie inside
   the repeat arrays, so no published scale or flanking landmark exists. The
@@ -195,7 +208,7 @@ is below 1.0, so the output tables may still change between minor versions.
   seven of eight loci reproduce each published profile exactly, including
   the MRSA252 null allele; only VNTR61_01, which the paper reports as having
   a heterogeneous flank, deviates off the reference.
-- `francisella_vogler_2008` calls ten of its eleven loci, up from seven.
+- `francisella_vogler_2008` called ten of its eleven loci, up from seven.
   With the Johansson panel now carrying published counts for Ft-M22, Ft-M23
   and Ft-M24, those three Vogler loci calibrate through the shared genome
   and agree with the Johansson allele in every strain where both amplify.
@@ -241,19 +254,20 @@ is below 1.0, so the output tables may still change between minor versions.
   amplify, all 35 locus and strain pairs give the same allele. The scale is
   inherited rather than published, so the two schemes now agree with each
   other but may still be offset from published allele names.
-- The two *Francisella* schemes were audited across seven genomes, where
-  every product of a locus must differ by whole multiples of its repeat
-  unit. It confirms 15 of the 16 derived units of
-  `francisella_johansson_2004` and fails at Ft-M8, whose steps of 15 and 33
-  bases are not multiples of its 16 bp unit because in WY96-3418 its primers
-  amplify a different member of the shared repeat family about 1.85 Mb away;
-  the scheme now says so, and a fractional allele there is flagged rather
-  than rounded. `francisella_vogler_2008` gains a unit length for seven of
-  its eleven loci, filled only where that test and the Johansson panel agree
-  independently, and still calls nothing because the test cannot supply an
-  absolute copy number. Both schemes now record that their locus names are
-  the same VNTRs under different spellings, Ft-M02 against Ft-M2, while
-  their primers, references and alleles differ.
+- The two *Francisella* schemes were audited across 22 genomes, after an
+  earlier audit reported seven that were really five: two of its accessions
+  were not *Francisella* at all and two strain names were wrong. The genomes
+  are now identified from their assembly headers, nine subspecies
+  *tularensis*, three *holarctica*, one *mediasiatica* and nine *novicida*.
+  Where a locus keeps one flank, its products differ by whole multiples of
+  the unit; in the 13 genomes outside *novicida* this holds at 19 of the 25
+  Johansson loci, and the six exceptions are accounted for in the scheme
+  notes, among them the 30 bp *holarctica* deletion at Ft-M19 and the
+  insertion at Ft-M20. Ft-M8 is displaced in four of the 13 genomes, at 325,
+  1857 and 1871 kb. The Johansson and Vogler panels, which count the same
+  arrays with different primers, give the same allele in all 145 comparisons
+  at the nine loci other than Ft-M20, and differ at Ft-M20 because the
+  insertion that Vogler splits off as Ft-M20B lengthens it.
 - The unit lengths of the two *Staphylococcus aureus* schemes were checked
   by amplifying each panel in eight *S. aureus* genomes, where every product
   of a locus must leave the same remainder when divided by its repeat unit,

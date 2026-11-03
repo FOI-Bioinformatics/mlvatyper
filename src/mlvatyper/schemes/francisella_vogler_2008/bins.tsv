@@ -1,0 +1,24 @@
+# Allele definitions for Ft-M20B, the one locus of francisella_vogler_2008 that cannot use the repeat
+# formula. A convention of this scheme, not a published scale: no publication gives an Ft-M20B repeat
+# count, and the allele is the number of 15 bp blocks in the array.
+#
+# Ft-M20B lies in a roughly 200 bp insertion that Vogler et al. 2008 describe in type A.II and novicida
+# isolates, and the product is monomorphic at 153 bp in the others. Without the insertion there is no
+# array, so allele 0. With it the product is 106 bp of left flank, an array of 15 bp blocks, and 200 bp
+# of right flank, so the allele is (size - 306) / 15. The 153 bp state is not on that ladder, since the
+# two differ by 198 bp, which is not a multiple of 15, and so a formula anchored on the 153 bp reference
+# would put every insertion-bearing strain at 13.2 repeats too many. A table avoids that, and a size
+# that is not listed is reported OFF_TABLE instead of being forced onto a scale that does not fit it.
+#
+# The sizes are those seen in 22 Francisella genomes: 153 bp in ten, 351 in three, 366 in one, 381 in
+# three, 396 in one and 411 in four. Each array reads as a diverged lead block, n - 2 exact copies of
+# GACCAAGGTAATAAT and a more diverged terminal block, so the exact copies alone would number 1 to 5 and
+# a count of those would put every insertion-bearing allele two lower than the one here. A size not
+# listed, such as 336 or 426, follows the same rule and can be added.
+marker	size	allele
+Ft-M20B	153	0
+Ft-M20B	351	3
+Ft-M20B	366	4
+Ft-M20B	381	5
+Ft-M20B	396	6
+Ft-M20B	411	7
