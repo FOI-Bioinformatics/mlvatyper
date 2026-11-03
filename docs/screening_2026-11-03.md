@@ -101,3 +101,92 @@ INTERMEDIATE, alleles of 0 or below, and the cause of each missing product.
 Treat a locus where more than half of the calls disagree with the tandem count,
 or where an allele is 0 or below, as a scheme problem and not as strain
 variation.
+
+## All bundled schemes on 12 genomes each
+
+The same method was applied to the 24 other published schemes, with up to 12
+complete RefSeq genomes of the scheme's species or genus chosen at random from
+NCBI (a fixed seed; the accession lists are not kept in the repository). This
+is a first look: 12 genomes show gross problems, not rare ones, and the genomes
+need not belong to the lineage the scheme was built on. Call rate is the
+share of loci with status OK or BINNED; typed is the share of calls with an
+integer allele.
+
+| Scheme | Genomes | Loci | Mean OK | Lowest OK | Typed |
+| --- | --- | --- | --- | --- | --- |
+| `bacillus_mlva15_vanert_2007` | 12 | 15 | 85% | 60% | 89% |
+| `bacillus_mlva25_lista_2006` | 12 | 25 | 85% | 20% | 94% |
+| `bacillus_mlva31_mlvabank` | 12 | 31 | 90% | 58% | 92% |
+| `bacillus_mlva8_keim_2000` | 12 | 8 | 86% | 62% | 91% |
+| `blongum_mlva5_matamoros_2011` | 12 | 5 | 68% | 20% | 93% |
+| `Bru_MLVA16` | 12 | 16 | 86% | 0% | 91% |
+| `brucella_mlva15_lefleche_2006` | 12 | 15 | 89% | 0% | 91% |
+| `coxiella_mlva17_arricau_bouvery_2006` | 12 | 17 | 93% | 71% | 98% |
+| `francisella_johansson_2004` | 12 | 25 | 90% | 84% | 94% |
+| `francisella_vogler_2008` | 12 | 11 | 98% | 91% | 98% |
+| `Lpn_MLVA12` | 12 | 12 | 92% | 75% | 94% |
+| `magalactiae_mlva4_mcauliffe_2008` | 11 | 4 | 57% | 25% | 70% |
+| `mtb_miru15_supply_2006` | 12 | 15 | 91% | 80% | 99% |
+| `mtb_miru24_supply_2006` | 12 | 24 | 93% | 88% | 98% |
+| `nmeningitidis_mlva12_liao_2006` | 12 | 12 | 86% | 75% | 92% |
+| `paeruginosa_mlva8_onteniente_2003` | 12 | 8 | 81% | 62% | 97% |
+| `saureus_mlva14_pourcel_2009` | 12 | 14 | 92% | 64% | 97% |
+| `saureus_mlva5_sabat_2003` | 12 | 5 | 80% | 60% | 82% |
+| `saureus_mlva8_schouls_2009` | 12 | 8 | 90% | 75% | 100% |
+| `salmonella_enteritidis_mlva9_malorny_2008` | 12 | 9 | 99% | 89% | 100% |
+| `STm_ECDC` | 12 | 5 | 83% | 40% | 83% |
+| `yersinia_klevytska_2001` | 12 | 42 | 97% | 93% | 98% |
+| `yersinia_mlva25_lefleche_2001` | 12 | 25 | 96% | 88% | 99% |
+| `yersinia_mlva26_li_2013` | 12 | 26 | 99% | 92% | 100% |
+
+Loci that the summary lists for review (one flag on more than half of the typed
+calls, or an allele below zero):
+
+| Scheme | Locus | Reason |
+| --- | --- | --- |
+| `blongum_mlva5_matamoros_2011` | VNTR23 | NEGATIVE in 92% of calls; allele -2 |
+| `Bru_MLVA16` | Bruce19 | INTERMEDIATE in 55% of calls |
+| `mtb_miru15_supply_2006` | 580 | INTERMEDIATE in 100% of calls |
+| `mtb_miru24_supply_2006` | 580 | INTERMEDIATE in 100% of calls |
+| `paeruginosa_mlva8_onteniente_2003` | ms077 | INTERMEDIATE in 70% of calls |
+| `saureus_mlva14_pourcel_2009` | Sa0906 | allele -1.5 |
+| `saureus_mlva14_pourcel_2009` | Sa1425 | allele -2 |
+| `yersinia_klevytska_2001` | M27 | allele -2 |
+
+These are candidates, not diagnoses. A negative allele means that the product
+is shorter than the reference calibration allows (a reference count that is too
+low, a flank deletion in these strains, or a wrong unit), and a flag on every
+call means that the reference size or unit does not match the strains; each
+needs checking against the publication and the genomes, as was done for the
+U'Ren scheme. An allele of 0 is not listed, because it can be a state of the
+scheme: at Ft-M20B it means no insertion, and MIRU 1955 has a single unit in
+the reference, so 0 is a genome without it (1 of 12 here).
+
+Two low values have other causes. The lowest OK for the two *Brucella* schemes
+(0%) is *Brucella anthropi* (strain PBO), which the genus level taxon query
+returned: it is not in the species the schemes were built for, and no product
+was found at any locus. *M. agalactiae* has the lowest mean call rate (57%,
+4 loci, 11 genomes), where one missing product weighs 25 percentage points.
+
+## Checking the loci that were listed
+
+Each locus listed above was examined by aligning the amplicons of the genomes
+with different sizes against the reference amplicon and reading the scheme's
+own notes. Three have a scheme cause and three are real variation (two loci of one genome count as one).
+
+| Scheme and locus | Finding | Verdict |
+| --- | --- | --- |
+| `yersinia_klevytska_2001` M27 | The published copy number is 6 but the CO92 amplicon holds 19 units of 8 bp (the scheme notes record 6 against 19). The allele formula therefore places a product of 181 bp, which holds about 11 units, at allele -2, and allele 32 for a product of 453 bp. | Scheme cause: the published numbering cannot hold in other strains. |
+| `blongum_mlva5_matamoros_2011` VNTR23 | The published copy number is 3 but NCC2705 holds about 7 copies of the 10 bp unit (CTGATATTCG). Eleven of 12 genomes give 324 to 334 bp, which is 40 to 50 bp shorter than NCC2705, and the size is below the lower end of the range of the paper's table (344 to 574 bp). The formula therefore gives -2 and -1. | Scheme cause, as for M27. The publication could be checked for the range. |
+| `mtb_miru15_supply_2006` and `mtb_miru24_supply_2006` 580 | All 12 genomes give products of 98 + 77 n bp (252, 329, 406, 560, 637), whole units from a flank of 98 bp. H37Rv gives 353 bp, 24 bp more than three units, because its last unit is partial. The reference sits between two grid points, so every other genome is a half allele. | Scheme cause: the copy number is derived, not published (the scheme says so). The published allele table, as `bins.tsv`, is the fix. |
+| `saureus_mlva14_pourcel_2009` Sa0906, Sa1425 | One genome (NAS_AN_157) gives a 599 bp product at Sa0906 and a 272 bp product at Sa1425, with two further loci flagged. The other 11 give sizes in steps of the unit. | Real variation or an atypical assembly: NEGATIVE is the right flag. |
+| `paeruginosa_mlva8_onteniente_2003` ms077 | Seven genomes give 388 bp, 15 bp shorter than the 403 bp product and not a multiple of the 39 bp unit. The alignment shows a 15 bp deletion inside the array. | Real variation of an imperfect array: INTERMEDIATE is correct. |
+| `Bru_MLVA16` Bruce19 | Products of 178 and 184 bp are 9 bp and 15 bp longer than the 169 bp product (unit 6 bp). The alignment shows a 15 bp insertion inside the array. | Real variation of an imperfect array. |
+
+The three scheme causes share one pattern: the copy number published for the
+reference does not match the array in the reference sequence (as at five loci of
+the U'Ren scheme), so other strains get negative or half alleles. Keeping the
+published number keeps the published numbering at the reference strain only;
+using the physical count removes the negative alleles but gives numbers that do
+not match the publication at the reference. This is a decision for the
+maintainer and has not been changed here.
