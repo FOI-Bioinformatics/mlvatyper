@@ -82,6 +82,12 @@ provenance), `new-scheme`, `check-scheme` and `bins-from-table` (see [Method
 and output](docs/method.md) and [Building a scheme](docs/schemes.md)).
 `mlvatyper <subcommand> --help` lists the options.
 
+`search` and `run` take `--jobs N` to search N samples in parallel, one
+process each (`--threads` stays merPCR's threads within a sample, so the
+total worker count is `--jobs` times `--threads`); the outputs are the same
+as a serial run. The global `--log-json FILE`, before the subcommand, also
+writes one JSON object per log event to FILE for pipeline monitors.
+
 A run exits with status 1 when an input is invalid or a sample failed; the
 other samples are still typed and reported.
 

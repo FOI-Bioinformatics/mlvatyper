@@ -24,7 +24,10 @@ How mlvatyper locates amplicons, calls alleles and reports them. The
    about. A sample whose file cannot be read (not FASTA, or a corrupt
    compressed file) fails on its own: the other samples are processed and
    typed, the failed one is left out of the results, and the command exits
-   with status 1.
+   with status 1. `--jobs N` searches N samples at a time, each in its own
+   process; the results are merged in input order, so every output file is
+   identical to a serial run, and `--threads` stays merPCR's thread count
+   within one sample.
    Primer pairs are searched with merPCR, allowing `-N` mismatches per primer
    outside the protected 3' bases (`--three-prime-match`), with a hash word
    of `-W` bases (default 11) that must match exactly. The reverse primer
@@ -552,7 +555,10 @@ and this one does not are removed:
 - `run_info.json`: versions, all parameters of the search and summary
   steps (the summary parameters also per prefix, so that several prefixes
   can share an output directory), and the size and MD5 sum of every input
-  file, including the marker and bin files.
+  file, including the marker and bin files. The global `--log-json FILE`
+  (given before the subcommand) additionally streams one JSON object per
+  log event to FILE (JSON Lines: time in UTC, level, logger, message),
+  which a pipeline monitor can read without parsing the console text.
 - `<prefix>_report.html`: a self-contained report written by `run` (or by
   `mlvatyper report --outdir DIR --prefix P`) with a status summary, the
   allele profile table shaded by status, figures of amplicon lengths,

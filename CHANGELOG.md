@@ -181,6 +181,11 @@ is below 1.0, so the output tables may still change between minor versions.
 - Bundled scheme `Bru_MLVA16`, the 16 locus *Brucella* panel (Le Fleche et
   al. 2006; panels of Al Dahouk et al. 2007), with reference values from
   *B. melitensis* 16M; CI checks it against that assembly.
+- `search` and `run` take `--jobs N` to search N samples in parallel, one
+  process each; the outputs are identical to a serial run, and `--threads`
+  stays merPCR's threads within a sample.
+- Global `--log-json FILE` streams one JSON object per log event (JSON
+  Lines) to FILE for pipeline monitors, alongside the console output.
 - `mlvatyper new-scheme DIR` scaffolds a scheme directory with annotated
   template files, and `docs/schemes.md` describes how to build a scheme
   from a publication and verify it against the reference strain.
