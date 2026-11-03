@@ -253,9 +253,9 @@ below are shorter than they are.
   allele numbers until their primers are confirmed.
 
 - `francisella_johansson_2004` and `francisella_vogler_2008` for *Francisella
-  tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls 16 of
-  its 25 markers and sizes the rest, because the repeat units of the others
-  are not in the source table; the Vogler table gives amplicon sizes only, so
+  tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls all 25
+  markers on the published scale, its repeat motifs, unit lengths and SCHU S4
+  copy numbers taken from Table 2 of the paper; the Vogler table gives amplicon sizes only, so
   that scheme called nothing until its units and copy numbers were taken
   from the Johansson panel, which counts the same arrays: seven of its
   eleven loci now call and four are still sized only. The locus names of

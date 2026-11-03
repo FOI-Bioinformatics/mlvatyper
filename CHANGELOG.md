@@ -151,6 +151,15 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `francisella_johansson_2004` now calls all 25 loci, up from 16, on the
+  published allele scale. Table 2 of Johansson et al. 2004 gives the repeat
+  motif, its size and the SCHU S4 copy number for every marker, which fills
+  the nine loci that were sized only and corrects eight derived counts that
+  were off because their arrays are imperfect. A run on SCHU S4 returns the
+  published profile with zero residual. The seven calibrated loci of
+  `francisella_vogler_2008` are re-derived from these published counts, so
+  three of their copy numbers shift onto the published scale; both Vogler
+  reference calls stay exact.
 - `saureus_mlva8_schouls_2009` now calls four of its eight loci, up from
   two. Rechecking all eight against the full Pourcel panel confirmed two
   more shared arrays: VNTR67_01 is Sa0704 and VNTR81_01 is the coa locus

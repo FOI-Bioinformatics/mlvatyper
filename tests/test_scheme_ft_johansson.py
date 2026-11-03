@@ -1,10 +1,10 @@
 """The bundled Francisella tularensis Johansson scheme against the SCHU S4 assembly.
 
-The reference sizes come from the publication's genomic coordinates and are
-confirmed by in silico PCR. The repeat units are not published in the supplied
-table and are filled from the reference only where the array is strong, so the
-scheme calls 16 of its 25 markers and sizes the rest. These tests hold that
-split in place, together with the two primer corrections the audit established.
+Every reference value is the published one: Table 2 of Johansson et al. 2004
+gives the repeat motif, its size and the SCHU S4 copy number for all 25
+markers, so the scheme calls every locus on the published scale. A stored
+repeat pattern is kept only where counting the motif in the reference returns
+the published number. Ft-M14 is duplicated in SCHU S4 and reports MULTIPLE.
 """
 
 import pandas as pd
@@ -16,23 +16,28 @@ from tests.conftest import reference_assembly
 
 ASSEMBLY = "GCA_000008985.1"
 N_MARKERS = 25
-CALLABLE = ["Ft-M2", "Ft-M3", "Ft-M4", "Ft-M5", "Ft-M6", "Ft-M7", "Ft-M8", "Ft-M9", "Ft-M10", "Ft-M14",
-            "Ft-M15", "Ft-M16", "Ft-M17", "Ft-M18", "Ft-M20", "Ft-M21"]
-SIZED_ONLY = ["Ft-M1", "Ft-M11", "Ft-M12", "Ft-M13", "Ft-M19", "Ft-M22", "Ft-M23", "Ft-M24", "Ft-M25"]
 DUPLICATED = "Ft-M14"  # two copies in SCHU S4, both 442 bp
-# the sizes the audit corrected, and the shared repeat family
-CORRECTED = {"Ft-M22": 241, "Ft-M25": 151, "Ft-M10": 617}
+
+# Table 2 of Johansson et al. 2004: unit length and SCHU S4 copy number
+UNIT = {"Ft-M1": 3, "Ft-M2": 6, "Ft-M3": 9, "Ft-M4": 5, "Ft-M5": 16, "Ft-M6": 21, "Ft-M7": 16,
+        "Ft-M8": 16, "Ft-M9": 16, "Ft-M10": 16, "Ft-M11": 10, "Ft-M12": 10, "Ft-M13": 12,
+        "Ft-M14": 6, "Ft-M15": 6, "Ft-M16": 10, "Ft-M17": 6, "Ft-M18": 6, "Ft-M19": 13,
+        "Ft-M20": 12, "Ft-M21": 7, "Ft-M22": 6, "Ft-M23": 23, "Ft-M24": 21, "Ft-M25": 2}
+SCHU_COUNT = {"Ft-M1": 3, "Ft-M2": 4, "Ft-M3": 25, "Ft-M4": 3, "Ft-M5": 3, "Ft-M6": 4, "Ft-M7": 4,
+              "Ft-M8": 4, "Ft-M9": 4, "Ft-M10": 18, "Ft-M11": 5, "Ft-M12": 2, "Ft-M13": 2,
+              "Ft-M14": 3, "Ft-M15": 2, "Ft-M16": 2, "Ft-M17": 3, "Ft-M18": 4, "Ft-M19": 2,
+              "Ft-M20": 3, "Ft-M21": 3, "Ft-M22": 2, "Ft-M23": 2, "Ft-M24": 1, "Ft-M25": 5}
+ALL_MARKERS = list(UNIT)
+
+# a stored pattern is kept only where the motif counts back to the published number
+PATTERNED = ["Ft-M4", "Ft-M5", "Ft-M7", "Ft-M8", "Ft-M9", "Ft-M10", "Ft-M20", "Ft-M21"]
 SHARED_UNIT = "AAAAAGATATTTGTAG"
 SHARED_UNIT_MARKERS = ["Ft-M5", "Ft-M7", "Ft-M8", "Ft-M9", "Ft-M10"]
-# Genomic location column of the publication, with the abbreviated end coordinate expanded. The span is
-# the amplicon, outer primer edge to outer primer edge, so it is what ref_size must equal.
-PUBLISHED_SPAN = {"Ft-M1": 310, "Ft-M2": 463, "Ft-M3": 432, "Ft-M4": 434, "Ft-M5": 208, "Ft-M6": 311,
-                  "Ft-M7": 207, "Ft-M8": 286, "Ft-M9": 248, "Ft-M10": 646, "Ft-M11": 392, "Ft-M12": 345,
-                  "Ft-M13": 325, "Ft-M14": 442, "Ft-M15": 222, "Ft-M16": 221, "Ft-M17": 351, "Ft-M18": 372,
-                  "Ft-M19": 316, "Ft-M20": 255, "Ft-M21": 403, "Ft-M22": 241, "Ft-M23": 435, "Ft-M24": 459,
-                  "Ft-M25": 151}
-# the only marker whose published span the assembly cannot produce; 617 bp is the single possible product
-SPAN_DISAGREES = "Ft-M10"
+
+# eight counts the published table corrects from the earlier derived values
+CORRECTED_COUNT = {"Ft-M2", "Ft-M3", "Ft-M6", "Ft-M14", "Ft-M15", "Ft-M16", "Ft-M17", "Ft-M18"}
+# sizes the earlier audit established, kept here
+CORRECTED_SIZE = {"Ft-M22": 241, "Ft-M25": 151, "Ft-M10": 617}
 
 
 def test_scheme_files_are_consistent():
@@ -41,46 +46,18 @@ def test_scheme_files_are_consistent():
     assert scheme.assembly == ASSEMBLY
     assert scheme.known_multiple == (DUPLICATED,)
     defs = {d.primer_id: d for d in read_markers(scheme.markers)}
-    assert len(defs) == N_MARKERS
-    assert sorted(defs) == sorted(CALLABLE + SIZED_ONLY)
-    for marker in CALLABLE:
+    assert len(defs) == N_MARKERS and sorted(defs) == sorted(ALL_MARKERS)
+    for marker in ALL_MARKERS:
         d = defs[marker]
-        assert d.can_call, f"{marker} should carry a unit and a repeat count"
-        assert d.ref_size - d.ref_repeats * d.unit_length >= 0
-        assert len(d.patterns) == 1 and len(d.patterns[0]) == d.unit_length >= 5
-        assert d.ref_repeats >= 3
-    for marker in SIZED_ONLY:
-        d = defs[marker]
-        assert not d.can_call and d.patterns == () and d.ref_repeats is None
-        assert d.ref_size is not None, f"{marker} must still carry a reference size"
-    for marker, size in CORRECTED.items():
-        assert defs[marker].ref_size == size
+        assert d.can_call, f"{marker} should call on the published scale"
+        assert d.unit_length == UNIT[marker], marker
+        assert d.ref_repeats == SCHU_COUNT[marker], marker
+        assert d.ref_size - d.ref_repeats * d.unit_length >= 0, marker
+    patterned = {m for m in ALL_MARKERS if defs[m].patterns}
+    assert patterned == set(PATTERNED)
     assert {defs[m].patterns[0] for m in SHARED_UNIT_MARKERS} == {SHARED_UNIT}
-
-
-def test_reference_sizes_are_the_published_spans():
-    """ref_size equals the publication's genomic span for every marker but Ft-M10."""
-    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_johansson_2004").markers)}
-    assert set(defs) == set(PUBLISHED_SPAN)
-    agree = {m: s for m, s in PUBLISHED_SPAN.items() if m != SPAN_DISAGREES}
-    assert {m: defs[m].ref_size for m in agree} == agree
-    # Ft-M10 keeps the measured product, which is shorter than the published span
-    assert defs[SPAN_DISAGREES].ref_size == CORRECTED[SPAN_DISAGREES] < PUBLISHED_SPAN[SPAN_DISAGREES]
-    # the difference is not a whole number of repeat units, so it is not an allele difference
-    unit = defs[SPAN_DISAGREES].unit_length
-    assert (PUBLISHED_SPAN[SPAN_DISAGREES] - CORRECTED[SPAN_DISAGREES]) % unit != 0
-
-
-def test_the_two_corrected_primers_carry_no_extra_bases():
-    """Ft-M22 lost a 5' G and Ft-M25 lost an 8 base 5' addition; both are genomic as written now."""
-    scheme = load_scheme("francisella_johansson_2004")
-    rows = {line.split("\t")[0]: line.split("\t")[1:3]
-            for line in scheme.sts.read_text().splitlines() if line.strip() and not line.startswith("#")}
-    assert rows["Ft-M22"][0] == "TCAAAATCTCAAGATGAGCAAATATTTGAATGGT"
-    assert rows["Ft-M25"][1] == "ATCCCATATGTAAGTACAAATGTAGC"
-    # the five markers that share one reverse primer, which is not locus-specific
-    shared = {rows[m][1] for m in SHARED_UNIT_MARKERS}
-    assert shared == {"CAGCTCGAACTCCGTCATAC"}
+    for marker, size in CORRECTED_SIZE.items():
+        assert defs[marker].ref_size == size
 
 
 def test_check_scheme_against_schu_s4(tmp_path):
@@ -89,31 +66,32 @@ def test_check_scheme_against_schu_s4(tmp_path):
                  "--reference", str(fixture)]) == 0
     table = pd.read_csv(tmp_path / "scheme_check.tsv", sep="\t", keep_default_na=False).set_index("marker")
     assert len(table) == N_MARKERS
-    assert (table["size_ok"].astype(int) == 1).all(), "every marker must reproduce its reference size"
-    assert (table.loc[CALLABLE, "repeats_ok"].astype(int) == 1).all()
-    assert (table.loc[SIZED_ONLY, "repeats_ok"] == "").all()  # no unit, so no tandem cross-check
-    # the duplicated locus is the only marker with more than one product, and it is declared
-    multiple = table.index[table["n_products"].astype(int) != 1].tolist()
-    assert multiple == [DUPLICATED]
-    assert multiple == list(load_scheme("francisella_johansson_2004").known_multiple)
+    assert (table["size_ok"].astype(int) == 1).all(), "every published reference size reproduces"
+    # Ft-M14 gives two products and is declared; the rest give one
+    assert int(table.loc[DUPLICATED, "n_products"]) > 1
+    assert (table.loc[[m for m in ALL_MARKERS if m != DUPLICATED], "n_products"].astype(int) == 1).all()
+    # the eight patterned loci carry a tandem cross-check and it passes
+    assert (table.loc[PATTERNED, "repeats_ok"].astype(int) == 1).all()
 
 
-def test_schu_s4_run_calls_the_strong_markers_and_flags_the_duplicate(tmp_path):
+def test_schu_s4_run_returns_the_published_profile(tmp_path):
     fixture = reference_assembly(ASSEMBLY)
-    assert main(["run", "--scheme", "francisella_johansson_2004", "--fasta", str(fixture), "--outdir",
-                 str(tmp_path), "--prefix", "schu", "--align", "none", "--no-report"]) == 0
-    status = pd.read_csv(tmp_path / "schu_status.tsv", sep="\t", index_col=0, dtype=str)
-    row = status.loc[ASSEMBLY]
-    assert set(row[SIZED_ONLY]) == {"NO_DEFINITION"}
-    assert "MULTIPLE" in row[DUPLICATED]
-    unambiguous = [m for m in CALLABLE if m != DUPLICATED]
-    assert set(row[unambiguous]) == {"OK"}
-    alleles = pd.read_csv(tmp_path / "schu_alleles.tsv", sep="\t", index_col=0, dtype=str)
-    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_johansson_2004").markers)}
-    # the reference values were measured here, so each call must return its own repeat count
-    assert {m: alleles.loc[ASSEMBLY, m] for m in unambiguous} == \
-           {m: str(defs[m].ref_repeats) for m in unambiguous}
+    assert main(["run", "--scheme", "francisella_johansson_2004", "--fasta", str(fixture),
+                 "--outdir", str(tmp_path), "--prefix", "schu", "--align", "none", "--no-report"]) == 0
     long = pd.read_csv(tmp_path / "schu_calls_long.tsv", sep="\t")
-    called = long[long.marker.isin(unambiguous)]
-    assert (called["residual_bp"] == 0).all()
-    assert (called["tandem_copies"] == called["allele"].astype(int)).all()
+    assert (long["residual_bp"].dropna() == 0).all()
+    # every locus calls its published SCHU S4 count; Ft-M14's two products both do
+    by_marker = long.groupby("marker")["allele"].apply(lambda s: {int(float(a)) for a in s if pd.notna(a)})
+    for marker in ALL_MARKERS:
+        assert SCHU_COUNT[marker] in by_marker[marker], marker
+    status = pd.read_csv(tmp_path / "schu_status.tsv", sep="\t", index_col=0, dtype=str)
+    assert status.loc[ASSEMBLY, DUPLICATED] == "MULTIPLE"
+
+
+def test_eight_counts_are_corrected_from_the_earlier_derived_values():
+    """The published table moved these counts off the derived ones; the units were already right."""
+    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_johansson_2004").markers)}
+    # the corrected loci now hold the published count and have no stored pattern
+    for marker in CORRECTED_COUNT:
+        assert defs[marker].ref_repeats == SCHU_COUNT[marker], marker
+        assert defs[marker].patterns == (), f"{marker} drops its pattern, which would disagree"

@@ -1,72 +1,74 @@
 marker	unit_length	ref_size	ref_repeats	patterns	label
-Ft-M1		310		N/A	Ft-M1
-Ft-M2	6	463	5	AAATAT	Ft-M2
-Ft-M3	9	432	21	ATCCTTATT	Ft-M3
+Ft-M1	3	310	3	N/A	Ft-M1
+Ft-M2	6	463	4	N/A	Ft-M2
+Ft-M3	9	432	25	N/A	Ft-M3
 Ft-M4	5	434	3	GTTTT	Ft-M4
 Ft-M5	16	208	3	AAAAAGATATTTGTAG	Ft-M5
-Ft-M6	21	311	3	AACTTTCTTGCTCTTTTGGTG	Ft-M6
+Ft-M6	21	311	4	N/A	Ft-M6
 Ft-M7	16	207	4	AAAAAGATATTTGTAG	Ft-M7
 Ft-M8	16	286	4	AAAAAGATATTTGTAG	Ft-M8
 Ft-M9	16	248	4	AAAAAGATATTTGTAG	Ft-M9
 Ft-M10	16	617	18	AAAAAGATATTTGTAG	Ft-M10
-Ft-M11		392		N/A	Ft-M11
-Ft-M12		345		N/A	Ft-M12
-Ft-M13		325		N/A	Ft-M13
-Ft-M14	6	442	5	ATCATT	Ft-M14
-Ft-M15	6	222	3	AAGTAT	Ft-M15
-Ft-M16	10	221	3	AAAAGTAAGT	Ft-M16
-Ft-M17	6	351	4	ATATTT	Ft-M17
-Ft-M18	6	372	5	AACATT	Ft-M18
-Ft-M19		316		N/A	Ft-M19
+Ft-M11	10	392	5	N/A	Ft-M11
+Ft-M12	10	345	2	N/A	Ft-M12
+Ft-M13	12	325	2	N/A	Ft-M13
+Ft-M14	6	442	3	N/A	Ft-M14
+Ft-M15	6	222	2	N/A	Ft-M15
+Ft-M16	10	221	2	N/A	Ft-M16
+Ft-M17	6	351	3	N/A	Ft-M17
+Ft-M18	6	372	4	N/A	Ft-M18
+Ft-M19	13	316	2	N/A	Ft-M19
 Ft-M20	12	255	3	AAAATAATGATC	Ft-M20
 Ft-M21	7	403	3	AATTGAT	Ft-M21
-Ft-M22		241		N/A	Ft-M22
-Ft-M23		435		N/A	Ft-M23
-Ft-M24		459		N/A	Ft-M24
-Ft-M25		151		N/A	Ft-M25
+Ft-M22	6	241	2	N/A	Ft-M22
+Ft-M23	23	435	2	N/A	Ft-M23
+Ft-M24	21	459	1	N/A	Ft-M24
+Ft-M25	2	151	5	N/A	Ft-M25
+#
 # ref_size is the product length measured in the SCHU S4 assembly GCA_000008985.1 (AJ749949.2) by in
-# silico PCR with these primers, outer primer edge to outer primer edge. The publication's Genomic
-# location column prints the end coordinate abbreviated, giving only the digits that differ from the
-# start (1886647-7109 means 1886647-1887109). That rule was checked against all 25 rows of the table and
-# the decoded span equals the measured product for 24 of them, which confirms both the decoding and that
-# the column is the amplicon, outer primer edge to outer primer edge, not the repeat array.
-# The published start coordinates are offset from AJ749949.2 by 16 to 60 bases while the spans match
-# exactly, so the table's coordinates come from a different release of the sequence than this assembly.
-# Ft-M10 is the one span that disagrees. The cell reads 1283441-4086 and decodes to 646 bp, which is not
-# a transcription or decoding error, but the assembly yields only one possible product of 617 bp: the
-# forward primer occurs once and no other reverse site lies in range. The 29 base difference is not a
-# multiple of the 16 bp unit, so it is either a real difference between this assembly and the sequence
-# used in 2004 or a mis-stated end coordinate in the source. The measured 617 is used, because ref_size
-# has to describe the assembly the calls are anchored on.
+# silico PCR with these primers, outer primer edge to outer primer edge. The primers are Table 1 of
+# Johansson et al. 2004 and reproduce one product per locus. The publication's Genomic location column
+# prints the end coordinate abbreviated, giving only the digits that differ from the start
+# (1886647-7109 means 1886647-1887109); the decoded span equals the measured product for 24 of the 25
+# loci. Ft-M10 is the one that disagrees: its cell decodes to 646 bp against a measured 617, a
+# difference that is not a whole number of 16 bp units, so it is either a real difference between this
+# assembly and the sequence used in 2004 or a mis-stated end coordinate; the measured 617 is used.
 #
-# unit_length, ref_repeats and patterns are not published in the supplied table. They are filled from
-# the reference only where the array is strong enough to trust (3 or more copies, 95
-# per cent or better TRF match, unit of 5 bp or more, and the mlvatyper tandem count equal to
-# the TRF count). 16 of 25 markers qualify and can be called; the other 9 are
-# sized but report NO_DEFINITION until values are taken from the publication's marker characteristics
-# table. Alleles are therefore anchored on SCHU S4 as measured here and are not guaranteed to match the
-# allele names used in the publication.
-#   filled: Ft-M2 6bp x5; Ft-M3 9bp x21; Ft-M4 5bp x3; Ft-M5 16bp x3; Ft-M6 21bp x3; Ft-M7 16bp x4; Ft-M8 16bp x4; Ft-M9 16bp x4; Ft-M10 16bp x18; Ft-M14 6bp x5; Ft-M15 6bp x3; Ft-M16 10bp x3; Ft-M17 6bp x4; Ft-M18 6bp x5; Ft-M20 12bp x3; Ft-M21 7bp x3
-#   not filled: Ft-M1 (2 copies); Ft-M11 (2 copies); Ft-M12 (2 copies); Ft-M13 (2 copies); Ft-M19 (0 copies); Ft-M22 (77% match); Ft-M23 (2 copies); Ft-M24 (2 copies); Ft-M25 (2 bp unit)
+# unit_length, ref_repeats and the repeat motif are now the published values of Table 2 of Johansson
+# et al. 2004, which gives the repeat motif, its size in nucleotides and the copy number in strain
+# SCHU S4 for all 25 markers, so every locus is callable on the published scale rather than a derived
+# one. An earlier version of this scheme filled 16 loci with copy numbers derived from the reference
+# and left 9 empty, and warned that a derived count could be offset from the canonical allele by a
+# constant. The published table bears that out: the unit length is confirmed at every filled locus,
+# but the derived count was wrong at eight of them, Ft-M2 4 against 5 derived, Ft-M3 25 against 21,
+# Ft-M6 4 against 3, Ft-M14 3 against 5, Ft-M15 2 against 3, Ft-M16 2 against 3, Ft-M17 3 against 4
+# and Ft-M18 4 against 5, because the arrays are imperfect and an exact motif count misses the copies
+# the paper includes. Those counts are now the published ones, and a run on SCHU S4 returns the
+# published profile with a residual of zero at every locus.
 #
-# The derived unit lengths were tested across strains. A locus keeps the same flanking length in
-# every strain, so the sizes of its product must differ by whole multiples of its repeat unit.
-# Amplifying this panel in seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198,
-# NE061598 and TI0902, confirms 15 of the 16 filled units: every observed step at those loci is a
-# whole number of units. Ft-M8 is the exception and its steps, 15 and 33 bases, are not multiples
-# of its 16 bp unit, so a product of that locus from another strain can give a fractional allele,
-# which the caller flags INTERMEDIATE rather than reporting a whole number. The cause is the shared
-# repeat family described below: in WY96-3418 the Ft-M8 product comes from a position about 1.85 Mb
-# away from where it lies in the other genomes, so the primers have selected a different member of
-# the family rather than the array they amplify in SCHU S4. Read an Ft-M8 allele with that in mind.
+# patterns, the stored repeat motif used for the tandem cross-check, are kept only at the eight loci
+# where counting the motif in the reference returns the published copy number: Ft-M4, Ft-M5, Ft-M7,
+# Ft-M8, Ft-M9, Ft-M10, Ft-M20 and Ft-M21, stored as the rotation the array begins with. At the other
+# seventeen the motif is left out, because the array is imperfect enough that an exact count would
+# contradict the published number; the published motif is recorded in this comment instead. Motifs:
+# Ft-M1 AAT, Ft-M2 TAAATA, Ft-M3 AATAAGGAT, Ft-M6 TTGGTGAACTTTCTTGCTCTT, Ft-M11 AATTATAAAT,
+# Ft-M12 TAGCTTTTTT, Ft-M13 CTCCAGGACCAA, Ft-M14 TCATTA, Ft-M15 ATACTT, Ft-M16 TAAAAGTAAG,
+# Ft-M17 TATTTA, Ft-M18 CATTAA, Ft-M19 TAAATTTCTCATA, Ft-M22 AAAAAT,
+# Ft-M23 AAGTAGCATTGTCACGACCTCCT, Ft-M24 ATAAATTATTTATTTTGATTA, Ft-M25 GT.
 #
-# The same test also matches these loci to the other bundled Francisella scheme. Its names are
-# padded, Ft-M02 against Ft-M2 here, and the units derived independently there agree with the ones
-# derived here at Ft-M2, Ft-M3, Ft-M4, Ft-M5, Ft-M6, Ft-M10 and Ft-M20, which confirms that the
-# padded and unpadded names are the same VNTR. The two schemes use different primer pairs and
-# different references, so their sizes and alleles are not interchangeable.
+# The unit lengths were also tested across strains. A locus keeps the same flanking length in every
+# strain, so its product sizes must differ by whole multiples of the unit. Amplifying this panel in
+# seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198, NE061598 and TI0902, confirms the
+# unit at the loci that vary. Ft-M8 is a special case: its steps of 15 and 33 bases are not multiples
+# of 16, because in WY96-3418 its product comes from a position about 1.85 Mb away, a different member
+# of the shared repeat family below, so a non-reference Ft-M8 allele can be fractional and is flagged
+# INTERMEDIATE rather than rounded.
 #
-# Ft-M5, Ft-M7, Ft-M8, Ft-M9 and Ft-M10 share the reverse primer and also share one 16 bp repeat unit,
-# AAAAAGATATTTGTAG, at five unrelated positions, so they sample one repeat family rather than five
-# independent loci. That oligo occurs 50 times in SCHU S4 inside a conserved element of at least 220 bp,
-# so each product is selected by size alone.
+# The same test matches these loci to the other bundled Francisella scheme, whose names are the padded
+# spelling of these, Ft-M02 against Ft-M2, and which took its copy numbers from this scheme's SCHU S4
+# counts; those counts are the published ones above.
+#
+# Ft-M5, Ft-M7, Ft-M8, Ft-M9 and Ft-M10 share the reverse primer and one 16 bp repeat unit,
+# TTTCTACAAATATCTT, at five unrelated positions, so they sample one repeat family rather than five
+# independent loci. That oligo occurs 50 times in SCHU S4 inside a conserved element, so each product
+# is selected by size alone.

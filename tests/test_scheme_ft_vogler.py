@@ -45,8 +45,8 @@ JOHANSSON = {"Ft-M02": "Ft-M2", "Ft-M03": "Ft-M3", "Ft-M04": "Ft-M4", "Ft-M05": 
 
 
 # the LVS copy number calibrated through SCHU S4, where the Johansson panel counts the same array
-CALIBRATED = {"Ft-M02": 3, "Ft-M03": 12, "Ft-M04": 4, "Ft-M05": 2,
-              "Ft-M06": 3, "Ft-M10": 2, "Ft-M20A": 4}
+CALIBRATED = {"Ft-M02": 2, "Ft-M03": 16, "Ft-M04": 4, "Ft-M05": 2,
+              "Ft-M06": 4, "Ft-M10": 2, "Ft-M20A": 4}
 SIZED_ONLY = ["Ft-M20B", "Ft-M22", "Ft-M23", "Ft-M24"]
 
 
