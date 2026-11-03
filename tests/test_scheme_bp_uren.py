@@ -74,3 +74,22 @@ def test_published_copy_numbers_are_recorded_but_unused(tmp_path):
     comments = [line for line in text.splitlines() if line.startswith("#")]
     assert len(comments) > 8 and any("3564k 30" in line for line in comments)
     assert len(read_markers(scheme.markers)) == N_MARKERS
+
+
+def test_the_scheme_turns_on_the_indel_rescue():
+    scheme = load_scheme("burkholderia_uren_2007")
+    assert scheme.calling_defaults()["rescue_indels"] is True
+
+
+def test_the_indel_rescue_recovers_loci_in_a_second_strain(tmp_path):
+    """In B. pseudomallei 1106a two loci are missed by the main search and found by the aligned rescue.
+
+    The default search finds 28 of the 32 loci in this strain; the rescue gives 1764k and 2445k, the
+    remaining four have primer sites that differ too much or a product outside the size window.
+    """
+    fixture = reference_assembly("GCF_000756145.1")
+    assert main(["run", "--scheme", "burkholderia_uren_2007", "--fasta", str(fixture), "--outdir",
+                 str(tmp_path), "--prefix", "s", "--align", "none", "--no-report"]) == 0
+    hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t").set_index("marker")
+    assert set(hits.index[hits["search_pass"] != "main"]) == {"1764k", "2445k"}
+    assert len(hits) == 28

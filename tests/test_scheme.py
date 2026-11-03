@@ -32,6 +32,10 @@ def test_parse_flat_yaml():
         parse_flat_yaml("margin: many\n")
     with pytest.raises(SchemeError):
         parse_flat_yaml("no separator\n")
+    assert parse_flat_yaml("rescue_indels: yes\n") == {"rescue_indels": True}
+    assert parse_flat_yaml("rescue_indels: No\n") == {"rescue_indels": False}
+    with pytest.raises(SchemeError):
+        parse_flat_yaml("rescue_indels: maybe\n")
 
 
 def _scheme_dir(fixture_dir, rounding="nearest"):
