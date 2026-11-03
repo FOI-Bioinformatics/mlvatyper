@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo.jpg" alt="mlvatyper: MLVA typing from sequencing data" width="720">
+</p>
+
 # mlvatyper
 
 Locate VNTR (variable number tandem repeat) amplicons in genome assemblies with
