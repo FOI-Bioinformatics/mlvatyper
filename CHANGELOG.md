@@ -177,6 +177,15 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `saureus_mlva5_sabat_2003` now calls all five loci, where before it sized
+  them only. The paper publishes no repeat counts and its primers lie inside
+  the repeat arrays, so no published scale or flanking landmark exists. The
+  scheme defines its own allele, the number of whole repeat units between the
+  two primer sites, which gives an exact integer for every strain: all 54
+  products over eight genomes agree with the repeat formula, with no negative
+  alleles. This is a convention of the scheme, documented as such, and not
+  Sabat's pattern number or a count comparable with other schemes. The sdr
+  locus is called per product and flagged MULTIPLE.
 - `saureus_mlva8_schouls_2009` calls all eight loci, up from four, on the
   scheme's own published scale. Figure 7 of Schouls et al. 2009 gives the
   MLVA profile of 14 sequenced strains; the N315 profile, 14-2-1-3-2-11-7-5,

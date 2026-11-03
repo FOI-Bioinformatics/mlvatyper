@@ -307,19 +307,20 @@ below are shorter than they are.
 
 - `saureus_mlva5_sabat_2003`: the five locus gel based MLVA for
   *Staphylococcus aureus* (Sabat et al. 2003), anchored on NCTC 8325, the
-  control strain the paper types. It is the thinnest bundled scheme: the
-  paper publishes primers and nothing else quantitative, and its MLVA
-  pattern numbers are arbitrary labels for band patterns rather than per
-  locus alleles, so the scheme sizes its markers and calls none. `sdr` is
-  one primer pair that amplifies the tandem *sdrC*, *sdrD* and *sdrE* genes
-  together, so it is the only bundled locus declared in `known_multiple`;
-  it gives three products in six of eight *S. aureus* genomes and two in the
-  reference. The *sspA* primers are degenerate and are found by the rescue
-  pass rather than at word size 11. Its *spa* locus overlaps
-  `saureus_mlva8_schouls_2009` with different primers. The unit lengths were
-  checked against eight genomes and three are corrected: the Ser-Asp arrays
-  of *clfA*, *clfB* and *sdr* step by one dipeptide, 6 bp, not the 18 bp the
-  paper describes.
+  control strain the paper types. The paper numbers band patterns and
+  publishes no repeat counts, and its primers lie inside the repeat arrays,
+  so no published scale or flanking landmark exists. The scheme therefore
+  defines its own allele: the number of whole repeat units that fit between
+  the two primer sites of the product. That rule gives an exact integer for
+  every strain, 54 products over eight genomes, but it is a convention of
+  this scheme, not a published value, not Sabat's pattern number and not
+  comparable with the other *S. aureus* schemes, so alleles compare only
+  with each other. `sdr` is one primer pair over the tandem *sdrC*, *sdrD*
+  and *sdrE* genes, so it is declared in `known_multiple` and each product
+  is called and flagged MULTIPLE. The unit lengths were checked against
+  eight genomes: the Ser-Asp arrays of *clfA*, *clfB* and *sdr* step by one
+  dipeptide, 6 bp, not the 18 bp the paper describes. The *sspA* primers are
+  degenerate and are found by the rescue pass.
 
 - `saureus_mlva14_pourcel_2009`: the 14 locus MLVA for *Staphylococcus
   aureus* (Pourcel et al. 2009), in two multiplex panels, anchored on Mu50
