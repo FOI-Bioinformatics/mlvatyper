@@ -6,6 +6,17 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `salmonella_enteritidis_mlva9_malorny_2008`, the nine locus
+  multiplex of Malorny et al. for *Salmonella* Enteritidis, anchored on
+  NCTC 13349. The loci are in the order the paper gives for the MLVA type.
+  Seven of the nine reference repeat numbers are fractional, so those loci
+  call on a grid offset from the integers, which is the first bundled use of
+  an offset other than a half. Four published sequence lengths are not the
+  product their own primers give in the reference assembly and the measured
+  length is used; the differences are a fraction of a repeat and move no
+  allele. The paper's MLVA type is a string of arbitrary allele indices
+  rather than repeat numbers, and that mapping is not published, so a
+  profile from this scheme is not directly comparable with a published type.
 - Bundled scheme `yersinia_mlva26_li_2013`, the hierarchical 14+12 VNTR
   scheme of Li et al. for *Yersinia pestis*, anchored on CO92. The fourteen
   first step loci come before the twelve that resolve sub-populations, so a

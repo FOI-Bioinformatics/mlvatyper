@@ -172,6 +172,20 @@ below are shorter than they are.
   that the single unit formula cannot express; it is reported by length
   and its allele has to be assigned by hand.
 
+- `salmonella_enteritidis_mlva9_malorny_2008`: the nine locus multiplex for
+  *Salmonella* Enteritidis (Malorny et al. 2008), anchored on NCTC 13349,
+  which is the sequenced strain P125109. The loci are in the order the paper
+  gives for the MLVA type, so a profile reads in the published order. Seven
+  of the nine reference repeat numbers are fractional because the array ends
+  in a partial unit, so those loci have alleles on a grid offset from the
+  integers rather than INTERMEDIATE calls. Four of the published sequence
+  lengths are not the product their own primers give in that assembly, and
+  the measured length is used; the differences are a fraction of a repeat and
+  move no allele. Note that the paper's MLVA type is a string of arbitrary
+  allele indices, not repeat numbers, and the index to size table is not
+  published, so a profile from this scheme cannot be compared with a
+  published type directly.
+
 - `Lpn_MLVA12`: the 12 locus MLVA panel of Orsay for *Legionella
   pneumophila* (Sobral et al. 2011, Appl Environ Microbiol 77:6899-6907,
   doi:10.1128/AEM.05556-11, Table 1; it contains the MLVA-8 markers of
