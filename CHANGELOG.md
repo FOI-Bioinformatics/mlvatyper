@@ -6,6 +6,16 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `saureus_mlva14_pourcel_2009`, the 14 locus MLVA of Pourcel
+  et al. for *Staphylococcus aureus*, in two multiplex panels, anchored on
+  Mu50. It is the first fully callable *S. aureus* scheme bundled: the repeat
+  units and Mu50 copy numbers are from Pourcel et al. Table 1, and the Mu50
+  amplicon sizes and a 31 isolate validation set are from Bogut et al. 2024
+  (doi:10.2478/cipms-2024-0014). The primers reproduce every Mu50 amplicon,
+  the reference profile matches the published one, and 57 of 66 clinical
+  cells reproduce exactly, the rest within one repeat of the gel-sized
+  source. Two of its loci are the arrays the Schouls panel reads as
+  VNTR24_01 and VNTR63_01.
 - Bundled scheme `nmeningitidis_mlva12_liao_2006`, the 12 locus MLVA of Liao
   et al. for *Neisseria meningitidis*, anchored on Z2491. Every value is
   published: the paper's two tables give the repeat units, unit lengths and

@@ -299,6 +299,15 @@ below are shorter than they are.
   of *clfA*, *clfB* and *sdr* step by one dipeptide, 6 bp, not the 18 bp the
   paper describes.
 
+- `saureus_mlva14_pourcel_2009`: the 14 locus MLVA for *Staphylococcus
+  aureus* (Pourcel et al. 2009), in two multiplex panels, anchored on Mu50
+  (ATCC 700699). It is the first fully callable *S. aureus* scheme: every
+  reference value is published, the primers reproduce every Mu50 amplicon,
+  and a run on Mu50 returns the published profile exactly. The calling model
+  was checked against 31 clinical profiles from Bogut et al. 2024, which
+  also supplied the Mu50 amplicon sizes. Sa0122 (spa) and Sa1132 are the
+  arrays the Schouls panel reads as VNTR24_01 and VNTR63_01.
+
 - `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
   aureus* (Schouls et al. 2009), anchored on N315. All eight products are
   reproduced there and each equals the span of the coordinates the paper
