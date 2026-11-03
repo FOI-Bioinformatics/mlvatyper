@@ -527,6 +527,10 @@ read assemblies, so L should be the assembly k-mer or read length.
 - `sequences/<marker>.fasta`: the amplicons of each marker, record ids
   `<sample>_<copy>`, and with an aligner `<marker>_aligned.fasta` and
   `<marker>_aligned.clw` (`_clean` variants with `--clwclean`).
+- `<prefix>_sample_summary.tsv` and `<prefix>_locus_summary.tsv`, written
+  with the report for five or more samples: call rate per sample, and per
+  locus the typed and OK counts, the most frequent flag, diversity and the
+  loci to review (see [report.md](report.md)).
 - `missing_markers.tsv`: every sample and marker without a hit, with its
   reason and, for NEAR_CONTIG_END, a detail column that says where each
   primer lies (for example "forward primer 159 bp from the start of contig A;

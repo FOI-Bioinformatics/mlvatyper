@@ -70,6 +70,26 @@ columns count status codes per sample; a marker can carry several codes.</p>
 {% else %}
 <p>Every marker was found in every sample without flags.</p>
 {% endif %}
+{% if screening %}
+<h3 id="across">Across samples</h3>
+<p>Share of loci with status OK per sample: mean {{ screening.mean }}, lowest {{ screening.min }}.
+{% if screening.low %}Samples below 75%: {{ screening.low | join(", ") }}.{% else %}No sample is below 75%.{% endif %}
+The per-sample and per-locus tables are written as <code>{{ prefix }}_sample_summary.tsv</code> and
+<code>{{ prefix }}_locus_summary.tsv</code>.</p>
+{% if screening.concerns_table %}
+<p><b>Loci to review.</b> A flag on more than half of the typed calls of a locus, or an allele of zero or
+below, points at the scheme (reference values, repeat unit or patterns) more often than at the strains.</p>
+<div class="scroll">{{ screening.concerns_table | safe }}</div>
+{% else %}
+<p>No locus carries one flag on more than half of its calls, and no allele is zero or below.</p>
+{% endif %}
+<details><summary>Per locus: typed, OK, missing, most frequent flag and diversity</summary>
+<div class="scroll">{{ screening.loci_table | safe }}</div></details>
+{% if screening.missing_table %}
+<details><summary>Missing products by reason</summary>
+<div class="scroll">{{ screening.missing_table | safe }}</div></details>
+{% endif %}
+{% endif %}
 
 <h2 id="alleles">2. Allele profiles</h2>
 <p>Repeat numbers per marker in STS order{% if transposed %}, markers as rows because they outnumber the

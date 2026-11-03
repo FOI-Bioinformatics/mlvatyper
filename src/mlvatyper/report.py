@@ -413,6 +413,29 @@ def _discovery_summary(discovery: pd.DataFrame | None) -> str:
     return "; ".join(parts) + "."
 
 
+def screening_overview(data: ReportData) -> dict | None:
+    """The across-sample summary, or None for a handful of samples."""
+    from .screening import MIN_SAMPLES, overview
+    if len(data.samples) < MIN_SAMPLES:
+        return None
+    return overview(data.alleles, data.status, data.missing)
+
+
+def _screening_html(data: ReportData) -> dict | None:
+    ov = screening_overview(data)
+    if ov is None:
+        return None
+    loci = ov["loci"].reset_index()
+    loci["top_flag_share"] = (100 * loci["top_flag_share"]).round(0).astype(int).astype(str) + "%"
+    concerns = ov["concerns"].reset_index()[["marker", "concern"]]
+    return {
+        "mean": f"{100 * ov['ok_fraction_mean']:.0f}%", "min": f"{100 * ov['ok_fraction_min']:.0f}%",
+        "low": ov["low_call_rate"], "loci_table": _table_html(loci, index=False),
+        "concerns_table": _table_html(concerns, index=False) if len(concerns) else "",
+        "missing_table": _table_html(ov["missing_by_reason"], index=False) if len(ov["missing_by_reason"]) else "",
+    }
+
+
 def render(data: ReportData) -> str:
     from jinja2 import Environment, PackageLoader, select_autoescape
 
@@ -445,7 +468,7 @@ def render(data: ReportData) -> str:
     return template.render(
         data=data, generated=datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"), version=__version__,
         merpcr_version=data.run_info.get("merpcr_version", "unknown"), command=_command_line(data.run_info),
-        meta=meta, summary_table=_table_html(_summary_table(data)),
+        meta=meta, summary_table=_table_html(_summary_table(data)), screening=_screening_html(data),
         alleles_table=_table_html(alleles, colour=status), transposed=transposed, legend=legend_html(),
         profile_table=_table_html(data.profile[["profile"]]), evidence=evidence, failures=failures(data),
         missing_table=_table_html(missing, index=False) if len(missing) else "",
@@ -463,6 +486,10 @@ def render(data: ReportData) -> str:
 def write_report(outdir: Path, prefix: str, title: str | None = None) -> Path:
     data = load_report_data(outdir, prefix, title)
     path = Path(outdir) / f"{prefix}_report.html"
+    ov = screening_overview(data)
+    if ov is not None:
+        ov["samples"].to_csv(Path(outdir) / f"{prefix}_sample_summary.tsv", sep="\t")
+        ov["loci"].to_csv(Path(outdir) / f"{prefix}_locus_summary.tsv", sep="\t")
     path.write_text(render(data), encoding="utf-8")
     log.info("Wrote %s", path)
     return path
