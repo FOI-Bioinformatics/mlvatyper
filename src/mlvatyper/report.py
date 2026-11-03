@@ -9,6 +9,7 @@ and prints to PDF from a browser.
 import html
 import io
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
@@ -141,6 +142,24 @@ def scheme_name(run_info: dict) -> str:
     return Path(str(sts)).stem if sts else ""
 
 
+def scheme_info(run_info: dict) -> dict | None:
+    """Organism, publication, reference strain and assembly of the bundled scheme used, or None."""
+    search = run_info.get("search", {}).get("parameters", {}) or {}
+    name = search.get("scheme")
+    if not name:
+        return None
+    try:
+        from .scheme import load_scheme
+        scheme = load_scheme(name)
+    except Exception:  # a scheme directory that has moved since the run
+        return None
+    meta = scheme.meta
+    doi = re.search(r"10\.\d{4,9}/[^\s;,()]+", f"{meta.get('citation', '')} {meta.get('url', '')}")
+    return {"name": scheme.name, "organism": str(meta.get("organism", "")), "citation": str(meta.get("citation", "")),
+            "doi": doi.group(0).rstrip(".") if doi else "", "reference": str(meta.get("reference", "")),
+            "assembly": str(meta.get("assembly", "")), "interrupted": list(scheme.interrupted_arrays)}
+
+
 def status_counts(data: ReportData) -> pd.DataFrame:
     """Status code counts per sample, codes as columns in a fixed order."""
     counts: dict[str, dict[str, int]] = {}
@@ -228,8 +247,19 @@ def figures(data: ReportData) -> dict[str, str]:
     ax.set_xticklabels(markers, rotation=90)
     ax.set_yticks(range(len(data.samples)))
     ax.set_yticklabels(data.samples)
+    ax.set_xticks([i - 0.5 for i in range(len(markers) + 1)], minor=True)
+    ax.set_yticks([i - 0.5 for i in range(len(data.samples) + 1)], minor=True)
+    ax.grid(which="minor", color="#e4e4e4", linewidth=0.5)
+    ax.tick_params(which="minor", length=0)
+    ax.set_xlabel("marker")
+    ax.set_ylabel("sample")
     for spine in ax.spines.values():
         spine.set_visible(False)
+    present = sorted({m for row in matrix for m in row})
+    handles = [matplotlib.patches.Patch(facecolor=STATUS_COLOURS[codes[i]], edgecolor="#bbbbbb", linewidth=0.5,
+                                        label=codes[i]) for i in present]
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.1), frameon=False,
+              ncol=min(len(handles), 5), fontsize=7)
     out["status"] = _svg(fig)
     return out
 
@@ -257,6 +287,7 @@ def methods_text(run_info: dict, prefix: str | None = None) -> str:
     summ = summarize_parameters(run_info, prefix)
     merpcr = run_info.get("merpcr_version", "unknown")
     version = run_info.get("mlvatyper_version", __version__)
+    info = scheme_info(run_info)
     parts = [
         f"VNTR amplicons were located in the assemblies with mlvatyper {version} "
         f"(https://github.com/FOI-Bioinformatics/mlvatyper) using merPCR {merpcr}, a Python reimplementation "
@@ -267,14 +298,20 @@ def methods_text(run_info: dict, prefix: str | None = None) -> str:
            f"{search.get('max_repeats', 50)} repeats instead, unless the STS file gave a size range."
            if search.get("markers") else "."),
     ]
+    if info and info["citation"]:
+        parts.append(
+            f"Primers and reference values were taken from the {info['name']} scheme"
+            + (f" for {info['organism']}" if info["organism"] else "") + f" ({info['citation']})."
+        )
     if search.get("iupac", True):
         parts.append("IUPAC ambiguity codes in primers were matched to the bases they stand for.")
     if search.get("rescue_wordsize", 0):
+        anchored = (", and then by anchored alignment, in which one primer matched without gaps (up to "
+                    f"{search.get('mismatches', 2)} mismatches) and the other was aligned allowing one indel.")
         parts.append(
             f"Markers without a hit were searched again with a hash word of {search['rescue_wordsize']} bases, "
             f"one-sided search and a window of {search.get('rescue_margin') or 2 * search.get('margin', 500)} bp"
-            + (", and then by anchored alignment allowing one indel in a primer." if search.get("rescue_indels")
-               else "."))
+            + (anchored if search.get("rescue_indels") else "."))
     parts.append(
         "Overlapping hits for one locus were collapsed to the hit with the fewest primer mismatches. "
         "Repeat numbers were calculated as reference repeats plus the difference between the amplicon length "
@@ -287,6 +324,10 @@ def methods_text(run_info: dict, prefix: str | None = None) -> str:
     )
     if summ.get("bins"):
         parts.append("Amplicon sizes were first mapped to alleles with the bin table given.")
+    if info and info["interrupted"]:
+        parts.append(
+            f"For {len(info['interrupted'])} markers whose arrays hold variant units, the scheme lists them as "
+            "interrupted: the tandem count is reported but a difference from the length based allele is not flagged.")
     return " ".join(parts)
 
 
@@ -323,8 +364,16 @@ EVIDENCE_COLUMNS = {
 }
 
 
+# short forms for the codes that stand in place of an allele, so that the columns of the allele table keep
+# one width; the full code is in the cell's title and the key below the table
+SHORT_CODES = {"NOT_DETECTED": "ND", "NEAR_CONTIG_END": "CE", "ONE_PRIMER_ONLY": "1P", "NOT_SEARCHED": "NS",
+               "NO_DEFINITION": "NDef", "OFF_TABLE": "OFF"}
+NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
+
+
 def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | None = None,
-                headers: dict[str, str] | None = None, row_status: str | None = None) -> str:
+                headers: dict[str, str] | None = None, row_status: str | None = None,
+                css: str = "", abbreviate: bool = False) -> str:
     """Plain HTML table.
 
     colour gives a background per cell from a status table of the same
@@ -333,8 +382,10 @@ def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | Non
     """
     cols = list(df.columns)
     names = headers or {}
-    rows = ["<table>", "<thead><tr>" + ("<th></th>" if index else "")
-            + "".join(f"<th>{html.escape(str(names.get(c, c)))}</th>" for c in cols) + "</tr></thead>", "<tbody>"]
+    rows = [f'<table class="{css}">' if css else "<table>",
+            "<thead><tr>" + ("<th></th>" if index else "")
+            + "".join(f'<th scope="col">{html.escape(str(names.get(c, c)))}</th>' for c in cols)
+            + "</tr></thead>", "<tbody>"]
     for idx, row in df.iterrows():
         cells = []
         row_style = ""
@@ -345,8 +396,13 @@ def _table_html(df: pd.DataFrame, index: bool = True, colour: pd.DataFrame | Non
             style = ""
             if colour is not None:
                 style = f' style="background:{cell_colour(colour.loc[idx, c])}"'
-            cells.append(f"<td{style}>{html.escape(str(row[c]))}</td>")
-        rows.append(f"<tr{row_style}>" + (f"<th>{html.escape(str(idx))}</th>" if index else "")
+            text = str(row[c])
+            shown, title = text, ""
+            if abbreviate and text in SHORT_CODES:
+                shown, title = SHORT_CODES[text], f' title="{html.escape(text)}"'
+            cls = ' class="n"' if NUMBER.match(text) else ""
+            cells.append(f"<td{cls}{style}{title}>{html.escape(shown)}</td>")
+        rows.append(f"<tr{row_style}>" + (f'<th scope="row">{html.escape(str(idx))}</th>' if index else "")
                     + "".join(cells) + "</tr>")
     rows.extend(["</tbody>", "</table>"])
     return "\n".join(rows)
@@ -372,7 +428,9 @@ def legend_html() -> str:
         f'<span class="swatch" style="background:{STATUS_COLOURS[code]}"></span>{html.escape(label)}'
         for label, code in groups
     )
-    return f'<p class="legend"><span class="swatch" style="background:#ffffff"></span>OK {items}</p>'
+    key = ", ".join(f"<b>{short}</b> {code}" for code, short in SHORT_CODES.items())
+    return (f'<p class="legend"><span class="swatch" style="background:#ffffff"></span>OK {items}</p>'
+            f'<p class="legend">In place of an allele: {key}.</p>')
 
 
 SOFTWARE = [
@@ -411,6 +469,31 @@ def _discovery_summary(discovery: pd.DataFrame | None) -> str:
     if mixed:
         parts.append(f"{mixed} mixed")
     return "; ".join(parts) + "."
+
+
+def _scheme_rows(run_info: dict) -> list[tuple[str, str]]:
+    info = scheme_info(run_info)
+    if not info:
+        return []
+    rows = []
+    if info["organism"]:
+        rows.append(("Organism", info["organism"]))
+    if info["citation"]:
+        rows.append(("Scheme reference", info["citation"]))
+    if info["reference"]:
+        rows.append(("Reference strain", info["reference"] + (f" ({info['assembly']})" if info["assembly"] else "")))
+    return rows
+
+
+def completeness(data: ReportData) -> str:
+    """One line on how many calls are OK, for the header."""
+    cells = data.status.shape[0] * data.status.shape[1]
+    ok = int((data.status == "OK").to_numpy().sum())
+    absent = int(data.status.isin(ABSENT_CODES).to_numpy().sum())
+    if not cells:
+        return ""
+    return (f"{ok:,} of {cells:,} sample and marker combinations OK ({100 * ok / cells:.0f}%), "
+            f"{absent:,} without product")
 
 
 def screening_overview(data: ReportData) -> dict | None:
@@ -457,6 +540,7 @@ def render(data: ReportData) -> str:
     summ = summarize_parameters(data.run_info, data.prefix)
     meta = [
         ("Scheme", scheme_name(data.run_info) or data.prefix),
+        *_scheme_rows(data.run_info),
         ("Samples", str(len(data.samples))), ("Markers", str(len(data.markers))),
         ("Amplicons", str(data.n_amplicons)),
         ("Reference sample", summ.get("reference_sample") or search.get("reference_sample") or "none"),
@@ -468,8 +552,10 @@ def render(data: ReportData) -> str:
     return template.render(
         data=data, generated=datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"), version=__version__,
         merpcr_version=data.run_info.get("merpcr_version", "unknown"), command=_command_line(data.run_info),
-        meta=meta, summary_table=_table_html(_summary_table(data)), screening=_screening_html(data),
-        alleles_table=_table_html(alleles, colour=status), transposed=transposed, legend=legend_html(),
+        meta=meta, summary_table=_table_html(_summary_table(data), css="wide"), n_samples=len(data.samples),
+        meta_completeness=completeness(data), screening=_screening_html(data),
+        alleles_table=_table_html(alleles, colour=status, css="alleles", abbreviate=True), transposed=transposed,
+        legend=legend_html(),
         profile_table=_table_html(data.profile[["profile"]]), evidence=evidence, failures=failures(data),
         missing_table=_table_html(missing, index=False) if len(missing) else "",
         discovery_table=_table_html(data.discovery, index=False) if data.discovery is not None else "",

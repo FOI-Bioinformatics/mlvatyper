@@ -59,6 +59,24 @@ profile table](images/report.png)
 9. **Appendix**: the marker definitions used for this prefix and the status
    code glossary.
 
+## Layout conventions
+
+- The header table names the scheme, its organism, its publication with the
+  DOI and its reference strain when the run used a bundled scheme; the Methods
+  paragraph cites the same publication.
+- Tables are numbered in order, with the caption above the table; figures are
+  numbered in order, with the caption below. Long per-sample tables are
+  collapsed when there are more than 20 samples.
+- Header rows and the first column stay in view when a wide table scrolls.
+  Numbers are right aligned, and allele cells are centred.
+- In the allele table, codes that stand in place of an allele are abbreviated
+  (`ND` not detected, `CE` near contig end, `1P` one primer only, `NS` not
+  searched, `NDef` no definition, `OFF` off table) so that columns keep one
+  width; the key is above the table and the full code is the cell's tooltip.
+- The status figure has a legend, grid lines and axis titles.
+- Printing from a browser uses landscape A4, open sections and smaller
+  tables; the navigation is left out.
+
 ## Reading the colours
 
 The same colours are used in the allele table, the status figure and the
