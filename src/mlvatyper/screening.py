@@ -7,20 +7,18 @@ below zero (zero itself can be a valid state, for example an absent insertion); 
 scheme (reference values, units or patterns) more often than at the strains.
 """
 
-import re
-
 import pandas as pd
 
-ABSENT = ("NOT_DETECTED", "NEAR_CONTIG_END", "NOT_SEARCHED", "ONE_PRIMER_ONLY")
-GOOD = ("OK", "BINNED")  # BINNED is the normal result of a locus that is called from a bin table
-NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
+from .calling import ABSENT_CODES as ABSENT
+from .calling import GOOD_CODES as GOOD
+from .calling import allele_value
 FLAG_SHARE = 0.5  # a flag on more than this share of the typed calls of a locus is reported as a concern
 LOW_CALL_RATE = 0.75  # samples with a smaller share of OK loci are listed as low call rate
 MIN_SAMPLES = 5  # the overview is meant for sets, not for single samples
 
 
 def _is_number(text: str) -> bool:
-    return bool(NUMBER.match(str(text)))
+    return allele_value(text) is not None
 
 
 def sample_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
@@ -60,7 +58,7 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
                 if code not in GOOD:
                     codes[code] = codes.get(code, 0) + 1
         top, top_n = max(codes.items(), key=lambda kv: kv[1]) if codes else ("", 0)
-        lowest = min((float(v) for v in numeric), default=float("nan"))
+        lowest = min((allele_value(v) for v in numeric), default=float("nan"))
         concern = []
         if typed and top_n / typed > FLAG_SHARE:
             concern.append(f"{top} in {100 * top_n / typed:.0f}% of calls")

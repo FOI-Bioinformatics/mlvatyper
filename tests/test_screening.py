@@ -69,3 +69,16 @@ def test_binned_counts_as_a_good_call():
     loci = locus_summary(alleles, status)
     assert loci.loc["a", "ok"] == 5 and loci.loc["a", "concern"] == ""
     assert loci.loc["b", "ok"] == 3
+
+
+def test_the_summaries_and_the_figures_agree_on_what_is_typed():
+    """One parser for allele text: a half or censored allele counts as typed in both."""
+    from mlvatyper.plots import allele_matrix
+    alleles = pd.DataFrame({"a": ["20.5"] * 5, "b": [">=50"] * 5, "c": ["9/9"] * 5,
+                            "d": ["NOT_DETECTED"] * 5}, index=[f"s{i}" for i in range(5)])
+    status = pd.DataFrame("OK", index=alleles.index, columns=alleles.columns)
+    status["d"] = "NOT_DETECTED"
+    typed_here = sample_summary(alleles, status)["typed"].tolist()
+    import numpy as np
+    typed_there = (~np.isnan(allele_matrix(alleles))).sum(axis=1).tolist()
+    assert typed_here == typed_there == [2] * 5
