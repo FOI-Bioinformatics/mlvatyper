@@ -8,7 +8,7 @@ from mlvatyper.scheme import load_scheme
 from tests.conftest import reference_assembly
 
 ASSEMBLY = "GCF_000006945.2"
-EXPECTED = {"STTR9": "4", "STTR5": "13", "STTR6": "13", "STTR10pl": "10", "STTR3": "NO_DEFINITION"}
+EXPECTED = {"STTR9": "4", "STTR5": "13", "STTR6": "13", "STTR10pl": "10", "STTR3": "211"}
 
 
 def test_scheme_files_are_consistent():

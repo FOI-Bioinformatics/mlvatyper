@@ -162,8 +162,10 @@ def round_repeats(raw: float, tolerance: float, policy: str, grid_offset: float 
     raise ValueError(f"unknown rounding policy {policy}")
 
 
-def _allele_value(text: str) -> float | None:
-    """Numeric value of an allele, or None for a non-numeric bin label such as '3a'."""
+def _allele_value(text: str | None) -> float | None:
+    """Numeric value of an allele, or None for no allele or a non-numeric bin label such as '3a'."""
+    if text is None:
+        return None
     try:
         return float(text.lstrip(">="))
     except ValueError:
@@ -172,7 +174,10 @@ def _allele_value(text: str) -> float | None:
 
 def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None,
                    tolerance: float, policy: str) -> None:
-    call.raw = d.ref_repeats + (length - d.ref_size) / d.unit_length
+    # a compound locus (two interleaved unit sizes) carries no single unit, so it has no formula and
+    # is called from its bins alone; the repeat formula runs only for a marker that can_call.
+    if d.can_call:
+        call.raw = d.ref_repeats + (length - d.ref_size) / d.unit_length
     binned = None
     if bins:
         binned = next((b.allele for b in bins if b.low <= length <= b.high), None)
@@ -181,11 +186,13 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
     if binned is not None:
         call.allele = binned
         call.status.append(BINNED)
-    else:
+    elif d.can_call:
         call.allele, intermediate = round_repeats(call.raw, tolerance, policy, d.grid_offset)
         if intermediate:
             call.status.append(INTERMEDIATE)
-    if call.raw < 0:
+    else:
+        return  # bins-only locus with no matching bin: sized, OFF_TABLE, no allele
+    if call.raw is not None and call.raw < 0:
         call.status.append(NEGATIVE)
     value = _allele_value(call.allele)
     expected = None if value is None else d.expected_size(value)
@@ -222,7 +229,7 @@ def call_amplicon(
     if d.has_repeats:
         call.array = count_tandem_array(amp.sequence, d.patterns, max_mismatch)
         call.counted = True
-    if not d.can_call:
+    if not d.can_call and not bins:
         call.status.insert(0, NO_DEFINITION)  # first, so that the allele table shows it rather than e.g. HAS_N
         return call
     _assign_allele(call, d, len(amp.sequence), bins, tolerance, policy)

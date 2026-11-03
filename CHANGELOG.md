@@ -6,6 +6,13 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- A locus can now be called from a bins table alone, without a repeat unit.
+  This makes a compound locus callable, one that interleaves two repeat unit
+  sizes and so has no single unit for the allele formula. STTR3 of `STm_ECDC`
+  uses the fragment-size-to-allele table of Larsson et al. 2009, and NMTR12
+  of `nmeningitidis_mlva12_liao_2006` uses the three sequenced-genome alleles
+  of Liao et al. 2006; both reference strains now call their published
+  composite allele, and an off-table size is reported OFF_TABLE.
 - Bundled scheme `saureus_mlva14_pourcel_2009`, the 14 locus MLVA of Pourcel
   et al. for *Staphylococcus aureus*, in two multiplex panels, anchored on
   Mu50. It is the first fully callable *S. aureus* scheme bundled: the repeat

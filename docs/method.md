@@ -169,8 +169,9 @@ below are shorter than they are.
   Units are
   counted exactly (`unit_mismatches: 0`) because the nomenclature counts
   complete repeats. STTR3 is a compound locus of 27 bp and 33 bp units
-  that the single unit formula cannot express; it is reported by length
-  and its allele has to be assigned by hand.
+  that the single unit formula cannot express; it is called from a
+  `bins.tsv` holding the published fragment-size-to-allele table, LT2 being
+  allele 211.
 
 - `salmonella_enteritidis_mlva9_malorny_2008`: the nine locus multiplex for
   *Salmonella* Enteritidis (Malorny et al. 2008), anchored on NCTC 13349,
@@ -281,8 +282,8 @@ below are shorter than they are.
   derived. All twelve sizes reproduce in Z2491, and the same primers run
   against MC58 reproduce that genome's twelve sizes and eleven repeat
   numbers as well. NMTR12 is a compound locus of 13 bp and 12 bp units which
-  the single unit formula cannot express, so it is reported by length only,
-  as STTR3 is in `STm_ECDC`.
+  the single unit formula cannot express, so it is called from a `bins.tsv`
+  covering the three sequenced genomes, as STTR3 is in `STm_ECDC`.
 
 - `saureus_mlva5_sabat_2003`: the five locus gel based MLVA for
   *Staphylococcus aureus* (Sabat et al. 2003), anchored on NCTC 8325, the

@@ -1,0 +1,23 @@
+# Allele definitions for the compound locus STTR3, from Table 4 of Larsson et al. 2009
+# (Euro Surveill 14(15):19174), the ECDC nomenclature paper. STTR3 interleaves a 27 bp and a 33 bp
+# repeat unit, so a single unit length cannot express it and the allele is a composite: the number
+# of 27 bp units times 100 plus the number of 33 bp units, which is the allele number this table
+# assigns. Only STTR3 is binned; the other four loci are called from their repeat unit as usual.
+#
+# The size is the fragment size that table pairs with each allele. The reference LT2 product is
+# 490 bp, which is allele 211, two 27 bp units and eleven 33 bp units.
+marker	size	allele
+STTR3	337	8
+STTR3	370	9
+STTR3	436	11
+STTR3	451	309
+STTR3	463	111
+STTR3	469	12
+STTR3	490	211
+STTR3	496	112
+STTR3	517	311
+STTR3	523	212
+STTR3	544	411
+STTR3	550	312
+STTR3	572	511
+STTR3	616	314

@@ -52,8 +52,8 @@ FAM18_SIZES = {"NMTR1": 379, "NMTR2": 341, "NMTR6": 207, "NMTR7": 215, "NMTR9": 
                "NMTR9a": 248, "NMTR9b": 182, "NMTR9c": 202, "NMTR10": 221, "NMTR18": 209,
                "NMTR19": 225}
 
-PROFILE = {Z2491: "25-17-2-12-9-2-2-3-4-NO_DEFINITION-2-2",
-           MC58: "35-4-2-11-7-1-2-2-9-NO_DEFINITION-2-2"}
+PROFILE = {Z2491: "25-17-2-12-9-2-2-3-4-2a1b-2-2",
+           MC58: "35-4-2-11-7-1-2-2-9-20a9b-2-2"}
 
 # the motif is stored only where counting it in Z2491 returns the published number
 NO_PATTERN = {"NMTR1", "NMTR6", COMPOUND}
@@ -78,14 +78,22 @@ def test_scheme_files_are_consistent():
         assert d.ref_repeats == REPEATS[Z2491][d.primer_id], d.primer_id
 
 
-def test_the_compound_locus_is_sized_only():
-    """NMTR12 mixes a 13 bp and a 12 bp unit, which the single unit formula cannot express."""
-    defs = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
+def test_the_compound_locus_is_called_from_a_bins_table():
+    """NMTR12 mixes a 13 bp and a 12 bp unit, so it has no single unit and is called from bins."""
+    scheme = load_scheme(SCHEME)
+    defs = {d.primer_id: d for d in read_markers(scheme.markers)}
     compound = defs[COMPOUND]
-    assert not compound.can_call
-    assert compound.unit_length == 0 and compound.ref_repeats is None
+    # it carries no unit or repeat count, so it cannot use the formula
+    assert not compound.can_call and compound.unit_length == 0 and compound.ref_repeats is None
     assert compound.ref_size == SIZES[Z2491][COMPOUND]
     assert all(defs[m].can_call for m in CALLABLE)
+    # its alleles come from a bins table covering the three sequenced genomes
+    from mlvatyper.calling import read_bins
+    assert scheme.bins is not None
+    bins = read_bins(scheme.bins)
+    assert set(bins) == {COMPOUND}
+    sizes = {b.low: b.allele for b in bins[COMPOUND]}
+    assert sizes == {218: "2a1b", 548: "20a9b", 481: "13a11b"}
 
 
 def test_the_two_source_tables_agree_in_all_three_genomes():
