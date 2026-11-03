@@ -24,7 +24,14 @@ How mlvatyper locates amplicons, calls alleles and reports them. The
    about. A sample whose file cannot be read (not FASTA, or a corrupt
    compressed file) fails on its own: the other samples are processed and
    typed, the failed one is left out of the results, and the command exits
-   with status 1. `--jobs N` searches N samples at a time, each in its own
+   with status 2 (status 1 is an invalid input or option, and 0 a clean run).
+   Each finished sample is also written to `per_sample/` (`<sample>.hits.tsv`,
+   `<sample>.missing.tsv` and a `<sample>.done.json` that records the input file
+   and the search settings). With `--resume`, a sample whose done file matches
+   is read from there and only the others are searched, so a failed or
+   interrupted run can be repeated for the samples that are not finished; a
+   changed input file, search setting, primer file or version searches the
+   sample again. `--jobs N` searches N samples at a time, each in its own
    process; the results are merged in input order, so every output file is
    identical to a serial run, and `--threads` stays merPCR's thread count
    within one sample.

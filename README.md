@@ -94,7 +94,8 @@ total worker count is `--jobs` times `--threads`); the outputs are the same
 as a serial run. The global `--log-json FILE`, before the subcommand, also
 writes one JSON object per log event to FILE for pipeline monitors.
 
-A run exits with status 1 when an input is invalid or a sample failed; the
+A run exits with status 0 when it finishes, 1 when an input or option is
+invalid, and 2 when the run finished but some samples could not be read; the
 other samples are still typed and reported.
 
 ## Example

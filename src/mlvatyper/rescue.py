@@ -255,5 +255,5 @@ def read_missing(path: Path) -> dict[tuple[str, str], str]:
     for line in path.read_text(encoding="utf-8").splitlines()[1:]:
         fields = line.split("\t")
         if len(fields) >= 3:
-            reasons[(fields[0], fields[1])] = fields[2]
+            reasons[(fields[0], fields[1])] = Reason(fields[2], fields[3] if len(fields) > 3 else "")
     return reasons
