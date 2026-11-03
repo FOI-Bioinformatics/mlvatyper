@@ -6,6 +6,7 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- `missing_markers.tsv` has a `detail` column. For NEAR_CONTIG_END it states where each primer lies relative to the contig ends, so a product split across contigs by a repeat array can be told from a single primer near an end.
 - The `interrupted_arrays` key in `scheme.yml` lists markers whose tandem count is reported but not compared with the length based allele, so COUNT_DISAGREES is not raised for arrays that hold variant units the patterns cannot follow. `check-scheme` skips the repeat comparison for them too.
 - The `rescue_indels` key in `scheme.yml` (yes or no) sets `--rescue-indels` as a
   scheme default. The `burkholderia_uren_2007` scheme uses it: on five

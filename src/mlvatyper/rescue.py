@@ -180,9 +180,21 @@ def _primer_present(text: str, primer: str) -> bool:
     return bool(re.search(_iupac_regex(primer), text) or re.search(_iupac_regex(rc), text))
 
 
+class Reason(str):
+    """A reason code that can carry a one-line explanation, written to the detail column."""
+
+    detail: str = ""
+
+    def __new__(cls, code: str, detail: str = ""):
+        obj = super().__new__(cls, code)
+        obj.detail = detail
+        return obj
+
+
 def missing_reasons(contigs: dict[str, str], missing: list[PrimerPair], near_end: set[str], wordsize: int,
-                    one_sided: bool) -> dict[str, str]:
+                    one_sided: bool, details: dict[str, str] | None = None) -> dict[str, str]:
     """Reason per missing marker; wordsize and one_sided describe the most permissive merPCR pass run."""
+    details = details or {}
     text = "\n".join(s.upper() for s in contigs.values())
     reasons: dict[str, str] = {}
     for pair in missing:
@@ -191,7 +203,7 @@ def missing_reasons(contigs: dict[str, str], missing: list[PrimerPair], near_end
         if not searched:
             reasons[pair.id] = NOT_SEARCHED
         elif pair.id in near_end:
-            reasons[pair.id] = NEAR_CONTIG_END
+            reasons[pair.id] = Reason(NEAR_CONTIG_END, details.get(pair.id, ""))
         elif _primer_present(text, pair.forward) or _primer_present(text, pair.reverse):
             reasons[pair.id] = ONE_PRIMER_ONLY
         else:
@@ -199,14 +211,14 @@ def missing_reasons(contigs: dict[str, str], missing: list[PrimerPair], near_end
     return reasons
 
 
-MISSING_COLUMNS = ["sample", "marker", "reason"]
+MISSING_COLUMNS = ["sample", "marker", "reason", "detail"]
 
 
 def write_missing(reasons: dict[tuple[str, str], str], path: Path) -> None:
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
         handle.write("\t".join(MISSING_COLUMNS) + "\n")
         for (sample, marker), reason in sorted(reasons.items()):
-            handle.write(f"{sample}\t{marker}\t{reason}\n")
+            handle.write(f"{sample}\t{marker}\t{reason}\t{getattr(reason, 'detail', '')}\n")
 
 
 def read_missing(path: Path) -> dict[tuple[str, str], str]:

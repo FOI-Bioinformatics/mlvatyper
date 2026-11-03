@@ -170,6 +170,37 @@ def _iupac_regex(primer: str) -> str:
                    for b in primer.upper())
 
 
+def primer_end_detail(contigs: dict[str, str], pair: PrimerPair, window: int) -> str:
+    """Where each primer of a marker lies relative to the contig ends, as a short sentence.
+
+    Matching is exact and IUPAC aware. A primer is reported at the contig end it lies within window bp of,
+    else as present elsewhere in the assembly or as not found exactly. Two primers at the ends of different
+    contigs mean that the product spans an assembly gap, usually a repeat array that broke the assembly.
+    """
+    parts = []
+    for name, primer in (("forward", pair.forward), ("reverse", pair.reverse)):
+        rc = str(Seq(primer).reverse_complement())
+        patterns = [re.compile(_iupac_regex(primer)), re.compile(_iupac_regex(rc))]
+        where = None
+        anywhere = False
+        for contig, seq in contigs.items():
+            seq = seq.upper()
+            for pattern in patterns:
+                for m in pattern.finditer(seq):
+                    anywhere = True
+                    start_gap, end_gap = m.start(), len(seq) - m.end()
+                    gap, side = (start_gap, "start") if start_gap <= end_gap else (end_gap, "end")
+                    if gap <= window and (where is None or gap < where[0]):
+                        where = (gap, side, contig)
+        if where:
+            parts.append(f"{name} primer {where[0]} bp from the {where[1]} of {where[2]}")
+        elif anywhere:
+            parts.append(f"{name} primer elsewhere in the assembly")
+        else:
+            parts.append(f"{name} primer not found exactly")
+    return "; ".join(parts)
+
+
 def primers_near_contig_ends(contigs: dict[str, str], pairs: list[PrimerPair],
                              window: int | dict[str, int]) -> set[str]:
     """Markers for which either primer (any orientation) lies within window bp of a contig end.

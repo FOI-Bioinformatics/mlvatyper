@@ -526,7 +526,10 @@ read assemblies, so L should be the assembly k-mer or read length.
   `<sample>_<copy>`, and with an aligner `<marker>_aligned.fasta` and
   `<marker>_aligned.clw` (`_clean` variants with `--clwclean`).
 - `missing_markers.tsv`: every sample and marker without a hit, with its
-  reason; `near_contig_end.tsv` lists the NEAR_CONTIG_END ones.
+  reason and, for NEAR_CONTIG_END, a detail column that says where each
+  primer lies (for example "forward primer 159 bp from the start of contig A;
+  reverse primer 114 bp from the end of contig B"); `near_contig_end.tsv`
+  lists the NEAR_CONTIG_END ones.
 - `samples.txt`, `primers_used.sts` (the validated STS entries, with the
   size windows from `--markers`) and `invalid_primers.tsv` (with
   `--skip-invalid`).
@@ -605,7 +608,12 @@ there as NOT_DETECTED). The reasons are:
   ambiguities which prevent computation of a hash value" for such primers.
 - NEAR_CONTIG_END: a primer matches within the marker's expected size plus
   `-M` of a contig end; the locus is more likely split by the assembly than
-  deleted.
+  deleted. In a screen of 40 *Burkholderia* genomes, 15 of 17 such cases had
+  both primers at the ends of different contigs: a repeat array that broke
+  the assembly, which no search setting can recover. The detail column
+  separates this from a case with one primer only (matching is exact, so a
+  primer with a mismatch is reported as not found exactly). A sample with
+  many of these is a poor assembly for MLVA and is better typed from reads.
 - ONE_PRIMER_ONLY: one primer matches exactly somewhere in the assembly, so
   the other primer has more than `-N` mismatches or an indel
   (`--rescue-indels` allows one), or the product lies outside the size
