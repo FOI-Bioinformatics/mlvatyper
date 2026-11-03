@@ -118,3 +118,33 @@ def test_the_tree_breaks_ties_by_single_locus_variants():
         linked = {frozenset((names[a], names[b])) for a, b, _ in edges}
         assert frozenset(("T", "H")) in linked and frozenset(("T", "X")) not in linked, names
         assert len(edges) == len(names) - 1
+
+
+def test_a_small_panel_still_gets_distances():
+    """Panels of four to nine loci cannot share eight loci; the threshold is half of the panel."""
+    from mlvatyper.plots import shared_threshold
+    assert [shared_threshold(n) for n in (1, 4, 5, 9, 16, 42)] == [2, 2, 3, 5, 8, 8]
+    rng = np.random.default_rng(1)
+    alleles = pd.DataFrame(rng.integers(2, 6, size=(8, 5)).astype(str), index=[f"s{i}" for i in range(8)],
+                           columns=list("abcde"))
+    d = distance_matrix(allele_matrix(alleles))
+    assert d.shape == (8, 8) and np.isfinite(d).all() and (d.diagonal() == 0).all()
+    svg, order = clustered_heatmap(alleles)
+    assert svg.startswith("<svg") and mds_plot_ok(alleles)
+
+
+def mds_plot_ok(alleles):
+    from mlvatyper.plots import mds_plot, mst_plot
+    status = pd.DataFrame("OK", index=alleles.index, columns=alleles.columns)
+    return mds_plot(alleles).startswith("<svg") and mst_plot(alleles, status) is not None
+
+
+def test_no_shared_loci_gives_equal_distances_and_no_crash():
+    values = np.full((6, 12), np.nan)
+    for i in range(6):
+        values[i, 2 * i:2 * i + 2] = 3  # every sample is typed at its own two loci only
+    d = distance_matrix(values)
+    assert np.isfinite(d).all() and np.allclose(d[np.triu_indices(6, 1)], d[0, 1])
+    from mlvatyper.plots import classical_mds
+    coords, share = classical_mds(d)
+    assert np.isfinite(coords).all()

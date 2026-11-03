@@ -144,3 +144,26 @@ def test_a_set_of_samples_gets_the_relationship_figures(tmp_path):
     few = ReportData(tmp_path, "p", "t", {}, samples[:2], markers, alleles.iloc[:2], status.iloc[:2], alleles.iloc[:2],
                      calls, pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
     assert "heatmap" not in figures(few)
+
+
+def test_a_figure_that_fails_does_not_stop_the_report(tmp_path, monkeypatch, caplog):
+    import pandas as pd
+
+    from mlvatyper import plots
+    from mlvatyper.report import ReportData, figures
+    markers = [f"m{i}" for i in range(6)]
+    samples = [f"s{i}" for i in range(6)]
+    alleles = pd.DataFrame([[str(3 + (i * j) % 4) for j in range(6)] for i in range(6)], index=samples,
+                           columns=markers)
+    status = pd.DataFrame("OK", index=samples, columns=markers)
+    calls = pd.DataFrame(columns=["sample", "marker", "copy", "length", "expected_size", "residual_bp"])
+    data = ReportData(tmp_path, "p", "t", {}, samples, markers, alleles, status, alleles, calls,
+                      pd.DataFrame(columns=["sample", "marker", "reason"]), None, None)
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("no convergence")
+
+    monkeypatch.setattr(plots, "mds_plot", broken)
+    figs = figures(data)
+    assert figs["mds"] == "" and figs["heatmap"].startswith("<svg") and figs["status"].startswith("<svg")
+    assert "The mds figure was left out of the report" in caplog.text

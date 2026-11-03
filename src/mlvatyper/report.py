@@ -197,6 +197,15 @@ def _numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(series, errors="coerce")
 
 
+def _safe_figure(name: str, function, *args):
+    """A figure that cannot be drawn is left out with a warning; it must not stop the report or the run."""
+    try:
+        return function(*args)
+    except Exception as exc:  # numerical or plotting failures on unusual data
+        log.warning("The %s figure was left out of the report: %s: %s", name, type(exc).__name__, exc)
+        return None
+
+
 def figures(data: ReportData) -> dict[str, str]:
     """SVG figures: amplicon lengths, residuals and the status matrix."""
     import matplotlib
@@ -242,14 +251,14 @@ def figures(data: ReportData) -> dict[str, str]:
     samples = data.samples
     if len(samples) >= MIN_SAMPLES:
         from . import plots
-        heat = plots.clustered_heatmap(data.alleles)
-        if heat is not None:
+        heat = _safe_figure("heatmap", plots.clustered_heatmap, data.alleles)
+        if heat:
             out["heatmap"], samples = heat
-            out["distance"] = plots.distance_heatmap(data.alleles, samples) or ""
-            out["spectra"] = plots.allele_spectra(data.alleles) or ""
-            out["callrate"] = plots.call_rate_bars(data.status) or ""
-            out["mds"] = plots.mds_plot(data.alleles) or ""
-            out["mst"] = plots.mst_plot(data.alleles, data.status) or ""
+            out["distance"] = _safe_figure("distance", plots.distance_heatmap, data.alleles, samples) or ""
+            out["spectra"] = _safe_figure("spectra", plots.allele_spectra, data.alleles) or ""
+            out["callrate"] = _safe_figure("callrate", plots.call_rate_bars, data.status) or ""
+            out["mds"] = _safe_figure("mds", plots.mds_plot, data.alleles) or ""
+            out["mst"] = _safe_figure("mst", plots.mst_plot, data.alleles, data.status) or ""
     codes = list(STATUS_COLOURS)
     matrix = [[codes.index(_first_flag(data.status.loc[s, m])) for m in markers] for s in samples]
     fig, ax = plt.subplots(figsize=(width, max(1.5, 0.25 * len(samples) + 1.2)))
