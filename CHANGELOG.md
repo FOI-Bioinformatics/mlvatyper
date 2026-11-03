@@ -6,6 +6,12 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- The `rescue_indels` key in `scheme.yml` (yes or no) sets `--rescue-indels` as a
+  scheme default. The `burkholderia_uren_2007` scheme uses it: on five
+  *B. pseudomallei* and four *B. mallei* genomes the aligned rescue recovers
+  6 of 13 and 6 of 15 missing products at default settings; raising `-N`
+  alone changed little. Missing products that remain have primer sites with
+  four or more mismatches or a product outside the size window.
 - `docs/scheme_references.md`, a page that gives, for every bundled scheme,
   its publication with a link to its DOI, the reference strain and assembly,
   and the basis of its reference values: published, measured, derived,

@@ -144,8 +144,10 @@ A scheme directory bundles `primers.sts`, `markers.tsv`, an optional
 reference, assembly, citation, url, retrieved, notes, and `known_multiple`, the
 markers that really give more than one product in the reference; `#` starts a comment
 at the start of a line or after a space) that may also set the calling defaults
-`rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`
-and `max_array_length`. `--scheme NAME` (a bundled scheme, listed by
+`rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`,
+`max_array_length` and `rescue_indels` (yes or no, the same as `--rescue-indels`;
+the U'Ren *Burkholderia* scheme sets it because other strains differ in primer
+sites). `--scheme NAME` (a bundled scheme, listed by
 `mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
 `--bins`; `mlvatyper new-scheme DIR` writes the four files as annotated
 templates, and [schemes.md](schemes.md) describes how to fill them from a

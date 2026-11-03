@@ -13,7 +13,7 @@ accession, GCA_ or GCF_, which check-scheme downloads from NCBI into a
 local cache; assemblies are never stored in a scheme directory),
 citation, url, retrieved, rounding,
 allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
-known_multiple, notes. The calling keys become the defaults of the
+rescue_indels (yes or no), known_multiple, notes. The calling keys become the defaults of the
 corresponding options when the scheme is used; options given on the command
 line still win.
 
@@ -49,6 +49,7 @@ BINS_FILE = "bins.tsv"
 META_FILE = "scheme.yml"
 NUMERIC_KEYS = {"allele_tolerance": float, "unit_mismatches": int, "margin": int, "mismatches": int,
                 "max_array_length": int}
+BOOLEAN_KEYS = ("rescue_indels",)
 PROVENANCE_FIELDS = ("citation", "url", "reference")
 RECOMMENDED_FIELDS = ("organism", "retrieved", "assembly")
 # values that state nothing; compared against the whole value, lower case and stripped of trailing punctuation
@@ -111,7 +112,7 @@ class Scheme:
 
     def calling_defaults(self) -> dict:
         """Metadata values that apply as option defaults."""
-        keys = ("rounding", *NUMERIC_KEYS)
+        keys = ("rounding", *NUMERIC_KEYS, *BOOLEAN_KEYS)
         return {k: self.meta[k] for k in keys if k in self.meta}
 
 
@@ -149,6 +150,10 @@ def parse_flat_yaml(text: str) -> dict:
                 value = NUMERIC_KEYS[key](value)
             except ValueError as exc:
                 raise SchemeError(f"scheme.yml line {number}: {key} must be a number") from exc
+        if key in BOOLEAN_KEYS:
+            if value.lower() not in ("yes", "no", "true", "false"):
+                raise SchemeError(f"scheme.yml line {number}: {key} must be yes or no")
+            value = value.lower() in ("yes", "true")
         meta[key] = value
     assembly = str(meta.get("assembly", "")).strip()
     if assembly and not is_placeholder(assembly) and not ASSEMBLY_RE.match(assembly):
