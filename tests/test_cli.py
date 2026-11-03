@@ -343,3 +343,11 @@ def test_resume_works_with_parallel_jobs(fixture_dir, caplog):
     caplog.clear()
     assert main(_search_args(fixture_dir, out, "--jobs", "2", "--resume")) == 0
     assert "Resuming: 2 of 2 samples" in caplog.text and (out / "hits.tsv").read_text() == first
+
+
+def test_the_search_engine_is_importable_without_the_command_line():
+    """runner holds the search and the per-sample cache, so a pipeline can call it without argparse."""
+    from mlvatyper import runner
+    assert {"search_sample", "search_samples", "save_sample", "load_sample", "search_key",
+            "PER_SAMPLE_DIR"} <= set(dir(runner))
+    assert "argparse" not in runner.search_samples.__doc__

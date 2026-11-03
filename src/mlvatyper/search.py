@@ -18,6 +18,15 @@ from .models import Hit
 log = get_logger()
 
 
+def merpcr_version() -> str:
+    """The installed merPCR version, or 'unknown' when its metadata is missing."""
+    try:
+        from importlib.metadata import version
+        return version("merpcr")
+    except Exception:  # pragma: no cover - metadata missing
+        return "unknown"
+
+
 class SearchError(RuntimeError):
     pass
 

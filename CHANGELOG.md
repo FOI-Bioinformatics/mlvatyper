@@ -206,6 +206,7 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- The search of one sample, the parallel run and the per-sample cache that `--resume` reads moved from `cli.py` into a new `runner.py`, and the merPCR version helper into `search.py`. `cli.py` is 854 lines instead of 1064 and the search engine can be called without the command line.
 - `francisella_vogler_2008` calls all eleven loci. Ft-M20B, the last, is
   called from a bins table under a convention of the scheme, since no
   publication gives its copy number. Vogler et al. describe it as a roughly
