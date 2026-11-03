@@ -37,17 +37,18 @@ def test_scheme_files_are_consistent():
 
 
 # the unit each locus steps by, where a cross strain test and the Johansson panel agree
-DERIVED_UNIT = {"Ft-M02": 6, "Ft-M03": 9, "Ft-M04": 5, "Ft-M05": 16,
-                "Ft-M06": 21, "Ft-M10": 16, "Ft-M20A": 12}
+DERIVED_UNIT = {"Ft-M02": 6, "Ft-M03": 9, "Ft-M04": 5, "Ft-M05": 16, "Ft-M06": 21, "Ft-M10": 16,
+                "Ft-M20A": 12, "Ft-M22": 6, "Ft-M23": 23, "Ft-M24": 21}
 # the Johansson spelling of the same locus, which pads the number differently
 JOHANSSON = {"Ft-M02": "Ft-M2", "Ft-M03": "Ft-M3", "Ft-M04": "Ft-M4", "Ft-M05": "Ft-M5",
+             "Ft-M22": "Ft-M22", "Ft-M23": "Ft-M23", "Ft-M24": "Ft-M24",
              "Ft-M06": "Ft-M6", "Ft-M10": "Ft-M10", "Ft-M20A": "Ft-M20"}
 
 
 # the LVS copy number calibrated through SCHU S4, where the Johansson panel counts the same array
-CALIBRATED = {"Ft-M02": 2, "Ft-M03": 16, "Ft-M04": 4, "Ft-M05": 2,
-              "Ft-M06": 4, "Ft-M10": 2, "Ft-M20A": 4}
-SIZED_ONLY = ["Ft-M20B", "Ft-M22", "Ft-M23", "Ft-M24"]
+CALIBRATED = {"Ft-M02": 2, "Ft-M03": 16, "Ft-M04": 4, "Ft-M05": 2, "Ft-M06": 4, "Ft-M10": 2,
+              "Ft-M20A": 4, "Ft-M22": 4, "Ft-M23": 1, "Ft-M24": 2}
+SIZED_ONLY = ["Ft-M20B"]  # published 15 bp unit, but no published copy number
 
 
 def test_seven_loci_call_and_four_are_sized_only():
@@ -72,12 +73,15 @@ def test_the_calibrated_flanks_are_whole_repeats_and_fit_the_primers():
         assert flank >= len(pairs[marker].forward) + len(pairs[marker].reverse), marker
 
 
-def test_unit_lengths_are_filled_only_where_two_sources_agree():
+def test_unit_lengths_are_filled_only_where_a_source_gives_them():
     defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_vogler_2008").markers)}
     filled = {m: d.unit_length for m, d in defs.items() if d.unit_length}
-    assert filled == DERIVED_UNIT
-    # the other four stay empty, so nothing is invented for them
-    assert {m for m, d in defs.items() if not d.unit_length} == set(MARKERS) - set(DERIVED_UNIT)
+    # the ten calibrated loci get their unit from the cross-strain test and Johansson, plus Ft-M20B
+    # carries the 15 bp unit the Vogler paper publishes even though it has no copy number
+    assert filled == {**DERIVED_UNIT, "Ft-M20B": 15}
+    # every marker now carries a unit; only Ft-M20B lacks a count and so cannot call
+    assert all(d.unit_length for d in defs.values())
+    assert {m for m, d in defs.items() if not d.can_call} == {"Ft-M20B"}
 
 
 def test_the_two_francisella_schemes_agree_on_the_shared_units():

@@ -151,6 +151,13 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `francisella_vogler_2008` calls ten of its eleven loci, up from seven.
+  With the Johansson panel now carrying published counts for Ft-M22, Ft-M23
+  and Ft-M24, those three Vogler loci calibrate through the shared genome
+  and agree with the Johansson allele in every strain where both amplify.
+  Ft-M20B gains its published 15 bp repeat unit from Vogler et al. 2008 but
+  stays sized only, because no publication gives its copy number and it is
+  monomorphic in the holarctica reference.
 - `francisella_johansson_2004` now calls all 25 loci, up from 16, on the
   published allele scale. Table 2 of Johansson et al. 2004 gives the repeat
   motif, its size and the SCHU S4 copy number for every marker, which fills

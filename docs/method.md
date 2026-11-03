@@ -257,8 +257,9 @@ below are shorter than they are.
   markers on the published scale, its repeat motifs, unit lengths and SCHU S4
   copy numbers taken from Table 2 of the paper; the Vogler table gives amplicon sizes only, so
   that scheme called nothing until its units and copy numbers were taken
-  from the Johansson panel, which counts the same arrays: seven of its
-  eleven loci now call and four are still sized only. The locus names of
+  from the Johansson panel, which counts the same arrays: ten of its eleven
+  loci now call, and only Ft-M20B is sized only, carrying a published 15 bp
+  unit but no published copy number. The locus names of
   the two are the same VNTRs spelled differently, Ft-M02 against Ft-M2, but
   the primers and references differ so the alleles are not interchangeable.
   Five Johansson loci share a reverse primer and one repeat family and are
