@@ -106,12 +106,12 @@ def test_the_indel_rescue_recovers_loci_in_a_second_strain(tmp_path):
     assert len(hits) == 30
 
 
-def test_five_markers_use_the_published_count_and_sixteen_skip_the_count_check():
+def test_five_markers_use_the_published_count_and_seventeen_skip_the_count_check():
     scheme = load_scheme("burkholderia_uren_2007")
     defs = {d.primer_id: d for d in read_markers(scheme.markers)}
     assert {m: int(defs[m].ref_repeats) for m in PUBLISHED_COUNT} == PUBLISHED_COUNT
     skip = scheme.interrupted_arrays
-    assert len(skip) == 16 and set(PUBLISHED_COUNT) <= set(skip) and set(skip) <= set(defs)
+    assert len(skip) == 17 and set(PUBLISHED_COUNT) <= set(skip) and set(skip) <= set(defs)
     marked = {d.primer_id for d in scheme.marker_defs() if not d.compare_count}
     assert marked == set(skip)
 

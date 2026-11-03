@@ -333,6 +333,7 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ### Fixed
 - The screening summaries and the report counted BINNED as a flag, so a scheme called from bin tables showed no OK calls. BINNED now counts as a good status in the call rate, the completeness line, the list of flagged codes and the status bars. A locus is listed for review for an allele below zero, not zero: zero can be a valid state.
+- `burkholderia_uren_2007`: 2445k is added to `interrupted_arrays` (17 markers), because its tandem count disagreed with the length based allele in 52% to 60% of the calls on 40 genomes.
 - The aligned rescue (`--rescue-indels`) anchored on an exact match of one primer, so a product whose two primers both carried a mismatch was never found. It now anchors on a gap-free match with up to `-N` mismatches. On 40 *Burkholderia* genomes this recovers 14 products (3671k in 7 strains, 2445k in 7, and others) at plausible sizes, changes no existing hit and raises the run time of that screen from 19 s to 35 s.
 - `burkholderia_uren_2007`: on 40 genomes the measured copy number gave alleles of 0 or below at five markers (3564k down to -7) and COUNT_DISAGREES on 39% of calls. 2115k, 1500k, 3564k, 1788k and 1217k now use the copy number of the publication, and sixteen markers are listed under `interrupted_arrays`. In the same genomes no allele is 0 or below and COUNT_DISAGREES falls to 6%. The K96243 profile changes at those five markers.
 - Three scheme citations were checked against the DOI registry and corrected.
