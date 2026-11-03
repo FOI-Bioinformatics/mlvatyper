@@ -2,47 +2,59 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 Ft-M22		178		N/A	Ft-M22
 Ft-M23		327		N/A	Ft-M23
 Ft-M24		417		N/A	Ft-M24
-Ft-M03	9	353		N/A	Ft-M03
-Ft-M20A	12	319		N/A	Ft-M20A
-Ft-M10	16	198		N/A	Ft-M10
-Ft-M05	16	300		N/A	Ft-M05
-Ft-M04	5	222		N/A	Ft-M04
+Ft-M03	9	353	12	N/A	Ft-M03
+Ft-M20A	12	319	4	N/A	Ft-M20A
+Ft-M10	16	198	2	N/A	Ft-M10
+Ft-M05	16	300	2	N/A	Ft-M05
+Ft-M04	5	222	4	N/A	Ft-M04
 Ft-M20B		153		N/A	Ft-M20B
-Ft-M06	21	272		N/A	Ft-M06
-Ft-M02	6	339		N/A	Ft-M02
+Ft-M06	21	272	3	N/A	Ft-M06
+Ft-M02	6	339	3	N/A	Ft-M02
 # ref_size is the product length measured in the LVS assembly GCA_000009245.1 (AM233362.1) by in silico
 # PCR with these primers, outer primer edge to outer primer edge. Every marker gave exactly one product.
 #
-# unit_length is not published in the source table. It is filled for the seven loci where two
-# independent lines of evidence agree, and left empty for the other four.
+# NEITHER THE UNIT NOR THE COPY NUMBER IS PUBLISHED IN THE SOURCE TABLE. Seven of the eleven loci are
+# filled from the bundled scheme francisella_johansson_2004, which counts the same arrays in SCHU S4,
+# and four are left empty. Read the warning at the end before comparing a profile with published data.
 #
-# The first line of evidence is a cross strain test. A locus keeps the same flanking length in every
-# strain, so the sizes of its product must differ by whole multiples of the repeat unit. Amplifying
-# this panel in seven Francisella genomes, SCHU S4, LVS, OSU18, WY96-3418, FSC198, NE061598 and
-# TI0902, gives the step sizes below. The second is the bundled scheme francisella_johansson_2004,
-# which derives a unit for the same locus from a different primer pair and a different reference.
+# The unit comes from two independent lines of evidence that agree. The first is a cross strain test:
+# a locus keeps the same flanking length in every strain, so its product sizes must differ by whole
+# multiples of the unit, and amplifying this panel in seven Francisella genomes, SCHU S4, LVS, OSU18,
+# WY96-3418, FSC198, NE061598 and TI0902, gives the steps below. The second is the unit that the
+# Johansson scheme derives for the same locus from a different primer pair and a different reference.
 #
-#   locus    steps seen    Johansson locus and unit    unit recorded here
-#   Ft-M02   12            Ft-M2   6 bp                 6   (12 is two units)
-#   Ft-M03   9            Ft-M3   9 bp                 9
-#   Ft-M04   5            Ft-M4   5 bp                 5
-#   Ft-M05   16            Ft-M5  16 bp                16
-#   Ft-M06   21            Ft-M6  21 bp                21
-#   Ft-M10   256           Ft-M10 16 bp                16  (256 is sixteen units)
-#   Ft-M20A  12            Ft-M20 12 bp                12
-#   Ft-M20B  one size only Ft-M20 12 bp                none, no cross strain evidence
-#   Ft-M22   steps 6,6,19  no unit in Johansson        none
-#   Ft-M23   one step, 23  no unit in Johansson        none
-#   Ft-M24   steps 5,16    no unit in Johansson        none
+# The copy number comes from a calibration through a shared genome. The Johansson scheme states how
+# many repeats its locus has in SCHU S4, and that array is the same piece of DNA whichever primers
+# flank it. Measuring this scheme's product in SCHU S4 therefore gives its flanking length as the
+# product minus that array, and the flanking length then fixes the copy number in LVS.
 #
-# THE LOCUS NAMES OF THE TWO BUNDLED FRANCISELLA SCHEMES DIFFER ONLY IN SPELLING. This scheme pads
-# the number, Ft-M02, where francisella_johansson_2004 does not, Ft-M2, and the unit lengths above
-# confirm that the padded and unpadded names are the same VNTR. The two schemes still amplify it
-# with different primer pairs and are anchored on different strains, LVS here and SCHU S4 there, so
-# their products differ in size and their alleles are not interchangeable. Ft-M20 of that scheme is
-# split here into Ft-M20A and Ft-M20B.
+#   locus    steps seen     Johansson locus, unit and SCHU S4 count   flank   LVS count
+#   Ft-M02   12             Ft-M2    6 bp   5 copies                   321     3
+#   Ft-M03   9              Ft-M3    9 bp  21 copies                   245    12
+#   Ft-M04   5              Ft-M4    5 bp   3 copies                   202     4
+#   Ft-M05   16             Ft-M5   16 bp   3 copies                   268     2
+#   Ft-M06   21             Ft-M6   21 bp   3 copies                   209     3
+#   Ft-M10   256            Ft-M10  16 bp  18 copies                   166     2
+#   Ft-M20A  12             Ft-M20  12 bp   3 copies                   271     4
+#   Ft-M20B  one size only  Ft-M20  12 bp                              none, no cross strain evidence
+#   Ft-M22   steps 6,6,19   no unit or count in Johansson              none
+#   Ft-M23   one step, 23   no unit or count in Johansson              none
+#   Ft-M24   steps 5,16     no unit or count in Johansson              none
 #
-# ref_repeats is not published either and is not filled. The cross strain test fixes a flanking
-# length only up to a whole number of repeats, so it cannot supply the absolute count, and the
-# source table gives no reference values. Every marker is therefore sized and reported
-# NO_DEFINITION rather than called.
+# The calibration is checked two ways and passes both. Every one of the seven flanking lengths yields
+# a whole number of repeats in LVS, which a wrong unit or a wrong pairing would not. And because both
+# schemes then count the same array, their alleles must agree for any strain: across the five of the
+# seven genomes where both panels amplify, all 35 locus and strain pairs give the same allele.
+#
+# THE SCALE IS INHERITED, NOT PUBLISHED. The Johansson counts used here are themselves derived from
+# its reference rather than taken from that publication, so an allele of these seven loci is the
+# number of repeats this pair of schemes counts, and it may be offset from the allele name used in
+# either publication by a constant per locus. The two bundled Francisella schemes are now consistent
+# with each other, which they were not before, but neither is guaranteed to match published allele
+# names until a published definition table is supplied.
+#
+# THE LOCUS NAMES OF THE TWO SCHEMES DIFFER ONLY IN SPELLING. This scheme pads the number, Ft-M02,
+# where francisella_johansson_2004 does not, Ft-M2, and the agreement above confirms the padded and
+# unpadded names are the same VNTR. Ft-M20 there is split here into Ft-M20A and Ft-M20B. The two
+# still amplify different fragments, so their product sizes are not comparable even though their
+# alleles now are.

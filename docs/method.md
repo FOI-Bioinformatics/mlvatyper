@@ -256,8 +256,9 @@ below are shorter than they are.
   tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls 16 of
   its 25 markers and sizes the rest, because the repeat units of the others
   are not in the source table; the Vogler table gives amplicon sizes only, so
-  that scheme sizes its markers without calling them, though seven of its
-  eleven units are now recorded from a cross strain test. The locus names of
+  that scheme called nothing until its units and copy numbers were taken
+  from the Johansson panel, which counts the same arrays: seven of its
+  eleven loci now call and four are still sized only. The locus names of
   the two are the same VNTRs spelled differently, Ft-M02 against Ft-M2, but
   the primers and references differ so the alleles are not interchangeable.
   Five Johansson loci share a reverse primer and one repeat family and are

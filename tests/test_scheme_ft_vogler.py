@@ -11,6 +11,7 @@ import pandas as pd
 from mlvatyper.cli import main
 from mlvatyper.markers import read_markers
 from mlvatyper.scheme import load_scheme
+from mlvatyper.sts import read_sts
 from tests.conftest import reference_assembly
 
 ASSEMBLY = "GCA_000009245.1"
@@ -31,8 +32,7 @@ def test_scheme_files_are_consistent():
     for marker, size in REF_SIZES.items():
         d = defs[marker]
         assert d.ref_size == size
-        # the publication gives no copy number, so no allele can be computed yet
-        assert not d.can_call and d.patterns == () and d.ref_repeats is None
+        assert d.patterns == (), "the publication gives no repeat unit sequences"
         assert d.label == marker
 
 
@@ -42,6 +42,34 @@ DERIVED_UNIT = {"Ft-M02": 6, "Ft-M03": 9, "Ft-M04": 5, "Ft-M05": 16,
 # the Johansson spelling of the same locus, which pads the number differently
 JOHANSSON = {"Ft-M02": "Ft-M2", "Ft-M03": "Ft-M3", "Ft-M04": "Ft-M4", "Ft-M05": "Ft-M5",
              "Ft-M06": "Ft-M6", "Ft-M10": "Ft-M10", "Ft-M20A": "Ft-M20"}
+
+
+# the LVS copy number calibrated through SCHU S4, where the Johansson panel counts the same array
+CALIBRATED = {"Ft-M02": 3, "Ft-M03": 12, "Ft-M04": 4, "Ft-M05": 2,
+              "Ft-M06": 3, "Ft-M10": 2, "Ft-M20A": 4}
+SIZED_ONLY = ["Ft-M20B", "Ft-M22", "Ft-M23", "Ft-M24"]
+
+
+def test_seven_loci_call_and_four_are_sized_only():
+    defs = {d.primer_id: d for d in read_markers(load_scheme("francisella_vogler_2008").markers)}
+    assert {m for m, d in defs.items() if d.can_call} == set(CALIBRATED)
+    assert {m for m, d in defs.items() if not d.can_call} == set(SIZED_ONLY)
+    for marker, count in CALIBRATED.items():
+        assert defs[marker].ref_repeats == count, marker
+    for marker in SIZED_ONLY:
+        assert defs[marker].ref_repeats is None, marker
+
+
+def test_the_calibrated_flanks_are_whole_repeats_and_fit_the_primers():
+    """A flank is the product minus the array, so it must be positive and a whole unit apart."""
+    scheme = load_scheme("francisella_vogler_2008")
+    defs = {d.primer_id: d for d in read_markers(scheme.markers)}
+    pairs = {p.id: p for p in read_sts(scheme.sts)[0]}
+    for marker in CALIBRATED:
+        d = defs[marker]
+        flank = d.ref_size - d.unit_length * d.ref_repeats
+        assert flank > 0, marker
+        assert flank >= len(pairs[marker].forward) + len(pairs[marker].reverse), marker
 
 
 def test_unit_lengths_are_filled_only_where_two_sources_agree():
@@ -60,6 +88,8 @@ def test_the_two_francisella_schemes_agree_on_the_shared_units():
         assert there[theirs].unit_length == here[mine].unit_length, mine
         # different primers and different references, so the products are not the same fragment
         assert there[theirs].ref_size != here[mine].ref_size, mine
+        # but both now count the same array, so the reference alleles sit on one scale
+        assert there[theirs].can_call and here[mine].can_call, mine
 
 
 def test_every_primer_carries_the_published_5_prime_g():
@@ -84,17 +114,22 @@ def test_check_scheme_against_lvs(tmp_path):
     assert (table["repeats_ok"] == "").all()  # no units, so the tandem cross-check is skipped
 
 
-def test_lvs_run_sizes_every_amplicon_but_calls_no_allele(tmp_path):
-    """With no units or copy numbers, calling is skipped and only the lengths are reported."""
+def test_lvs_run_sizes_every_amplicon_and_calls_the_seven(tmp_path):
+    """Seven loci return their calibrated count; the other four report NO_DEFINITION."""
     fixture = reference_assembly(ASSEMBLY)
     assert main(["run", "--scheme", "francisella_vogler_2008", "--fasta", str(fixture), "--outdir",
                  str(tmp_path), "--prefix", "lvs", "--align", "none", "--no-report"]) == 0
-    lengths = pd.read_csv(tmp_path / "lvs_lengths_summary.tsv", sep="\t", index_col=0)
-    assert lengths.loc[ASSEMBLY].astype(int).to_dict() == REF_SIZES
-    assert not (tmp_path / "lvs_alleles.tsv").exists()
-    assert not (tmp_path / "lvs_status.tsv").exists()
     # every marker amplified, so nothing is reported as missing
     missing = pd.read_csv(tmp_path / "missing_markers.tsv", sep="\t", keep_default_na=False)
     assert len(missing) == 0
     hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t", keep_default_na=False)
     assert hits.set_index("marker")["length"].astype(int).to_dict() == REF_SIZES
+
+    long = pd.read_csv(tmp_path / "lvs_calls_long.tsv", sep="\t").set_index("marker")
+    assert len(long) == len(MARKERS)
+    # the reference calls back as the count recorded for it, with nothing left over
+    assert {m: int(long.loc[m, "allele"]) for m in CALIBRATED} == CALIBRATED
+    assert (long.loc[list(CALIBRATED), "residual_bp"] == 0).all()
+    status = pd.read_csv(tmp_path / "lvs_status.tsv", sep="\t", index_col=0, dtype=str)
+    assert {status.loc[ASSEMBLY, m] for m in CALIBRATED} == {"OK"}
+    assert {status.loc[ASSEMBLY, m] for m in SIZED_ONLY} == {"NO_DEFINITION"}

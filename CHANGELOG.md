@@ -141,6 +141,18 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `francisella_vogler_2008` calls seven of its eleven loci, where before it
+  called none. Its source table gives primers only, so both values an allele
+  needs come from `francisella_johansson_2004`, which counts the same arrays
+  in SCHU S4. The unit is taken where a cross strain test and that scheme's
+  independently derived unit agree. The copy number comes from calibrating
+  through the shared genome: the array is the same DNA whichever primers
+  flank it, so this scheme's product in SCHU S4 minus that array gives its
+  flanking length, which fixes its count in LVS. All seven flanks yield a
+  whole number of repeats, and across the five genomes where both panels
+  amplify, all 35 locus and strain pairs give the same allele. The scale is
+  inherited rather than published, so the two schemes now agree with each
+  other but may still be offset from published allele names.
 - The two *Francisella* schemes were audited across seven genomes, where
   every product of a locus must differ by whole multiples of its repeat
   unit. It confirms 15 of the 16 derived units of
