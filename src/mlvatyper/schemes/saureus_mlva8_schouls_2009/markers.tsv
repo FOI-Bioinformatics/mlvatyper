@@ -1,0 +1,32 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+VNTR09_01	9	364		N/A	VNTR09_01
+VNTR61_01	60	363		N/A	VNTR61_01
+VNTR61_02	66	268		N/A	VNTR61_02
+VNTR67_01	67	346		N/A	VNTR67_01
+VNTR21_01	21	150		N/A	VNTR21_01
+VNTR24_01	24	417		N/A	VNTR24_01
+VNTR63_01	64	647		N/A	VNTR63_01
+VNTR81_01	81	496		N/A	VNTR81_01
+# unit_length is the Average repeat size of Table 1. It is an average because these arrays are
+# imperfect: the same table counts the variable bases per locus, from none at VNTR67_01 and
+# VNTR21_01 to 23 of 66 at VNTR61_02 and 26 of 81 at VNTR81_01.
+#
+# ref_size is the product these primers give in the N315 assembly GCA_000009645.1 by in silico
+# PCR. Every locus gives exactly one product with no primer mismatch, and all eight lengths equal
+# the span of the coordinates Table 2 gives in NC_002745 for the same primer pair, which is an
+# exact independent check of both the primers and the coordinates.
+#
+# ref_repeats IS DELIBERATELY EMPTY, SO THIS SCHEME SIZES ITS MARKERS WITHOUT CALLING THEM.
+# The paper derives an allele as the product length minus the flanking length, divided by the
+# repeat size, but it publishes neither the flanking length nor the repeat unit sequences, and it
+# does not state the repeat number of the sequenced reference. Counting the arrays in N315 to
+# recover them was tried and is not dependable here: the repeats are too imperfect, so a tandem
+# finder reports no array at all for VNTR67_01 and VNTR81_01, a 4 bp unit unrelated to the locus
+# for VNTR61_02, and copy numbers for the rest that disagree with its own estimates. A wrong
+# reference count would shift every allele at that locus by a constant and would be invisible in
+# the output, so no count is recorded rather than a doubtful one.
+#
+# To enable calling, supply either the flanking lengths, which fix ref_repeats for the measured
+# sizes above, or the published size to allele table as bins.tsv. Table 1 bounds what to expect:
+# the repeat range over the 1681 isolates is 6-25 for VNTR09_01, 0-6 VNTR61_01, 0-5 VNTR61_02,
+# 0-10 VNTR67_01, 0-13 VNTR21_01, 1-18 VNTR24_01, 0-11 VNTR63_01 and 1-9 VNTR81_01.

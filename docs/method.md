@@ -264,6 +264,18 @@ below are shorter than they are.
   are derived from the reference; confirm them against the published allele
   calling table before comparing a profile with published MIRU codes.
 
+- `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
+  aureus* (Schouls et al. 2009), anchored on N315. All eight products are
+  reproduced there and each equals the span of the coordinates the paper
+  publishes for the same primer pair. This scheme sizes its markers but does
+  not call them: the paper gives neither the flanking lengths nor the repeat
+  unit sequences, and does not state the reference repeat number, so the one
+  value that anchors an allele is missing. The arrays are too imperfect to
+  count it back reliably, so no copy number is recorded rather than a
+  doubtful one. Supplying the flanking lengths or the published size to
+  allele table would make it a calling scheme. VNTR24_01 is the *spa* repeat
+  region, so this panel is not independent of *spa* typing at that locus.
+
 - `yersinia_klevytska_2001`: the 42 locus VNTR survey for *Yersinia pestis*,
   anchored on CO92. Three loci are numbered with a half copy.
 

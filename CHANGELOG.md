@@ -6,6 +6,14 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `saureus_mlva8_schouls_2009`, the eight locus MLVA of
+  Schouls et al. for *Staphylococcus aureus*, anchored on N315. All eight
+  products are reproduced there and each equals the span of the published
+  coordinates for the same primer pair. The scheme sizes its markers without
+  calling them, because the paper publishes neither the flanking lengths nor
+  the repeat unit sequences and does not state the reference repeat number,
+  and the arrays are too imperfect to recover it reliably; the scheme notes
+  say what would be needed to enable calling.
 - Bundled scheme `salmonella_enteritidis_mlva9_malorny_2008`, the nine locus
   multiplex of Malorny et al. for *Salmonella* Enteritidis, anchored on
   NCTC 13349. The loci are in the order the paper gives for the MLVA type.
