@@ -19,6 +19,8 @@ single-file script (`vntr_searcher_9.py`).
 - [Building a scheme from a publication](docs/schemes.md): step by step
   from the primer table to a verified scheme directory.
 - [Roadmap](docs/roadmap.md): planned work.
+- [Screening check](docs/screening_2026-11-03.md): the U'Ren scheme on 40
+  genomes, what it showed and how to repeat it.
 - [Audit](docs/audit_2026-10-22.md): comparison with other MLVA tools and the
   evaluation runs behind the current defaults.
 - [CHANGELOG](CHANGELOG.md): what changed per release.
