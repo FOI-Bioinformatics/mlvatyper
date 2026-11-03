@@ -30,8 +30,11 @@ COORDINATES = {"VNTR09_01": (1021501, 1021864), "VNTR61_01": (2440537, 2440899),
                "VNTR63_01": (1056187, 1056833), "VNTR81_01": (266137, 266632)}
 
 # Table 1: average repeat size and the repeat range over the 1681 isolates
+# the unit each locus steps by, checked against eight S. aureus genomes
 UNIT = {"VNTR09_01": 9, "VNTR61_01": 60, "VNTR61_02": 66, "VNTR67_01": 67,
-        "VNTR21_01": 21, "VNTR24_01": 24, "VNTR63_01": 64, "VNTR81_01": 81}
+        "VNTR21_01": 21, "VNTR24_01": 24, "VNTR63_01": 63, "VNTR81_01": 81}
+# Table 1 prints an average repeat size, which differs from the step at this locus
+PUBLISHED_UNIT = {**UNIT, "VNTR63_01": 64}
 REPEAT_RANGE = {"VNTR09_01": (6, 25), "VNTR61_01": (0, 6), "VNTR61_02": (0, 5),
                 "VNTR67_01": (0, 10), "VNTR21_01": (0, 13), "VNTR24_01": (1, 18),
                 "VNTR63_01": (0, 11), "VNTR81_01": (1, 9)}
@@ -130,3 +133,11 @@ def test_a_run_on_n315_sizes_every_amplicon_but_calls_no_allele(tmp_path):
     hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t", keep_default_na=False)
     assert hits.set_index("marker")["length"].astype(int).to_dict() == sizes
     assert set(hits["contig"]) == {CHROMOSOME}
+
+
+def test_the_corrected_unit_length_is_kept():
+    """VNTR63_01 steps by 63 bp across eight genomes, not the 64 bp Table 1 averages to."""
+    defs = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
+    differ = {m: (d.unit_length, PUBLISHED_UNIT[m])
+              for m, d in defs.items() if d.unit_length != PUBLISHED_UNIT[m]}
+    assert differ == {"VNTR63_01": (63, 64)}

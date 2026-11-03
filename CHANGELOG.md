@@ -141,6 +141,15 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- The unit lengths of the two *Staphylococcus aureus* schemes were checked
+  by amplifying each panel in eight *S. aureus* genomes, where every product
+  of a locus must leave the same remainder when divided by its repeat unit,
+  and four are corrected. In `saureus_mlva5_sabat_2003` the Ser-Asp arrays
+  of clfA, clfB and sdr step by one dipeptide, 6 bp, not the 18 bp the paper
+  describes. In `saureus_mlva8_schouls_2009` VNTR63_01 steps by 63 bp, not
+  the 64 bp its table averages to. Both schemes now also record which loci
+  that test confirms and which fit no single period, including VNTR61_01,
+  whose heterogeneous flanking region the paper reports and the data shows.
 
 - The copy numbers of `bacillus_mlva8_keim_2000` and
   `bacillus_mlva15_vanert_2007` are now the published MLVAbank values that

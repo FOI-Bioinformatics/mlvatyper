@@ -284,9 +284,13 @@ below are shorter than they are.
   locus alleles, so the scheme sizes its markers and calls none. `sdr` is
   one primer pair that amplifies the tandem *sdrC*, *sdrD* and *sdrE* genes
   together, so it is the only bundled locus declared in `known_multiple`;
-  it gives two products in the reference. The *sspA* primers are degenerate
-  and are found by the rescue pass rather than at word size 11. Its *spa*
-  locus overlaps `saureus_mlva8_schouls_2009` with different primers.
+  it gives three products in six of eight *S. aureus* genomes and two in the
+  reference. The *sspA* primers are degenerate and are found by the rescue
+  pass rather than at word size 11. Its *spa* locus overlaps
+  `saureus_mlva8_schouls_2009` with different primers. The unit lengths were
+  checked against eight genomes and three are corrected: the Ser-Asp arrays
+  of *clfA*, *clfB* and *sdr* step by one dipeptide, 6 bp, not the 18 bp the
+  paper describes.
 
 - `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
   aureus* (Schouls et al. 2009), anchored on N315. All eight products are
@@ -296,8 +300,13 @@ below are shorter than they are.
   unit sequences, and does not state the reference repeat number, so the one
   value that anchors an allele is missing. The arrays are too imperfect to
   count it back reliably, so no copy number is recorded rather than a
-  doubtful one. Supplying the flanking lengths or the published size to
-  allele table would make it a calling scheme. VNTR24_01 is the *spa* repeat
+  doubtful one. Amplifying the panel in eight *S. aureus* genomes narrows
+  each flanking length only to within a whole repeat, so it does not settle
+  it either; supplying the flanking lengths or the published size to allele
+  table would make it a calling scheme. That comparison did confirm four
+  unit lengths, correct VNTR63_01 from 64 bp to 63 bp, and show that three
+  loci fit no single period, among them VNTR61_01, whose flanking region the
+  paper itself reports as heterogeneous. VNTR24_01 is the *spa* repeat
   region, so this panel is not independent of *spa* typing at that locus.
 
 - `yersinia_klevytska_2001`: the 42 locus VNTR survey for *Yersinia pestis*,

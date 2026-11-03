@@ -25,8 +25,11 @@ ORDER = ["clfA", "clfB", "sdr", "spa", "ssp"]
 MULTIPLE = "sdr"
 SINGLE = [m for m in ORDER if m != MULTIPLE]
 
-# the repeat unit the Introduction states for each gene family
-UNIT = {"clfA": 18, "clfB": 18, "sdr": 18, "spa": 24, "ssp": 9}
+# the unit each locus steps by, checked against eight S. aureus genomes
+UNIT = {"clfA": 6, "clfB": 6, "sdr": 6, "spa": 24, "ssp": 9}
+# the Introduction calls the Ser-Asp repeat 18 bp, which is three dipeptides
+PUBLISHED_UNIT = {"clfA": 18, "clfB": 18, "sdr": 18, "spa": 24, "ssp": 9}
+SER_ASP = ("clfA", "clfB", "sdr")
 # the products measured in NCTC 8325; none of these is a published value
 REF_SIZES = {"clfA": 997, "clfB": 828, "spa": 308, "ssp": 155}
 SDR_PRODUCTS = {640, 796}
@@ -121,3 +124,17 @@ def test_the_two_saureus_schemes_overlap_at_spa_with_different_primers():
            (there["VNTR24_01"].forward, there["VNTR24_01"].reverse)
     # no locus id is shared, so the two schemes cannot be confused by name either
     assert not set(here) & set(there)
+
+
+def test_the_ser_asp_loci_step_by_one_dipeptide():
+    """The array gains and loses Ser-Asp dipeptides singly, so the unit is 6 bp, not 18."""
+    defs = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
+    differ = {m: (d.unit_length, PUBLISHED_UNIT[m])
+              for m, d in defs.items() if d.unit_length != PUBLISHED_UNIT[m]}
+    assert set(differ) == set(SER_ASP)
+    for marker in SER_ASP:
+        assert differ[marker] == (6, 18), marker
+        assert PUBLISHED_UNIT[marker] % defs[marker].unit_length == 0, marker
+    # the two loci outside that family keep the published unit
+    for marker in ("spa", "ssp"):
+        assert defs[marker].unit_length == PUBLISHED_UNIT[marker], marker

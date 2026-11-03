@@ -1,13 +1,22 @@
 marker	unit_length	ref_size	ref_repeats	patterns	label
-clfA	18	997		N/A	clfA
-clfB	18	828		N/A	clfB
-sdr	18			N/A	sdr
+clfA	6	997		N/A	clfA
+clfB	6	828		N/A	clfB
+sdr	6			N/A	sdr
 spa	24	308		N/A	spa
 ssp	9	155		N/A	ssp
-# unit_length is the repeat unit each gene family is described with in the Introduction: an
-# 18 bp repeat encoding Ser-Asp dipeptides in the R region of clfA, clfB and the sdr genes, a 9 bp
-# tripeptide repeat in sspA, and a 24 bp repeat in spa. The paper tabulates none of these; they
-# are stated in its text.
+# unit_length is the repeat unit each locus actually steps by, checked against eight S. aureus
+# genomes: N315, Mu50, MW2, COL, MRSA252, MSSA476, NCTC 8325 and USA300. The flanking length of a
+# locus does not change between strains, so every product of that locus must leave the same
+# remainder when divided by the repeat unit.
+#
+# THE THREE SER-ASP LOCI STEP BY 6 bp, NOT THE 18 bp THE PAPER DESCRIBES. The Introduction calls
+# the R region repeat an 18-nucleotide unit, which is three Ser-Asp dipeptides, but a dipeptide is
+# two codons and the array gains or loses them one at a time. Across the eight genomes every
+# observed step at clfA, clfB and sdr is a multiple of 6 and not of 18, and the remainders collapse
+# to a single value only at 6 bp: clfA 7 distinct sizes from 997 to 1303, clfB 6 from 816 to 936,
+# sdr 14 from 556 to 796. The 18 bp figure is kept in scheme.yml as what the paper states.
+#   spa  consistent at the 24 bp the paper gives
+#   ssp  consistent at the 9 bp tripeptide unit the paper gives
 #
 # ref_size is the product these primers give in the NCTC 8325 assembly GCA_000013425.1 by in
 # silico PCR. NCTC 8325 is the control strain the paper itself types, as isolate 34. The paper
@@ -15,13 +24,15 @@ ssp	9	155		N/A	ssp
 # because the scheme has to be anchored somewhere.
 #
 # sdr HAS NO ref_size BECAUSE IT HAS NO SINGLE PRODUCT. One primer pair amplifies sdrC, sdrD and
-# sdrE together by design, and in NCTC 8325 it gives two products, 640 bp and 796 bp. The locus is
-# declared in known_multiple so that the one product per marker checks skip it, and a call for it
-# is flagged MULTIPLE.
+# sdrE together by design. Six of the eight genomes give the three products the paper expects;
+# NCTC 8325 and MRSA252 give two, so the reference is one of the two strains where a gene of the
+# array is absent or diverged at a primer site. The locus is declared in known_multiple so that
+# the one product per marker checks skip it, and a call for it is flagged MULTIPLE.
 #
 # ref_repeats IS EMPTY THROUGHOUT, SO THIS SCHEME SIZES ITS MARKERS WITHOUT CALLING THEM. The
 # method is read as a band pattern on a gel, not as a per locus allele: the paper assigns each
 # distinct pattern an arbitrary number, 1 to 26 in Table 1, and publishes no amplicon sizes, no
 # repeat numbers and no reference values of any kind. A profile from this scheme is therefore not
-# comparable with those pattern numbers, and no copy number is recorded because none is published
-# and none can be checked against anything.
+# comparable with those pattern numbers. The eight genome comparison fixes each flanking length
+# only up to a whole number of repeats, so it cannot supply the missing count either, and no copy
+# number is recorded because none is published and none can be pinned down.
