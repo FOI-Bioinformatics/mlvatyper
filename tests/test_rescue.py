@@ -109,3 +109,25 @@ def test_find_with_indels_reports_an_exact_product_once():
     genome = random_dna(300, 95) + amp + random_dna(300, 96)
     hits = find_with_indels({"c": genome}, PrimerPair("VNTR1", FWD, REV, len(amp)), "s", margin=50)
     assert [(h.start, h.length) for h in hits] == [(301, len(amp))]
+
+
+def test_a_split_product_is_explained_in_the_missing_table(tmp_path):
+    """Forward primer at the end of one contig and reverse primer at the start of the next: an assembly gap."""
+    from mlvatyper.extract import primer_end_detail
+    left = random_dna(300, 91) + FWD
+    right = str(Seq(REV).reverse_complement()) + random_dna(300, 92)
+    pair = PrimerPair("m", FWD, REV, 120)
+    detail = primer_end_detail({"c1": left, "c2": right}, pair, 150)
+    assert detail == "forward primer 0 bp from the end of c1; reverse primer 0 bp from the start of c2"
+    # a primer in the middle of a long contig, and one that is absent
+    assert primer_end_detail({"c": random_dna(400, 93) + FWD + random_dna(400, 94)}, pair, 100) == \
+        "forward primer elsewhere in the assembly; reverse primer not found exactly"
+    (tmp_path / "p.sts").write_text(f"m\t{FWD}\t{REV}\t120\n")
+    (tmp_path / "s.fasta").write_text(f">c1\n{left}\n>c2\n{right}\n")
+    assert main(["search", "--sts", str(tmp_path / "p.sts"), "--fasta", str(tmp_path / "s.fasta"), "-N", "0",
+                 "-M", "150", "--outdir", str(tmp_path / "o"), "--align", "none"]) == 0
+    missing = pd.read_csv(tmp_path / "o" / "missing_markers.tsv", sep="\t")
+    assert missing.loc[0, "reason"] == "NEAR_CONTIG_END"
+    assert missing.loc[0, "detail"] == detail
+    # the detail does not survive a reread, which keeps only the reason
+    assert str(read_missing(tmp_path / "o" / "missing_markers.tsv")[("s", "m")]) == "NEAR_CONTIG_END"

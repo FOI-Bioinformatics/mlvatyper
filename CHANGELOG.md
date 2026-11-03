@@ -6,6 +6,8 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- `missing_markers.tsv` has a `detail` column. For NEAR_CONTIG_END it states where each primer lies relative to the contig ends, so a product split across contigs by a repeat array can be told from a single primer near an end.
+- The `interrupted_arrays` key in `scheme.yml` lists markers whose tandem count is reported but not compared with the length based allele, so COUNT_DISAGREES is not raised for arrays that hold variant units the patterns cannot follow. `check-scheme` skips the repeat comparison for them too.
 - The `rescue_indels` key in `scheme.yml` (yes or no) sets `--rescue-indels` as a
   scheme default. The `burkholderia_uren_2007` scheme uses it: on five
   *B. pseudomallei* and four *B. mallei* genomes the aligned rescue recovers
@@ -326,6 +328,7 @@ is below 1.0, so the output tables may still change between minor versions.
   value of -0.4.
 
 ### Fixed
+- `burkholderia_uren_2007`: on 40 genomes the measured copy number gave alleles of 0 or below at five markers (3564k down to -7) and COUNT_DISAGREES on 39% of calls. 2115k, 1500k, 3564k, 1788k and 1217k now use the copy number of the publication, and sixteen markers are listed under `interrupted_arrays`. In the same genomes no allele is 0 or below and COUNT_DISAGREES falls to 6%. The K96243 profile changes at those five markers.
 - Three scheme citations were checked against the DOI registry and corrected.
   The DOI of `blongum_mlva5_matamoros_2011` belonged to a different paper by
   other authors and is now `10.1016/j.mimet.2011.10.005`. The authors of the

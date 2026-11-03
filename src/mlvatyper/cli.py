@@ -34,8 +34,8 @@ from .calling import (
     status_table, tandem_count_table,
 )
 from .extract import (
-    extract_amplicons, load_fasta, primers_near_contig_ends, read_hits_table, read_samples, write_hits_table,
-    write_marker_fastas, write_samples,
+    extract_amplicons, load_fasta, primer_end_detail, primers_near_contig_ends, read_hits_table, read_samples,
+    write_hits_table, write_marker_fastas, write_samples,
 )
 from .io import strip_compression
 from .log import configure_logging, get_logger
@@ -395,7 +395,8 @@ def search_sample(searcher: MerPcrSearcher, fasta: Path, pairs: list[PrimerPair]
         windows = {p.id: p.expected_size + margin for p in missing}
         near = primers_near_contig_ends(contigs, missing, windows)
         used_wordsize = rescue.wordsize if rescue.wordsize > 0 else wordsize
-        reasons = missing_reasons(contigs, missing, near, used_wordsize, one_sided or rescue.wordsize > 0)
+        details = {p.id: primer_end_detail(contigs, p, windows[p.id]) for p in missing if p.id in near}
+        reasons = missing_reasons(contigs, missing, near, used_wordsize, one_sided or rescue.wordsize > 0, details)
     return _renumber(amps), reasons
 
 
@@ -736,6 +737,8 @@ def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
 
     defs = load_definitions(args, outdir, sts_ids, amplicons) if (args.markers or args.reference_sample
                                                                      or sts_ids) else []
+    skip = set(getattr(args, "interrupted_arrays", ()))
+    defs = [replace(d, compare_count=False) if d.primer_id in skip else d for d in defs]
     legacy_defs = defs if (args.markers or args.reference_sample) else None
     write_all_summaries(amplicons, samples, outdir, args.prefix, legacy_defs, args.clwclean, args.legacy_tables,
                         sts_ids)

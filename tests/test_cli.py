@@ -105,7 +105,7 @@ def test_cli_passes_one_sided_and_wordsize(tmp_path):
             "-N", "0", "-M", "50", "--align", "none"]
     assert main(base + ["--outdir", str(tmp_path / "a"), "--rescue-wordsize", "0"]) == 0
     assert pd.read_csv(tmp_path / "a" / "hits.tsv", sep="\t").empty
-    assert (tmp_path / "a" / "missing_markers.tsv").read_text().splitlines()[1] == "s\tOneSided\tNOT_SEARCHED"
+    assert (tmp_path / "a" / "missing_markers.tsv").read_text().splitlines()[1] == "s\tOneSided\tNOT_SEARCHED\t"
     assert main(base + ["--outdir", str(tmp_path / "b"), "--one-sided", "--rescue-wordsize", "0"]) == 0
     assert len(pd.read_csv(tmp_path / "b" / "hits.tsv", sep="\t")) == 1
     assert main(base + ["--outdir", str(tmp_path / "c"), "-W", "8", "--rescue-wordsize", "0"]) == 0

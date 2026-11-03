@@ -346,3 +346,19 @@ def test_every_doi_on_the_reference_page_is_in_the_bibliography_and_a_scheme_cit
     assert in_table <= in_bibliography, f"cited in the table but not in the bibliography: {in_table - in_bibliography}"
     cited = set().union(*(_scheme_dois(s) for s in list_schemes()))
     assert in_bibliography <= cited, f"in the bibliography but cited by no scheme: {in_bibliography - cited}"
+
+
+def test_interrupted_arrays_skip_the_count_comparison():
+    from dataclasses import replace
+    from mlvatyper.calling import COUNT_DISAGREES, call_amplicon
+    from mlvatyper.models import Amplicon, Hit, MarkerDef
+    scheme = load_scheme("burkholderia_uren_2007")
+    assert "3564k" in scheme.interrupted_arrays
+    d = MarkerDef("m", ("ACGT",), 4, 40, 3)
+    # eight perfect units in a 56 bp amplicon: the allele is 7, the count 8 copies apart by one or more
+    seq = "AAAAAAAA" + "ACGT" * 10 + "TTTTTTTT"
+    hit = Hit("s", "c", 1, len(seq), "+", "m", len(seq), 0, 0)
+    amp = Amplicon(hit, 1, seq)
+    assert COUNT_DISAGREES in call_amplicon(amp, d, 0.25, "nearest").status
+    skipped = call_amplicon(amp, replace(d, compare_count=False), 0.25, "nearest")
+    assert COUNT_DISAGREES not in skipped.status and skipped.array.copies == 10

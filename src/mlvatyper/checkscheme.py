@@ -27,7 +27,6 @@ from .assemblies import download_assembly
 from .calling import read_bins
 from .extract import deduplicate_hits, load_fasta
 from .log import get_logger
-from .markers import read_markers
 from .models import MarkerDef, PrimerPair
 from .rescue import RescueOptions, find_with_indels, rescue_pass
 from .scheme import PROVENANCE_FIELDS, Scheme
@@ -66,7 +65,7 @@ def file_checks(scheme: Scheme) -> tuple[pd.DataFrame, list[PrimerPair], dict[st
     valid, invalid = read_sts(scheme.sts)
     for _, _raw, reason in invalid:
         log.error("%s: invalid STS entry: %s", scheme.name, reason)
-    defs = {d.primer_id: d for d in read_markers(scheme.markers)} if scheme.markers else {}
+    defs = {d.primer_id: d for d in scheme.marker_defs()} if scheme.markers else {}
     bins = read_bins(scheme.bins) if scheme.bins else {}
     sts_ids = {p.id for p in valid}
     for name, ids in (("markers.tsv", set(defs)), ("bins.tsv", set(bins))):
@@ -116,7 +115,7 @@ def _product_row(h, contigs: dict[str, str], d: MarkerDef | None, n_hits: int, u
     if d is not None and d.has_repeats:
         copies = count_tandem_array(seq, d.patterns, unit_mismatches).copies
         row["tandem_copies"] = copies
-        if d.ref_repeats is not None:
+        if d.ref_repeats is not None and d.compare_count:
             # a count of whole units cannot equal a fractional ref_repeats; n.5 means n whole
             # units and a partial one, so the count is compared with the whole part
             row["repeats_ok"] = int(copies == math.floor(d.ref_repeats))
