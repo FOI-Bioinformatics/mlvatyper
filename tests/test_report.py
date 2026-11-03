@@ -119,10 +119,10 @@ def test_report_names_the_scheme_and_its_publication(tmp_path):
                                           "rescue_wordsize": 6, "rescue_indels": True}}}
     info = scheme_info(run_info)
     assert info["doi"] == "10.1186/1471-2180-7-23" and info["organism"] == "Burkholderia pseudomallei"
-    assert len(info["interrupted"]) == 16
+    assert len(info["interrupted"]) == 17
     text = methods_text(run_info)
     assert "burkholderia_uren_2007 scheme for Burkholderia pseudomallei" in text and "BMC Microbiol 2007;7:23" in text
-    assert "up to 2 mismatches" in text and "16 markers whose arrays hold variant units" in text
+    assert "up to 2 mismatches" in text and "17 markers whose arrays hold variant units" in text
     assert scheme_info({"search": {"parameters": {}}}) is None
     assert scheme_info({"search": {"parameters": {"scheme": "no-such-scheme"}}}) is None
 
