@@ -6,6 +6,13 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `paeruginosa_mlva8_onteniente_2003`, the eight locus MLVA
+  of Onteniente et al. for *Pseudomonas aeruginosa*, anchored on PAO1. Table
+  1 gives the repeat unit and the number of units in PAO1 for each locus;
+  the primers reproduce every published PAO1 product and a run returns the
+  unit profile 11-12-5-8-7-12-14-45 with zero residual. ms173 is a 243 bp
+  unit locus with a product near 3.5 kb. First scheme for this organism, and
+  the one the later P. aeruginosa MLVF studies apply.
 - Bundled scheme `blongum_mlva5_matamoros_2011`, the five locus MLVA of
   Matamoros et al. for *Bifidobacterium longum* subsp. *longum*, anchored on
   NCC2705. The repeat units and motifs are from the paper's Table 3 and the

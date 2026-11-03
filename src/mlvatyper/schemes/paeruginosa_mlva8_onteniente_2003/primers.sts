@@ -1,0 +1,13 @@
+# Pseudomonas aeruginosa, the eight locus MLVA of Onteniente et al. 2003, anchored on strain PAO1.
+# Primers are Table 1 as published. The locus names encode the position in the PAO1 genome and the
+# repeat unit, for example ms173 at 5186 kb. ms173 has a 243 bp unit and a 3503 bp product in PAO1,
+# so its search window is wide; the others are nearer their published amplicon size. The window runs
+# from below the published size range to a few hundred bases beyond it.
+ms010	GCAGGAACGCTTGCAGCAGGT	CTTCGCCGACCCAGGGATCA	60-533
+ms061	CTTGCCGTGCTACCGATCC	CCCCCATGCCAGTTGC	60-439
+ms077	GCGTCATGGTCTGCATGTC	TATACCCTCTTCGCCCAGTC	149-820
+ms127	CTCGGAGTCTCTGCCAACTC	GGCAGGACAGGATCTCGAC	60-525
+ms142	AGCAGTGCCAGTTGATGTTG	GTGGGGCGAAGGAGTGAG	60-1075
+ms172	GGATTCTCTCGCACGAGGT	TACGTGACCTGACGTTGGTG	373-1143
+ms173	CTGCAGTTCGCGCAAGTC	ATTTCAGCCAGCGTTACCAA	873-5018
+ms194	CCTTAGGAGGCGCTGGTC	AGCTGCTGGCAAGGCTCT	400-1000

@@ -173,6 +173,13 @@ below are shorter than they are.
   `bins.tsv` holding the published fragment-size-to-allele table, LT2 being
   allele 211.
 
+- `paeruginosa_mlva8_onteniente_2003`: the eight locus MLVA for
+  *Pseudomonas aeruginosa* (Onteniente et al. 2003), anchored on PAO1.
+  Table 1 gives the unit and the PAO1 unit count for each locus; a run on
+  PAO1 returns the published profile 11-12-5-8-7-12-14-45. ms173 has a 243
+  bp unit and a product near 3.5 kb, so it needs a wide window. This is the
+  scheme the later *P. aeruginosa* MLVF studies apply.
+
 - `salmonella_enteritidis_mlva9_malorny_2008`: the nine locus multiplex for
   *Salmonella* Enteritidis (Malorny et al. 2008), anchored on NCTC 13349,
   which is the sequenced strain P125109. The loci are in the order the paper
