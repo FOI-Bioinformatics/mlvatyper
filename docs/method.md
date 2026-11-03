@@ -310,21 +310,14 @@ below are shorter than they are.
   arrays the Schouls panel reads as VNTR24_01 and VNTR63_01.
 
 - `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
-  aureus* (Schouls et al. 2009), anchored on N315. All eight products are
-  reproduced there and each equals the span of the coordinates the paper
-  publishes for the same primer pair. This scheme sizes its markers but does
-  not call them: the paper gives neither the flanking lengths nor the repeat
-  unit sequences, and does not state the reference repeat number, so the one
-  value that anchors an allele is missing. The arrays are too imperfect to
-  count it back reliably, so no copy number is recorded rather than a
-  doubtful one. Amplifying the panel in eight *S. aureus* genomes narrows
-  each flanking length only to within a whole repeat, so it does not settle
-  it either; supplying the flanking lengths or the published size to allele
-  table would make it a calling scheme. That comparison did confirm four
-  unit lengths, correct VNTR63_01 from 64 bp to 63 bp, and show that three
-  loci fit no single period, among them VNTR61_01, whose flanking region the
-  paper itself reports as heterogeneous. VNTR24_01 is the *spa* repeat
-  region, so this panel is not independent of *spa* typing at that locus.
+  aureus* (Schouls et al. 2009), anchored on N315. All eight loci call on
+  the published scale: Figure 7 of the paper gives the MLVA profile of 14
+  sequenced strains, and the N315 profile anchors every locus. The anchor is
+  validated against the other sequenced strains with an assembly, seven of
+  eight loci reproducing each published profile exactly; VNTR61_01 is the
+  one the paper flags as having a heterogeneous flank. Two loci are the
+  arrays the Pourcel panel calls Sa0122 (spa) and Sa1132, numbered on a
+  different scale.
 
 - `yersinia_klevytska_2001`: the 42 locus VNTR survey for *Yersinia pestis*,
   anchored on CO92. Three loci are numbered with a half copy.

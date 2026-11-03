@@ -114,11 +114,12 @@ def test_it_shares_two_arrays_with_the_schouls_panel():
     """Sa0122 and Sa1132 are the arrays the Schouls panel reads as VNTR24_01 and VNTR63_01."""
     here = {d.primer_id: d for d in read_markers(load_scheme(SCHEME).markers)}
     schouls = {d.primer_id: d for d in read_markers(load_scheme("saureus_mlva8_schouls_2009").markers)}
-    # same repeat unit, and the Schouls loci were anchored to this panel's reference counts
+    # same repeat unit, the same physical arrays
     assert here["Sa0122"].unit_length == schouls["VNTR24_01"].unit_length == 24
     assert here["Sa1132"].unit_length == schouls["VNTR63_01"].unit_length == 63
-    assert schouls["VNTR24_01"].ref_repeats == here["Sa0122"].ref_repeats == 10
-    assert schouls["VNTR63_01"].ref_repeats == here["Sa1132"].ref_repeats == 6
+    # each panel numbers the shared array on its own published scale, so the counts differ by a constant
+    assert here["Sa0122"].ref_repeats == 10 and schouls["VNTR24_01"].ref_repeats == 11
+    assert here["Sa1132"].ref_repeats == 6 and schouls["VNTR63_01"].ref_repeats == 7
     # different primers, so the Mu50 products are not the same fragment
     hp = {p.id: p for p in read_sts(load_scheme(SCHEME).sts)[0]}
     sp = {p.id: p for p in read_sts(load_scheme("saureus_mlva8_schouls_2009").sts)[0]}

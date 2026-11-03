@@ -151,6 +151,15 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `saureus_mlva8_schouls_2009` calls all eight loci, up from four, on the
+  scheme's own published scale. Figure 7 of Schouls et al. 2009 gives the
+  MLVA profile of 14 sequenced strains; the N315 profile, 14-2-1-3-2-11-7-5,
+  anchors every locus, and a run on N315 reproduces it with zero residual.
+  The four loci previously borrowed from the Pourcel panel are corrected to
+  the Schouls convention. Validated against seven more sequenced genomes,
+  seven of eight loci reproduce each published profile exactly, including
+  the MRSA252 null allele; only VNTR61_01, which the paper reports as having
+  a heterogeneous flank, deviates off the reference.
 - `francisella_vogler_2008` calls ten of its eleven loci, up from seven.
   With the Johansson panel now carrying published counts for Ft-M22, Ft-M23
   and Ft-M24, those three Vogler loci calibrate through the shared genome
