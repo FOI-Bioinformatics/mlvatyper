@@ -248,10 +248,10 @@ def write_missing(reasons: dict[tuple[str, str], str], path: Path) -> None:
             handle.write(f"{sample}\t{marker}\t{reason}\t{getattr(reason, 'detail', '')}\n")
 
 
-def read_missing(path: Path) -> dict[tuple[str, str], str]:
+def read_missing(path: Path) -> dict[tuple[str, str], Reason]:
     if not path.exists():
         return {}
-    reasons = {}
+    reasons: dict[tuple[str, str], Reason] = {}
     for line in path.read_text(encoding="utf-8").splitlines()[1:]:
         fields = line.split("\t")
         if len(fields) >= 3:

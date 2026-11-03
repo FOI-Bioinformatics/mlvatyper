@@ -153,10 +153,11 @@ two copies only), 3 are other units, and 3 markers with one copy or a
 2 bp unit give nothing. The outputs (allele, status, tandem count and
 long tables, derived and discovered definitions, discovery report and
 candidate table, missing markers) and the HTML report are kept under
-`examples/testM/`. They were produced with mlvatyper 0.3.0, before the
-fixes listed under Unreleased in the [CHANGELOG](CHANGELOG.md), and have
-not been regenerated because the assembly is not in the repository; a
-current run also writes `testM_definitions.tsv`.
+`examples/testM/`. They were produced with mlvatyper 0.3.0 and have not
+been regenerated, because the assembly is not in the repository; they
+therefore predate the fixes and the report layout of the releases listed in
+the [CHANGELOG](CHANGELOG.md), and a current run also writes
+`testM_definitions.tsv`. `docs/images/` shows the current report.
 First columns of `hits.tsv`:
 
     sample  marker   copy  contig  start   end     strand  length  has_N  expected_size  fwd_mismatches  rev_mismatches  n_alternatives  dist_to_contig_end  fwd_indels  rev_indels  search_pass
@@ -166,6 +167,7 @@ First columns of `hits.tsv`:
 
     pip install -e ".[dev]"
     ruff check src tests
+    mypy src/mlvatyper
     pytest --cov=mlvatyper
 
 Tests that need TRF, an aligner or a reference assembly are skipped when

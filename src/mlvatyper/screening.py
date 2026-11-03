@@ -46,7 +46,7 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for marker in alleles.columns:
         a, s = alleles[marker], status[marker]
-        numeric = [str(v) for v in a if _is_number(v)]
+        numeric = [v for v in (allele_value(x) for x in a) if v is not None]
         typed = len(numeric)
         ok = int(s.isin(GOOD).sum())
         missing = int(s.isin(ABSENT).sum())
@@ -58,7 +58,7 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
                 if code not in GOOD:
                     codes[code] = codes.get(code, 0) + 1
         top, top_n = max(codes.items(), key=lambda kv: kv[1]) if codes else ("", 0)
-        lowest = min((allele_value(v) for v in numeric), default=float("nan"))
+        lowest = min(numeric, default=float("nan"))
         concern = []
         if typed and top_n / typed > FLAG_SHARE:
             concern.append(f"{top} in {100 * top_n / typed:.0f}% of calls")
@@ -67,12 +67,13 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
         share = round(top_n / typed, 3) if typed else 0.0
         rows.append({"marker": marker, "samples": len(a), "typed": typed, "ok": ok, "missing": missing,
                      "flagged": typed - ok, "top_flag": top, "top_flag_share": share,
-                     "distinct_alleles": len(set(numeric)), "simpson": _simpson(numeric), "lowest_allele": lowest,
+                     "distinct_alleles": len(set(numeric)),
+                     "simpson": _simpson([f"{v:g}" for v in numeric]), "lowest_allele": lowest,
                      "concern": "; ".join(concern)})
     return pd.DataFrame(rows).set_index("marker")
 
 
-def missing_by_reason(missing: pd.DataFrame) -> pd.DataFrame:
+def missing_by_reason(missing: pd.DataFrame | None) -> pd.DataFrame:
     if missing is None or not len(missing):
         return pd.DataFrame(columns=["reason", "products", "markers"])
     grouped = missing.groupby("reason")

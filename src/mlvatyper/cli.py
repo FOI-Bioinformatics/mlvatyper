@@ -349,8 +349,12 @@ def size_windows_from_definitions(pairs: list[PrimerPair], defs: list[MarkerDef]
         if d is None or pair.size_low is not None:  # an explicit range in the STS file is kept
             result.append(pair)
             continue
-        low = max(int(d.expected_size(0)), len(pair.forward) + len(pair.reverse))
-        high = int(d.expected_size(max_repeats))
+        low_size, high_size = d.expected_size(0), d.expected_size(max_repeats)
+        if low_size is None or high_size is None:
+            result.append(pair)
+            continue
+        low = max(int(low_size), len(pair.forward) + len(pair.reverse))
+        high = int(high_size)
         result.append(replace(pair, size_low=low, size_high=high))  # expected_size stays the STS value
         changed += 1
     log.info("%d markers searched with a size window from their definitions (0 to %d repeats)", changed, max_repeats)
@@ -368,7 +372,8 @@ def read_near_end(path: Path) -> set[tuple[str, str]]:
     if not path.exists():
         return set()
     lines = path.read_text(encoding="utf-8").splitlines()[1:]
-    return {tuple(line.split("\t")[:2]) for line in lines if line.strip()}
+    pairs = (line.split("\t") for line in lines if line.strip())
+    return {(fields[0], fields[1]) for fields in pairs if len(fields) >= 2}
 
 
 def file_record(path: Path) -> dict:
@@ -530,7 +535,7 @@ def do_search(args: argparse.Namespace, outdir: Path) -> list[Path]:
     if rescued:
         log.info("%d amplicons come from the rescue passes (see search_pass in %s)", rescued, HITS_FILE)
     if reasons:
-        counts = {}
+        counts: dict[str, int] = {}
         for reason in reasons.values():
             counts[reason] = counts.get(reason, 0) + 1
         log.info("%d sample/marker combinations without a hit: %s", len(reasons),
@@ -736,6 +741,7 @@ def do_check_scheme(args: argparse.Namespace, outdir: Path) -> None:
     log.info("Checking scheme %s (%s)", scheme.name, scheme.path)
     missing = provenance_checks(scheme, strict=not args.allow_missing_provenance)
     table, pairs, defs = file_checks(scheme)
+    fasta: Path | None
     try:
         if args.fetch:
             if not args.email:

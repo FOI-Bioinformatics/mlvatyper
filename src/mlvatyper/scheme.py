@@ -122,6 +122,8 @@ class Scheme:
         """The marker definitions, with the count comparison off for the interrupted arrays."""
         from dataclasses import replace
         from .markers import read_markers
+        if self.markers is None:
+            return []
         skip = set(self.interrupted_arrays)
         return [replace(d, compare_count=False) if d.primer_id in skip else d for d in read_markers(self.markers)]
 

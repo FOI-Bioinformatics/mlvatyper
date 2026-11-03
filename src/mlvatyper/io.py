@@ -21,7 +21,7 @@ def open_text(path: str | Path) -> IO[str]:
     opener = COMPRESSION_SUFFIXES.get(path.suffix.lower())
     if opener is None:
         return open(path, encoding="utf-8-sig")
-    return opener(path, "rt", encoding="utf-8-sig")
+    return opener(path, "rt", encoding="utf-8-sig")  # type: ignore[operator]  # gzip/bz2/lzma open
 
 
 def strip_compression(path: str | Path) -> Path:

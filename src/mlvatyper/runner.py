@@ -147,7 +147,7 @@ def search_key(sts_path: Path, args: argparse.Namespace) -> str:
     return digest.hexdigest()
 
 
-def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: list[PrimerPair], margin: int,
+def search_samples(searcher: MerPcrSearcher | None, fasta_files: list[Path], pairs: list[PrimerPair], margin: int,
                    dedup: bool = True, rescue: RescueOptions | None = None, wordsize: int = 11,
                    one_sided: bool = False, jobs: int = 1, sts_path: str | Path | None = None,
                    searcher_kwargs: dict | None = None, cache: Path | None = None, resume: bool = False,
@@ -181,6 +181,8 @@ def search_samples(searcher: MerPcrSearcher, fasta_files: list[Path], pairs: lis
 
     workers = max(1, min(jobs, len(todo))) if todo else 1
     if workers == 1:
+        if searcher is None:  # one worker and no searcher: the caller built none for a parallel run
+            searcher = MerPcrSearcher(str(sts_path), **(searcher_kwargs or {}))
         for fasta in todo:
             try:
                 amps, sample_reasons = search_sample(searcher, fasta, pairs, margin, dedup, rescue,

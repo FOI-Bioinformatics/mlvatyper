@@ -133,9 +133,9 @@ def discover_with_trf(
         raw = merge_harmonics(trf_raw_arrays(repeats.get(names[marker], [])))
         cands = [make_discovery(marker, sample, seq, r, "trf", max_mismatch, (primer_lengths or {}).get(marker))
                  for r in raw if r.copies >= t.min_copies]
-        cands = finish_candidates([c for c in cands if c is not None], t)
-        if cands:
-            found[marker] = cands
+        ranked = finish_candidates([c for c in cands if c is not None], t)
+        if ranked:
+            found[marker] = ranked
         else:
             missing.append(marker)
     log.info("%s: TRF found repeat units for %d markers, none for %d", sample, len(found), len(missing))

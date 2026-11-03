@@ -247,7 +247,7 @@ def write_hits_table(amplicons: list[Amplicon], path: str | Path) -> None:
 
 def _int(row: dict[str, str], key: str, default: int) -> int:
     value = row.get(key)
-    return int(value) if value not in (None, "") else default
+    return int(value) if value is not None and value != "" else default
 
 
 def read_hits_table(path: str | Path) -> list[Amplicon]:

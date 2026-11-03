@@ -174,7 +174,7 @@ def fetch_assembly(accession: str, email: str, out: Path) -> Path:
     """Download a nucleotide record (not an assembly) from NCBI as FASTA."""
     from Bio import Entrez
 
-    Entrez.email = email
+    Entrez.email = email  # type: ignore[assignment]  # the stub types this as None
     log.info("Fetching %s from NCBI nucleotide", accession)
     with Entrez.efetch(db="nucleotide", id=accession, rettype="fasta", retmode="text") as handle:
         text = handle.read()
