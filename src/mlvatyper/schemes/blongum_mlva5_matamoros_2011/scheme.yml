@@ -1,0 +1,11 @@
+# Bifidobacterium longum subsp. longum, the five locus MLVA of Matamoros et al. 2011.
+name: blongum_mlva5_matamoros_2011
+organism: Bifidobacterium longum subsp. longum
+citation: Matamoros S, Savard P, Roy D. Genotyping of Bifidobacterium longum subsp. longum strains by multilocus variable number of tandem repeat analysis. J Microbiol Methods 2011;87:378-380. doi:10.1016/j.mimet.2011.10.009, Table 2 (primers and amplicon size ranges), Table 3 (repeat unit lengths and consensus sequences) and Table 1 (the NCC2705 MLVA profile)
+url: https://doi.org/10.1016/j.mimet.2011.10.009 (Tables 1, 2 and 3)
+reference: Bifidobacterium longum subsp. longum NCC2705, chromosome AE014295.3; ref_size is the product these primers give in that assembly and ref_repeats is the NCC2705 repeat number of Table 1
+assembly: GCA_000007525.1
+retrieved: 2026-11-03
+rounding: intermediate
+allele_tolerance: 0.25
+notes: Five VNTR loci found in the sequenced genomes NCC2705 and DJO10A and amplified in one multiplex reaction, anchored on NCC2705. The loci are VNTR12, VNTR21, VNTR23, VNTR25 and VNTR26, the discriminatory subset the paper kept from six candidates after dropping VNTR15; the numbers are the authors' own and are not positions. Every reference value is published: Table 3 gives the repeat unit length and consensus for each locus, and Table 1 gives the NCC2705 profile, 6-4-3-7-16 in that order. The primers reproduce one product per locus in the NCC2705 assembly, each inside the amplicon size range Table 2 reports, and a run on NCC2705 returns the published profile with a residual of zero at every locus. No stored repeat pattern is kept, because counting the published consensus motif in the reference does not return the published copy number at any locus, the arrays being imperfect and the flank carrying partial motifs; the motifs are recorded in markers.tsv. VNTR12 can take a half repeat allele, 2.5 or 5.5, which the paper observed and rounds to n.5; NCC2705 is a whole 6. VNTR26 sits in a region with two close VNTR loci, so its forward primer was placed between them to target the more polymorphic one, which this scheme reproduces by using the published primer. The dye labels and the absence of a 5' G on some labelled primers are assay properties and are not recorded. rounding and allele_tolerance are not from the paper and should be tuned on control strains.

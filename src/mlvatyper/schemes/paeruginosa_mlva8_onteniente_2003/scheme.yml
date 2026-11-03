@@ -1,0 +1,11 @@
+# Pseudomonas aeruginosa, the eight locus MLVA of Onteniente et al. 2003, anchored on PAO1.
+name: paeruginosa_mlva8_onteniente_2003
+organism: Pseudomonas aeruginosa
+citation: Onteniente L, Brisse S, Tassios PT, Vergnaud G. Evaluation of the polymorphisms associated with tandem repeats for Pseudomonas aeruginosa strain typing. J Clin Microbiol 2003;41:4991-4997. doi:10.1128/JCM.41.11.4991-4997.2003, Table 1 (repeat unit lengths, the number of units in PAO1, primers and the expected PAO1 product)
+url: https://doi.org/10.1128/JCM.41.11.4991-4997.2003 (Table 1)
+reference: Pseudomonas aeruginosa PAO1, chromosome AE004091.2; ref_size is the product these primers give in that assembly and ref_repeats is the number of units in PAO1 of Table 1
+assembly: GCA_000006765.1
+retrieved: 2026-11-03
+rounding: intermediate
+allele_tolerance: 0.25
+notes: Eight VNTR loci selected from more than 3000 tandem repeats in the sequenced PAO1 genome, anchored on PAO1. The locus names follow the authors' nomenclature, encoding the position in the PAO1 genome in kb and the repeat unit, for example ms173-5186_243bp. Every reference value is published: Table 1 gives the repeat unit length and the number of units in PAO1 for each locus. The primers give one product per locus in the PAO1 assembly, and a run returns the published unit profile 11-12-5-8-7-12-14-45 with a residual of zero at every locus. Seven products equal the expected PAO1 size of Table 1; ms061 is 126 bp against a published 127, a one base difference, and the measured size is used because ref_size must describe the assembly. ms173 has a 243 bp repeat unit and a product of about 3.5 kb in PAO1, so it carries a wide search window and may fail to amplify from a fragmented draft assembly where the long array spans a contig break. No repeat unit sequence is stored, because the paper gives a motif length rather than a consensus and several arrays are imperfect. This scheme is the one the later P. aeruginosa MLVF studies apply. rounding and allele_tolerance are not from the paper and should be tuned on control strains.

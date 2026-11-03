@@ -482,10 +482,15 @@ def _callable_loci(scheme) -> int:
     """
     if scheme.markers is None:
         return 0
+    binned = set()
+    if scheme.bins is not None:
+        from .calling import read_bins
+        binned = set(read_bins(scheme.bins))
     level = log.level
     log.setLevel(logging.WARNING)
     try:
-        return sum(1 for d in read_markers(scheme.markers) if d.can_call)
+        # a marker calls when it carries the reference values, or when a bins table defines its alleles
+        return sum(1 for d in read_markers(scheme.markers) if d.can_call or d.primer_id in binned)
     finally:
         log.setLevel(level)
 

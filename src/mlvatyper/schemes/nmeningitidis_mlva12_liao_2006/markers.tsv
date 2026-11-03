@@ -1,0 +1,39 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+NMTR1	7	351	25	N/A	NMTR1
+NMTR2	7	327	17	CATTTCT	NMTR2
+NMTR6	21	165	2	N/A	NMTR6
+NMTR7	4	231	12	CAAG	NMTR7
+NMTR9	9	243	9	GCCAAAGTT	NMTR9
+NMTR9a	30	218	2	CCGCTGCTACTGCCGCTGCTGAAGCACCTG	NMTR9a
+NMTR9b	18	200	2	TACGGCTGCCGCGTCAAA	NMTR9b
+NMTR9c	15	202	3	CGGATACGCTCTTGG	NMTR9c
+NMTR10	6	221	4	CAGATT	NMTR10
+NMTR12	0	218		N/A	NMTR12
+NMTR18	9	182	2	GGGTAGCGG	NMTR18
+NMTR19	13	186	2	CGTATTTTCCCAT	NMTR19
+# unit_length, patterns and ref_repeats are Table 1, which gives the consensus repeat unit, its
+# length and the number of units in each of the three sequenced genomes. ref_size is the amplicon
+# size Table 5 predicts for Z2491, the genome this scheme is anchored on.
+#
+# The two tables check each other exactly. At every locus the amplicon size minus the unit length
+# times the repeat number is the same flanking length in all three genomes, Z2491, MC58 and FAM18,
+# so the repeat numbers and the sizes confirm one another and nothing here is derived. In silico
+# PCR reproduces all twelve Z2491 sizes, and running the same primers against MC58 reproduces all
+# twelve of that genome's sizes as well, which checks the primers independently of the reference.
+#
+# patterns are kept at the nine loci where counting the published motif in Z2491 returns the
+# published repeat number, so the tandem array cross-check is active there. They are left out at
+# the two where it does not, which would otherwise flag COUNT_DISAGREES on every sample:
+#   NMTR1  the counter returns 27 against the published 25; the 7 bp unit CAAACAA is A rich and
+#          the array runs on into similar flanking sequence, while Table 1 places the array at
+#          exactly 25 units, its span of 175 bp being 25 times 7.
+#   NMTR6  the counter returns 1 against the published 2, the second copy of the 21 bp unit being
+#          too diverged to match.
+#
+# NMTR12 IS A COMPOUND LOCUS and is reported by length only, as STTR3 is in STm_ECDC. Its array
+# mixes a 13 bp unit, GGGCTGTAGAGAT, with a 12 bp unit, GGCTGTAGAGAT, in varying numbers, and the
+# paper counts them together and writes the Z2491 allele as 3 = 2a1b. The single unit formula
+# cannot express that, so unit_length is 0 and no repeat number is recorded; the amplicon is still
+# sized and the allele has to be assigned by hand. The flanking length of 180 bp holds for this
+# locus in all three genomes, so a total count can be recovered from a size once the mixture of
+# the two units is known.

@@ -1,0 +1,21 @@
+# Salmonella enterica serovar Enteritidis, the nine locus MLVA of Malorny et al. 2008, amplified
+# in one multiplex reaction. The loci are in the order the Methods give for the MLVA type,
+# SENTR7-SENTR5-SENTR6-SENTR2-SENTR3-SENTR4-SE3-SENTR1-SE7, so a profile string reads as the
+# published type.
+#
+# Primers are Table 2 as published. The 5' dye label of each forward primer, FAM, HEX or TET, is
+# an assay property and is not part of the oligonucleotide, so it is not written here.
+#
+# The search window is derived, not published: it runs from the length of the amplicon with no
+# repeat to five repeats beyond the largest product Table 3 reports, with that table's capillary
+# sizes first corrected to sequence lengths by the per locus offset Table 2 shows.
+
+SENTR7	ACGATCACCACGGTCACTTC	CGGATAACAACAGGACGCTTC	107-181
+SENTR5	CACCGCACAATCAGTGGAAC	GCGTTGAATATCGGCAGCATG	211-357
+SENTR6	ATGGACGGAGGCGATAGAC	AGCTTCACAATTTGCGTATTCG	144-270
+SENTR2	CACTGGACGATCTGGATTTCTC	GTCGCCGTTACGCATCAAC	156-715
+SENTR3	CTAAACAAGCCGCTCATCCG	ACAACCTGCTGCTGTGCTG	84-1053
+SENTR4	GACCAACACTCTATGAACCAATG	ACCAGGCAACTATTCGCTATC	85-168
+SE-3	CAACAAAACAACAGCAGCAT	GGGAAACGGTAATCAGAAAGT	272-381
+SENTR1	GCAACAGCAGCAGCAACAG	CCGAGCTGAGATCGCCAAG	89-668
+SE-7	GATAATGCTGCCGTTGGTAA	ACTGCGTTTGGTTTCTTTTCT	198-1081

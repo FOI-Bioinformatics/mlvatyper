@@ -169,8 +169,30 @@ below are shorter than they are.
   Units are
   counted exactly (`unit_mismatches: 0`) because the nomenclature counts
   complete repeats. STTR3 is a compound locus of 27 bp and 33 bp units
-  that the single unit formula cannot express; it is reported by length
-  and its allele has to be assigned by hand.
+  that the single unit formula cannot express; it is called from a
+  `bins.tsv` holding the published fragment-size-to-allele table, LT2 being
+  allele 211.
+
+- `paeruginosa_mlva8_onteniente_2003`: the eight locus MLVA for
+  *Pseudomonas aeruginosa* (Onteniente et al. 2003), anchored on PAO1.
+  Table 1 gives the unit and the PAO1 unit count for each locus; a run on
+  PAO1 returns the published profile 11-12-5-8-7-12-14-45. ms173 has a 243
+  bp unit and a product near 3.5 kb, so it needs a wide window. This is the
+  scheme the later *P. aeruginosa* MLVF studies apply.
+
+- `salmonella_enteritidis_mlva9_malorny_2008`: the nine locus multiplex for
+  *Salmonella* Enteritidis (Malorny et al. 2008), anchored on NCTC 13349,
+  which is the sequenced strain P125109. The loci are in the order the paper
+  gives for the MLVA type, so a profile reads in the published order. Seven
+  of the nine reference repeat numbers are fractional because the array ends
+  in a partial unit, so those loci have alleles on a grid offset from the
+  integers rather than INTERMEDIATE calls. Four of the published sequence
+  lengths are not the product their own primers give in that assembly, and
+  the measured length is used; the differences are a fraction of a repeat and
+  move no allele. Note that the paper's MLVA type is a string of arbitrary
+  allele indices, not repeat numbers, and the index to size table is not
+  published, so a profile from this scheme cannot be compared with a
+  published type directly.
 
 - `Lpn_MLVA12`: the 12 locus MLVA panel of Orsay for *Legionella
   pneumophila* (Sobral et al. 2011, Appl Environ Microbiol 77:6899-6907,
@@ -187,6 +209,19 @@ below are shorter than they are.
   numbers ending in .4 to .6 (INTERMEDIATE) because its length differences
   to Philadelphia-1 are not whole multiples of 45 bp; read that locus
   against the published allele table.
+
+- `blongum_mlva5_matamoros_2011`: the five locus MLVA for *Bifidobacterium
+  longum* subsp. *longum* (Matamoros et al. 2011), anchored on NCC2705.
+  Every value is published, the units and motifs from Table 3 and the
+  NCC2705 profile 6-4-3-7-16 from Table 1; a run on NCC2705 reproduces it.
+  VNTR12 can take a half-repeat allele.
+
+- `magalactiae_mlva4_nouvel_2008`: the four locus MLVA for *Mycoplasma
+  agalactiae* (Nouvel et al. 2008), anchored on type strain PG2. Table 1
+  gives the unit and the PG2 copy number for each; three are fractional
+  because the arrays are imperfect, so the reference profile is 2.3-2-3.6-2.3.
+  Magal_VNTR5 has a mismatched reverse primer and is found by the rescue
+  pass.
 
 - `Bru_MLVA16`: the 16 locus *Brucella* panel (loci and primers from Le
   Fleche et al. 2006; the panel 1 / 2A / 2B organisation from Al Dahouk et
@@ -206,6 +241,17 @@ below are shorter than they are.
 
 - `bacillus_mlva15_vanert_2007`: MLVA-15 (Van Ert et al. 2007), the MLVA-8
   loci with the same primers plus seven BaVNTR loci, also on Ames Ancestor.
+
+- `bacillus_mlva25_lista_2006`: MLVA-25 (Lista et al. 2006), the MLVA-8 loci
+  with 17 bams loci, run as four multiplex reactions and anchored on Ames
+  Ancestor. The paper publishes no primers, so these are the MLVAbank ones of
+  `bacillus_mlva31_mlvabank`, of which this panel is the first 25 loci, but
+  the repeat numbering is the paper's own and differs from the MLVAbank one at
+  vrrA, vrrB1, vrrB2, pXO2-at and bams34; the reference sizes agree at every
+  locus. This is the only bundled scheme with a `bins.tsv`: the paper numbers
+  alleles from a table of sequenced amplicon size against repeat number, which
+  ships here in full, so a profile is comparable with published MLVA-25
+  genotypes while one from the other Bacillus schemes is not.
 
 - `bacillus_mlva31_mlvabank`: the 31 locus composite panel of MLVAbank, the
   MLVA-8 loci with 17 bams loci (Lista et al. 2006) and six vntr loci. Every
@@ -228,16 +274,74 @@ below are shorter than they are.
   allele numbers until their primers are confirmed.
 
 - `francisella_johansson_2004` and `francisella_vogler_2008` for *Francisella
-  tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls 16 of
-  its 25 markers and sizes the rest, because the repeat units of the others
-  are not in the source table; the Vogler table gives amplicon sizes only, so
-  that scheme sizes its markers without calling them.
+  tularensis*, anchored on SCHU S4 and LVS. The Johansson panel calls all 25
+  markers on the published scale, its repeat motifs, unit lengths and SCHU S4
+  copy numbers taken from Table 2 of the paper; the Vogler table gives amplicon sizes only, so
+  that scheme called nothing until its units and copy numbers were taken
+  from the Johansson panel, which counts the same arrays: all eleven
+  loci now call. Ten take a published unit and count from the Johansson
+  panel; Ft-M20B, whose count is unpublished, is called from a bins table
+  by a convention of the scheme, allele 0 without the insertion and
+  `(size - 306) / 15` with it. The locus names of
+  the two are the same VNTRs spelled differently, Ft-M02 against Ft-M2, but
+  the primers and references differ so the alleles are not interchangeable.
+  Five Johansson loci share a reverse primer and one repeat family and are
+  selected by size alone; at Ft-M8 that is shown to pick a different family
+  member in one strain, so read its allele with care.
 
 - `mtb_miru24_supply_2006` and `mtb_miru15_supply_2006`: the standardised
   MIRU-VNTR set for *Mycobacterium tuberculosis* and its discriminatory
   subset, anchored on H37Rv. The source table gives no copy numbers, so these
   are derived from the reference; confirm them against the published allele
   calling table before comparing a profile with published MIRU codes.
+
+- `nmeningitidis_mlva12_liao_2006`: the 12 locus MLVA for *Neisseria
+  meningitidis* (Liao et al. 2006), anchored on Z2491. It is the best
+  specified of the bundled schemes: one table gives the consensus repeat
+  unit, its length and the repeat number in each of three sequenced genomes,
+  another gives the primers and the predicted amplicon size in the same
+  three, and the two agree exactly, so every value is published and none is
+  derived. All twelve sizes reproduce in Z2491, and the same primers run
+  against MC58 reproduce that genome's twelve sizes and eleven repeat
+  numbers as well. NMTR12 is a compound locus of 13 bp and 12 bp units which
+  the single unit formula cannot express, so it is called from a `bins.tsv`
+  covering the three sequenced genomes, as STTR3 is in `STm_ECDC`.
+
+- `saureus_mlva5_sabat_2003`: the five locus gel based MLVA for
+  *Staphylococcus aureus* (Sabat et al. 2003), anchored on NCTC 8325, the
+  control strain the paper types. The paper numbers band patterns and
+  publishes no repeat counts, and its primers lie inside the repeat arrays,
+  so no published scale or flanking landmark exists. The scheme therefore
+  defines its own allele: the number of whole repeat units that fit between
+  the two primer sites of the product. That rule gives an exact integer for
+  every strain, 54 products over eight genomes, but it is a convention of
+  this scheme, not a published value, not Sabat's pattern number and not
+  comparable with the other *S. aureus* schemes, so alleles compare only
+  with each other. `sdr` is one primer pair over the tandem *sdrC*, *sdrD*
+  and *sdrE* genes, so it is declared in `known_multiple` and each product
+  is called and flagged MULTIPLE. The unit lengths were checked against
+  eight genomes: the Ser-Asp arrays of *clfA*, *clfB* and *sdr* step by one
+  dipeptide, 6 bp, not the 18 bp the paper describes. The *sspA* primers are
+  degenerate and are found by the rescue pass.
+
+- `saureus_mlva14_pourcel_2009`: the 14 locus MLVA for *Staphylococcus
+  aureus* (Pourcel et al. 2009), in two multiplex panels, anchored on Mu50
+  (ATCC 700699). It is the first fully callable *S. aureus* scheme: every
+  reference value is published, the primers reproduce every Mu50 amplicon,
+  and a run on Mu50 returns the published profile exactly. The calling model
+  was checked against 31 clinical profiles from Bogut et al. 2024, which
+  also supplied the Mu50 amplicon sizes. Sa0122 (spa) and Sa1132 are the
+  arrays the Schouls panel reads as VNTR24_01 and VNTR63_01.
+
+- `saureus_mlva8_schouls_2009`: the eight locus MLVA for *Staphylococcus
+  aureus* (Schouls et al. 2009), anchored on N315. All eight loci call on
+  the published scale: Figure 7 of the paper gives the MLVA profile of 14
+  sequenced strains, and the N315 profile anchors every locus. The anchor is
+  validated against the other sequenced strains with an assembly, seven of
+  eight loci reproducing each published profile exactly; VNTR61_01 is the
+  one the paper flags as having a heterogeneous flank. Two loci are the
+  arrays the Pourcel panel calls Sa0122 (spa) and Sa1132, numbered on a
+  different scale.
 
 - `yersinia_klevytska_2001`: the 42 locus VNTR survey for *Yersinia pestis*,
   anchored on CO92. Three loci are numbered with a half copy.
@@ -249,6 +353,19 @@ below are shorter than they are.
   the locus name encodes. Six loci are shared with
   `yersinia_klevytska_2001`, which numbers them differently, so profiles from
   the two schemes are not interchangeable.
+
+- `yersinia_mlva26_li_2013`: the hierarchical 14+12 scheme of Li et al. for
+  *Yersinia pestis*, anchored on CO92. The first fourteen loci place an
+  isolate in a major population and the twelve that follow resolve it to a
+  sub-population, so the panel is bundled in that order and the first
+  fourteen digits of a profile are the first step result. Primers and
+  reference values are the paper's supplementary Table S2, which encodes unit
+  length, amplicon size and repeat number in each locus name; five of the
+  encoded sizes are not the product their own primers give in CO92, and the
+  measured size is used where another bundled scheme corroborates it with the
+  same primer pair. The panel shares loci with both other *Yersinia* schemes
+  but numbers several of them differently, so none of the three are
+  interchangeable.
 
 `mlvatyper check-scheme --scheme NAME --outdir DIR` first requires the
 provenance of the scheme: `citation` (who published the values), `url`

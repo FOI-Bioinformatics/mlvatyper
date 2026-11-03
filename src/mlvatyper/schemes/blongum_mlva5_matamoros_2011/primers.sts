@@ -1,0 +1,10 @@
+# Bifidobacterium longum subsp. longum, the five locus MLVA of Matamoros et al. 2011, run as one
+# multiplex PCR. Primers are Table 2 as published. Some forward primers were made without a 5' G on
+# the dye-labelled strand; the dye and that design detail are assay properties and the oligonucleotide
+# is written here as in Table 2. The search window is derived: the measured product widened by twenty
+# repeats each way, which covers the published size range of every locus.
+VNTR12	AGGTATTCGGGGATGTTCGC	GTATGGCGACGGCACATTCC	397-761
+VNTR21	GCCTGTCATTCGCCGTTCTG	ATCACCCAGCGTGTTTCGG	350-566
+VNTR23	TCGATCTTGAACTCGCACACC	TGCTTGACCTGCCATTCACC	344-574
+VNTR25	AATCGTGATTCCAGGTGCGG	CGTCGCATTCATACGGTCGG	331-655
+VNTR26	ACTGCATGTTCCGCAATACCC	ATGTCGGCGGCTTTGTAGTG	114-474

@@ -80,6 +80,25 @@ def test_bins(tmp_path):
     assert c.allele == "9" and "OFF_TABLE" in c.status
 
 
+def test_bins_only_compound_locus():
+    """A locus with no single unit (unit 0, no count) is still called from its bins alone."""
+    from mlvatyper.calling import Bin
+    from mlvatyper.models import MarkerDef
+    compound = MarkerDef("c1", (), 0, ref_size=None, ref_repeats=None)  # cannot use the repeat formula
+    assert not compound.can_call
+    on = amp("s", "c1", 1, 0, extra="A" * 450)
+    length = len(on.sequence)
+    bins = [Bin("c1", length, length, "211")]
+    # a matching amplicon is binned to its composite allele, with no formula and no crash
+    c = call_amplicon(on, compound, 0.25, "nearest", bins=bins)
+    assert c.allele == "211" and "BINNED" in c.status and "NO_DEFINITION" not in c.status
+    assert c.raw is None and c.residual is None
+    # an off-table size on a compound locus yields no allele, flagged OFF_TABLE rather than a number
+    off = amp("s", "c1", 1, 0, extra="A" * 400)
+    c = call_amplicon(off, compound, 0.25, "nearest", bins=bins)
+    assert c.allele is None and "OFF_TABLE" in c.status
+
+
 def test_call_all_tables():
     amps = [amp("s1", "m1", 1, 5), amp("s2", "m1", 1, 7), amp("s2", "m1", 2, 2)]
     defs = [DEF, MarkerDef("m2", (), 4, 50, 2)]

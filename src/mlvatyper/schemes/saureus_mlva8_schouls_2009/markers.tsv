@@ -1,0 +1,38 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+VNTR09_01	9	364	14	N/A	VNTR09_01
+VNTR61_01	60	363	2	N/A	VNTR61_01
+VNTR61_02	66	268	1	N/A	VNTR61_02
+VNTR67_01	67	346	3	N/A	VNTR67_01
+VNTR21_01	21	150	2	N/A	VNTR21_01
+VNTR24_01	24	417	11	N/A	VNTR24_01
+VNTR63_01	63	647	7	N/A	VNTR63_01
+VNTR81_01	81	496	5	N/A	VNTR81_01
+# unit_length is the Average repeat size of Table 1 of Schouls et al. 2009, except at VNTR63_01,
+# where the 8 genome congruence test below gives 63 bp against the table's rounded 64. The units are
+# averages because several arrays are imperfect; Table 1 counts the variable bases per locus, up to
+# 23 of 66 at VNTR61_02 and 26 of 81 at VNTR81_01.
+#
+# ALL EIGHT ref_repeats ARE THE PUBLISHED REFERENCE COUNTS of Figure 7 of Schouls et al. 2009, which
+# gives the MLVA profile of 14 sequenced strains. The N315 profile there is 14-2-1-3-2-11-7-5 in the
+# locus order of this file, and N315 is the assembly this scheme is anchored on, so each number is
+# recorded as ref_repeats and a run on N315 returns that profile with a residual of zero. This is the
+# scheme's own published convention, replacing the values an earlier version derived for four loci
+# from the Pourcel panel, which were on that panel's scale and off by a locus-specific constant.
+#
+# The anchor is validated against every other sequenced strain in Figure 7 for which an assembly is
+# available: Mu50, MW2, MRSA252, MSSA476, COL, NCTC8325 and USA300. With the flank fixed from N315,
+# seven of the eight loci reproduce each strain's published profile exactly, including the null allele
+# of MRSA252, which the paper writes as 99 and this tool reports as no product. The eighth, VNTR61_01,
+# is the one the paper singles out: its upstream flanking region is heterogeneous in length, so the
+# authors shifted some bins by hand, and here it calls N315 and strains with the same flank correctly
+# but gives a fractional or shifted allele in others, flagged rather than forced to an integer. Read
+# a VNTR61_01 allele with that in mind.
+#
+# No repeat unit sequences are published, so patterns is empty and the allele is computed from length.
+# The unit lengths were checked across the eight genomes, where a locus keeps one flank so its product
+# sizes differ by whole multiples of the unit; that confirmed six units, corrected VNTR63_01 to 63 bp,
+# and showed VNTR61_02 and VNTR67_01 to drift by a fraction of a unit in some lineages, which rounds to
+# the published value. Two loci overlap the other bundled S. aureus schemes: VNTR24_01 is the spa
+# repeat, also in saureus_mlva5_sabat_2003 and the Pourcel panel saureus_mlva14_pourcel_2009 as Sa0122,
+# and VNTR63_01 is Sa1132 there; the schemes use different primers and number the arrays on their own
+# scales, so their profiles are not interchangeable.

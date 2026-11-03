@@ -1,0 +1,19 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+Magal_VNTR5	24	226	2.3	N/A	Magal_VNTR5
+Magal_VNTR14	13	158	2	N/A	Magal_VNTR14
+Magal_VNTR17	14	209	3.6	N/A	Magal_VNTR17
+Magal_VNTR19	22	184	2.3	N/A	Magal_VNTR19
+# unit_length and ref_repeats are Table 1 of Nouvel et al. 2008, which gives, for each of the four
+# VNTRs in the sequenced type strain PG2, the repeat unit length and the copy number. The copy
+# numbers are fractional at three loci, 2.3, 3.6 and 2.3, because those arrays are imperfect, with
+# 72 to 83 per cent internal identity in the paper's own count, so the reference allele lies on a grid
+# offset from the integers; Magal_VNTR14 is a clean 2.0. The paper itself recorded profiles as
+# arbitrary allele codes rather than these copy numbers, so an allele from this scheme is the repeat
+# number and may not match a published allele code.
+#
+# ref_size is the product these primers give in the PG2 assembly GCA_000063605.1. It equals the total
+# length Table 1 reports at Magal_VNTR5 (226), Magal_VNTR14 (158) and Magal_VNTR17 (209). At
+# Magal_VNTR19 the measured product is 184 against a reported 153, and the paper's own genomic span
+# for that locus, 504535 to 504760, is 226, so the three figures disagree in the source; the measured
+# product is used because ref_size must describe the assembly the calls are anchored on. No repeat
+# unit sequences are stored, because the arrays are too imperfect to cross-check.

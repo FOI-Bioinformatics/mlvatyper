@@ -1,0 +1,47 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+clfA	6	997	159	N/A	clfA
+clfB	6	828	130	N/A	clfB
+sdr	6	796	125	N/A	sdr
+spa	24	308	11	N/A	spa
+ssp	9	155	12	N/A	ssp
+# unit_length is the repeat unit each locus actually steps by, checked against eight S. aureus
+# genomes: N315, Mu50, MW2, COL, MRSA252, MSSA476, NCTC 8325 and USA300. A locus keeps one flanking
+# length, so every product must leave the same remainder when divided by the unit. The three Ser-Asp
+# loci step by 6 bp, not the 18 bp the Introduction describes, since the array gains and loses one
+# dipeptide at a time: every observed step at clfA, clfB and sdr is a multiple of 6 and not of 18.
+# spa passes at 24 bp and sspA at 9 bp.
+#
+# ref_size is the product these primers give in the NCTC 8325 assembly GCA_000013425.1. sdr uses the
+# 796 bp product, the larger of the two it gives there; the paper expects three, one per gene.
+#
+# ref_repeats IS DEFINED BY A CONVENTION OF THIS SCHEME AND IS NOT A PUBLISHED VALUE. Sabat et al. 2003
+# is a gel fingerprint: it numbers band patterns and publishes no repeat counts, so there is no
+# published scale for an allele here to match or to be offset from. A count anchored on a flanking
+# landmark is not possible either, because the primers lie inside the repeat arrays. Across the eight
+# genomes the conserved 5' end of each product is 21, 22, 21 and 3 bp at clfA, clfB, spa and sspA and
+# the conserved 3' end 25, 34, 22 and 15 bp, about the length of the primers themselves, so the arrays
+# run to the primer sites and have no flank to count from. Counting the protein repeats in the
+# translation was also tried, Ser followed by one residue, and it does not track product size, since
+# variant codons break the run differently in each strain: only 3 of 8 strains at clfA and 6 of 8 at
+# clfB agree with the size steps.
+#
+# The convention is the one rule that needs no outside value. The allele is the number of whole
+# repeat units that fit between the two primer sites of the product, floor((product length - forward
+# primer - reverse primer) / unit). For the reference this gives clfA 159, clfB 130, sdr 125, spa 11 and
+# ssp 12. Every product of a locus leaves the same remainder in the eight genomes, 14 distinct sizes
+# at sdr included, so the same rule gives an exact integer for every strain, 54 products in all, and the
+# repeat formula and the rule agree at every one. A product shorter than its own primers cannot occur,
+# so a NEGATIVE status here would be a true warning.
+#
+# WHAT THE ALLELE IS NOT. It is not a count of the repeat units in the gene: the primer sites sit
+# inside the array and their own repeat content is left out. It is not Sabat's MLVA type, which is a
+# band pattern number from the paper's isolate collection. And it is not on the scale of any other
+# scheme. spa is the array that saureus_mlva8_schouls_2009 reads as VNTR24_01 and
+# saureus_mlva14_pourcel_2009 reads as Sa0122, but the products differ: N315 is 10 here and 11 in
+# Schouls, and Mu50, whose array matches N315's, is 10 in Pourcel. Alleles from this scheme compare
+# with each other only.
+#
+# sdr is one primer pair over the tandem sdrC, sdrD and sdrE genes, so a strain gives up to three
+# products and each is called by the same rule and flagged MULTIPLE. The products of the three genes
+# share one remainder, so their alleles are comparable, but an allele cannot be assigned to its gene
+# from the size alone. The set of alleles for a strain is its sdr band pattern.

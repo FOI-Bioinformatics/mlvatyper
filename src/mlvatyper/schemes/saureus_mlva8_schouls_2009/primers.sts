@@ -1,0 +1,22 @@
+# Staphylococcus aureus, the eight locus MLVA of Schouls et al. 2009, amplified in two multiplex
+# reactions. The loci are in the order of Table 1, which is also the order of Figure 1 round the
+# chromosome, so a profile string reads in the published order.
+#
+# Primers are Table 2 as published. Each forward primer is printed there with a single leading
+# character for its fluorescent dye, F for FAM, N for NED, V for VIC and P for PET, separated by a
+# hyphen; the dye is an assay property and is not part of the oligonucleotide, so it is not
+# written here. The table confirms this itself by also listing an unlabelled VNTR61_02 forward
+# primer, which is the labelled one without its leading V.
+#
+# The search window is derived, not published: it is the product measured in N315 widened each way
+# by the full repeat range Table 1 reports for that locus, so it covers every published allele
+# wherever N315 happens to sit in that range.
+
+VNTR09_01	ATAAGCATTGAAACCATTATGATG	GCAACTTCTTAAAACAAAATATTG	193-535
+VNTR61_01	AATGCACATGAAACACTAATT	GGTCAAGAATATTTAAAATCAATT	60-723
+VNTR61_02	CTGTGAAGTTAGATAGATGAGTTT	GCAATTAACGATTTCTTCAC	60-598
+VNTR67_01	CGTGAATCTCTTTTATAAGAGTGT	CCCTCCTATTAATATATATACCGT	60-1016
+VNTR21_01	GTCGATAAAGCATAAAGCTTT	AGCAATGAATCAATAATTTTCA	60-423
+VNTR24_01	CAGCAGTAGTGCCGTT	GTAACGGCTTCATCCA	60-825
+VNTR63_01	TGAAGATGTAGTAGGAATGTTAGT	AGAAAAAGCTAAAGAAGTTGAA	60-1351
+VNTR81_01	TTTGGATATGAAGCGAGA	CATATGTCGCAGTACCATC	60-1144

@@ -282,7 +282,7 @@ def test_a_name_describes_one_scheme_and_a_partial_name_filters(capsys):
     assert main(["schemes", "bacillus"]) == 0
     out = capsys.readouterr().out
     assert out.splitlines()[0].split()[0] == "scheme"
-    assert len([line for line in out.splitlines() if line.startswith("bacillus")]) == 3
+    assert len([line for line in out.splitlines() if line.startswith("bacillus")]) == 4
     # an organism name works as the filter too
     assert main(["schemes", "mycobacterium"]) == 0
     assert len([line for line in capsys.readouterr().out.splitlines() if line.startswith("mtb_")]) == 2

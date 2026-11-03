@@ -1,0 +1,15 @@
+# Allele definitions for the compound locus NMTR12, from Table 1 of Liao et al. 2006. NMTR12
+# interleaves a 13 bp unit (a) and a 12 bp unit (b) in variable numbers and sequences, so a single
+# unit length cannot express it and the paper determined every allele by sequencing the amplicon.
+# The allele is written as the paper writes it, the count of each unit, for example 2a1b.
+#
+# Only the three sequenced reference genomes have a published allele, so only they are binned:
+# Z2491, the reference this scheme is anchored on, is 2a1b at 218 bp, MC58 is 20a9b at 548 bp and
+# FAM18 is 13a11b at 481 bp. Every size satisfies 180 + 13a + 12b, a constant 180 bp flank. An
+# amplicon of any other size is reported OFF_TABLE, because its unit composition cannot be read
+# from the length alone and needs sequencing, as the paper states. Only NMTR12 is binned; the
+# other eleven loci are called from their repeat unit.
+marker	size	allele
+NMTR12	218	2a1b
+NMTR12	548	20a9b
+NMTR12	481	13a11b

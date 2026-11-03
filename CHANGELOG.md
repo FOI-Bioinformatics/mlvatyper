@@ -6,6 +6,97 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- Bundled scheme `paeruginosa_mlva8_onteniente_2003`, the eight locus MLVA
+  of Onteniente et al. for *Pseudomonas aeruginosa*, anchored on PAO1. Table
+  1 gives the repeat unit and the number of units in PAO1 for each locus;
+  the primers reproduce every published PAO1 product and a run returns the
+  unit profile 11-12-5-8-7-12-14-45 with zero residual. ms173 is a 243 bp
+  unit locus with a product near 3.5 kb. First scheme for this organism, and
+  the one the later P. aeruginosa MLVF studies apply.
+- Bundled scheme `blongum_mlva5_matamoros_2011`, the five locus MLVA of
+  Matamoros et al. for *Bifidobacterium longum* subsp. *longum*, anchored on
+  NCC2705. The repeat units and motifs are from the paper's Table 3 and the
+  NCC2705 reference profile 6-4-3-7-16 from Table 1; the primers reproduce
+  every amplicon in the reference assembly and a run returns the published
+  profile with zero residual. First scheme for this organism.
+- Bundled scheme `magalactiae_mlva4_nouvel_2008`, the four locus MLVA of
+  Nouvel et al. for *Mycoplasma agalactiae*, anchored on type strain PG2.
+  Table 1 gives the repeat unit and PG2 copy number for each locus; three
+  are fractional, reflecting imperfect arrays, so the reference profile is
+  2.3-2-3.6-2.3. Magal_VNTR5 carries a mismatched reverse primer and is
+  found by the rescue pass. First scheme for this organism.
+- A locus can now be called from a bins table alone, without a repeat unit.
+  This makes a compound locus callable, one that interleaves two repeat unit
+  sizes and so has no single unit for the allele formula. STTR3 of `STm_ECDC`
+  uses the fragment-size-to-allele table of Larsson et al. 2009, and NMTR12
+  of `nmeningitidis_mlva12_liao_2006` uses the three sequenced-genome alleles
+  of Liao et al. 2006; both reference strains now call their published
+  composite allele, and an off-table size is reported OFF_TABLE.
+- Bundled scheme `saureus_mlva14_pourcel_2009`, the 14 locus MLVA of Pourcel
+  et al. for *Staphylococcus aureus*, in two multiplex panels, anchored on
+  Mu50. It is the first fully callable *S. aureus* scheme bundled: the repeat
+  units and Mu50 copy numbers are from Pourcel et al. Table 1, and the Mu50
+  amplicon sizes and a 31 isolate validation set are from Bogut et al. 2024
+  (doi:10.2478/cipms-2024-0014). The primers reproduce every Mu50 amplicon,
+  the reference profile matches the published one, and 57 of 66 clinical
+  cells reproduce exactly, the rest within one repeat of the gel-sized
+  source. Two of its loci are the arrays the Schouls panel reads as
+  VNTR24_01 and VNTR63_01.
+- Bundled scheme `nmeningitidis_mlva12_liao_2006`, the 12 locus MLVA of Liao
+  et al. for *Neisseria meningitidis*, anchored on Z2491. Every value is
+  published: the paper's two tables give the repeat units, unit lengths and
+  repeat numbers in three sequenced genomes alongside the primers and the
+  predicted amplicon sizes, and they agree at every locus in all three. All
+  twelve sizes reproduce in the reference, and typing MC58, which the scheme
+  is not anchored on, reproduces its published numbers as well. NMTR12 is a
+  compound locus of 13 bp and 12 bp units and is reported by length only.
+- Bundled scheme `saureus_mlva5_sabat_2003`, the five locus gel based MLVA
+  of Sabat et al. for *Staphylococcus aureus*, anchored on NCTC 8325. The
+  paper publishes primers and no other quantitative value, and its pattern
+  numbers label gel band patterns rather than per locus alleles, so the
+  scheme sizes its markers and calls none. It is the first bundled scheme to
+  use `known_multiple`: the `sdr` primer pair amplifies the tandem sdrC,
+  sdrD and sdrE genes together by design and gives two products in the
+  reference. The degenerate sspA primers are found by the rescue pass.
+- Bundled scheme `saureus_mlva8_schouls_2009`, the eight locus MLVA of
+  Schouls et al. for *Staphylococcus aureus*, anchored on N315. All eight
+  products are reproduced there and each equals the span of the published
+  coordinates for the same primer pair. The scheme sizes its markers without
+  calling them, because the paper publishes neither the flanking lengths nor
+  the repeat unit sequences and does not state the reference repeat number,
+  and the arrays are too imperfect to recover it reliably; the scheme notes
+  say what would be needed to enable calling.
+- Bundled scheme `salmonella_enteritidis_mlva9_malorny_2008`, the nine locus
+  multiplex of Malorny et al. for *Salmonella* Enteritidis, anchored on
+  NCTC 13349. The loci are in the order the paper gives for the MLVA type.
+  Seven of the nine reference repeat numbers are fractional, so those loci
+  call on a grid offset from the integers, which is the first bundled use of
+  an offset other than a half. Four published sequence lengths are not the
+  product their own primers give in the reference assembly and the measured
+  length is used; the differences are a fraction of a repeat and move no
+  allele. The paper's MLVA type is a string of arbitrary allele indices
+  rather than repeat numbers, and that mapping is not published, so a
+  profile from this scheme is not directly comparable with a published type.
+- Bundled scheme `yersinia_mlva26_li_2013`, the hierarchical 14+12 VNTR
+  scheme of Li et al. for *Yersinia pestis*, anchored on CO92. The fourteen
+  first step loci come before the twelve that resolve sub-populations, so a
+  profile truncates to the first step result. Primers and reference values
+  are the paper's supplementary Table S2; five of the amplicon sizes it
+  encodes are not the product its own primers give in the reference, and in
+  each case the measured size matches what `yersinia_klevytska_2001` or
+  `yersinia_mlva25_lefleche_2001` records for the same locus with the same
+  primers, so the measured size is used and the published identifier is kept
+  in the label. All 26 loci reproduce that size in CO92.
+- Bundled scheme `bacillus_mlva25_lista_2006`, the 25 locus MLVA panel of
+  Lista et al. for *Bacillus anthracis*, the eight MLVA-8 loci with seventeen
+  bams loci, anchored on Ames Ancestor. The paper publishes no primers, so it
+  reuses those of `bacillus_mlva31_mlvabank`, of which the panel is the first
+  25 loci; all 25 reproduce their reference size. It is the first bundled
+  scheme with a `bins.tsv`, holding the paper's table of sequenced amplicon
+  size against repeat number for all 25 loci, which is how the assay numbers
+  alleles. Its numbering is the paper's own and differs from the MLVAbank one
+  at vrrA, vrrB1, vrrB2, pXO2-at and bams34, so profiles from this scheme and
+  from the other Bacillus schemes must not be compared.
 - Bundled scheme `yersinia_mlva25_lefleche_2001`, the 25 loci of Le Fleche
   et al. polymorphic among *Yersinia pestis* and used as a panel by Pourcel
   et al. 2004, anchored on CO92. Unit length, repeat number and expected
@@ -86,6 +177,106 @@ is below 1.0, so the output tables may still change between minor versions.
   from a publication and verify it against the reference strain.
 
 ### Changed
+- `francisella_vogler_2008` calls all eleven loci. Ft-M20B, the last, is
+  called from a bins table under a convention of the scheme, since no
+  publication gives its copy number. Vogler et al. describe it as a roughly
+  200 bp insertion with a 15 bp repeat that is present in type A.II and
+  *novicida* isolates. In 22 genomes the products are 153 bp without the
+  insertion and 351, 366, 381, 396 or 411 bp with it, five sizes in steps of
+  exactly 15 bp, which confirms the 15 bp unit and not the 12 bp in one later
+  table. The 153 bp state has no array and is allele 0; the others are
+  `(size - 306) / 15`, from 3 to 7. The 153 bp state does not lie on the
+  15 bp ladder, so the repeat formula cannot link it to the rest, which is
+  why the locus is binned, and an unlisted size is reported OFF_TABLE. A
+  note that the 153 bp product held one copy of the unit was wrong, since
+  the sequence counted lies inside the forward primer.
+- `saureus_mlva5_sabat_2003` now calls all five loci, where before it sized
+  them only. The paper publishes no repeat counts and its primers lie inside
+  the repeat arrays, so no published scale or flanking landmark exists. The
+  scheme defines its own allele, the number of whole repeat units between the
+  two primer sites, which gives an exact integer for every strain: all 54
+  products over eight genomes agree with the repeat formula, with no negative
+  alleles. This is a convention of the scheme, documented as such, and not
+  Sabat's pattern number or a count comparable with other schemes. The sdr
+  locus is called per product and flagged MULTIPLE.
+- `saureus_mlva8_schouls_2009` calls all eight loci, up from four, on the
+  scheme's own published scale. Figure 7 of Schouls et al. 2009 gives the
+  MLVA profile of 14 sequenced strains; the N315 profile, 14-2-1-3-2-11-7-5,
+  anchors every locus, and a run on N315 reproduces it with zero residual.
+  The four loci previously borrowed from the Pourcel panel are corrected to
+  the Schouls convention. Validated against seven more sequenced genomes,
+  seven of eight loci reproduce each published profile exactly, including
+  the MRSA252 null allele; only VNTR61_01, which the paper reports as having
+  a heterogeneous flank, deviates off the reference.
+- `francisella_vogler_2008` called ten of its eleven loci, up from seven.
+  With the Johansson panel now carrying published counts for Ft-M22, Ft-M23
+  and Ft-M24, those three Vogler loci calibrate through the shared genome
+  and agree with the Johansson allele in every strain where both amplify.
+  Ft-M20B gains its published 15 bp repeat unit from Vogler et al. 2008 but
+  stays sized only, because no publication gives its copy number and it is
+  monomorphic in the holarctica reference.
+- `francisella_johansson_2004` now calls all 25 loci, up from 16, on the
+  published allele scale. Table 2 of Johansson et al. 2004 gives the repeat
+  motif, its size and the SCHU S4 copy number for every marker, which fills
+  the nine loci that were sized only and corrects eight derived counts that
+  were off because their arrays are imperfect. A run on SCHU S4 returns the
+  published profile with zero residual. The seven calibrated loci of
+  `francisella_vogler_2008` are re-derived from these published counts, so
+  three of their copy numbers shift onto the published scale; both Vogler
+  reference calls stay exact.
+- `saureus_mlva8_schouls_2009` now calls four of its eight loci, up from
+  two. Rechecking all eight against the full Pourcel panel confirmed two
+  more shared arrays: VNTR67_01 is Sa0704 and VNTR81_01 is the coa locus
+  Sa0266, anchored at the Mu50 counts 4 and 6. VNTR81_01 gives a whole
+  allele in every sequenced genome tested; VNTR67_01 is anchored for the
+  reference but its array mixes 67 and 66 bp units in some lineages, which
+  are reported INTERMEDIATE rather than rounded.
+- `saureus_mlva8_schouls_2009` calls two of its eight loci, where before it
+  called none. Bogut et al. 2024 (doi:10.2478/cipms-2024-0014) tabulate the
+  Pourcel MLVA-14 panel for the sequenced reference strain Mu50, and two of
+  its VNTRs are the same physical arrays this panel reads under other
+  primers, identified by matching genomic position and repeat unit:
+  VNTR24_01 is Pourcel Sa0122 (the spa repeat) and VNTR63_01 is Sa1132. The
+  shared array carries the same repeat count whichever primers flank it, so
+  the published Mu50 counts of 10 and 6, confirmed across that paper's 31
+  isolates, anchor these two loci. The scale is the Pourcel convention and
+  may differ from Schouls' own by a constant; the other six loci stay sized
+  only.
+- `francisella_vogler_2008` calls seven of its eleven loci, where before it
+  called none. Its source table gives primers only, so both values an allele
+  needs come from `francisella_johansson_2004`, which counts the same arrays
+  in SCHU S4. The unit is taken where a cross strain test and that scheme's
+  independently derived unit agree. The copy number comes from calibrating
+  through the shared genome: the array is the same DNA whichever primers
+  flank it, so this scheme's product in SCHU S4 minus that array gives its
+  flanking length, which fixes its count in LVS. All seven flanks yield a
+  whole number of repeats, and across the five genomes where both panels
+  amplify, all 35 locus and strain pairs give the same allele. The scale is
+  inherited rather than published, so the two schemes now agree with each
+  other but may still be offset from published allele names.
+- The two *Francisella* schemes were audited across 22 genomes, after an
+  earlier audit reported seven that were really five: two of its accessions
+  were not *Francisella* at all and two strain names were wrong. The genomes
+  are now identified from their assembly headers, nine subspecies
+  *tularensis*, three *holarctica*, one *mediasiatica* and nine *novicida*.
+  Where a locus keeps one flank, its products differ by whole multiples of
+  the unit; in the 13 genomes outside *novicida* this holds at 19 of the 25
+  Johansson loci, and the six exceptions are accounted for in the scheme
+  notes, among them the 30 bp *holarctica* deletion at Ft-M19 and the
+  insertion at Ft-M20. Ft-M8 is displaced in four of the 13 genomes, at 325,
+  1857 and 1871 kb. The Johansson and Vogler panels, which count the same
+  arrays with different primers, give the same allele in all 145 comparisons
+  at the nine loci other than Ft-M20, and differ at Ft-M20 because the
+  insertion that Vogler splits off as Ft-M20B lengthens it.
+- The unit lengths of the two *Staphylococcus aureus* schemes were checked
+  by amplifying each panel in eight *S. aureus* genomes, where every product
+  of a locus must leave the same remainder when divided by its repeat unit,
+  and four are corrected. In `saureus_mlva5_sabat_2003` the Ser-Asp arrays
+  of clfA, clfB and sdr step by one dipeptide, 6 bp, not the 18 bp the paper
+  describes. In `saureus_mlva8_schouls_2009` VNTR63_01 steps by 63 bp, not
+  the 64 bp its table averages to. Both schemes now also record which loci
+  that test confirms and which fit no single period, including VNTR61_01,
+  whose heterogeneous flanking region the paper reports and the data shows.
 
 - The copy numbers of `bacillus_mlva8_keim_2000` and
   `bacillus_mlva15_vanert_2007` are now the published MLVAbank values that

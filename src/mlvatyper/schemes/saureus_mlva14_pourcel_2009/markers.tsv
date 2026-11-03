@@ -1,0 +1,35 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+Sa0122	24	392	10	N/A	Sa0122
+Sa0266	81	630	6	N/A	Sa0266
+Sa0311	55	272	3	N/A	Sa0311
+Sa0704	67	380	4	N/A	Sa0704
+Sa1132	63	532	6	N/A	Sa1132
+Sa1194	67	524	7	N/A	Sa1194
+Sa1291	64	369	4	N/A	Sa1291
+Sa1729	56	499	5	N/A	Sa1729
+Sa1866	159	607	3	N/A	Sa1866
+Sa2039	56	282	3	N/A	Sa2039
+Sa0906	56	864	3	N/A	Sa0906
+Sa1213	56	868	5	N/A	Sa1213
+Sa1425	58	630	4	N/A	Sa1425
+Sa1756	131	365	2	N/A	Sa1756
+# unit_length, ref_repeats and the Mu50 amplicon (ref_size) are all published. unit and ref_repeats
+# are Table 1 of Pourcel et al. 2009, which gives the repeat unit length and the copy number in the
+# reference strain Mu50 (ATCC 700699); ref_size is the product these primers give in the Mu50
+# assembly GCA_000009665.1, and it equals the amplicon size Bogut et al. 2024 (Table 2) report for
+# every one of the 14 loci. A run on Mu50 returns the published profile 10-6-3-4-6-7-4-5-3-3-3-5-4-2
+# with a residual of zero at every locus.
+#
+# No repeat unit sequences are published, so patterns is N/A throughout and the allele is computed
+# from amplicon length. The scheme was cross-checked against the 31 clinical profiles of Bogut et al.
+# Table 3: of 66 panel 1 cells, 57 reproduce the published allele exactly, and the nine that differ
+# do so by less than one repeat, consistent with that study sizing its amplicons on agarose gels
+# while this scheme measures them exactly in an assembly. coa (Sa0266) carries a half-repeat
+# polymorphism, so some strains give an n.5 allele there, as Bogut Table 3 shows; those are real
+# alleles of that locus rather than uncertain calls.
+#
+# Several loci are STAR elements or SIRU loci, families of short intergenic repeats: Sa0311, Sa1729,
+# Sa1866, Sa0906 and Sa1213 are STAR elements, and Sa0122 (spa), Sa1291 and Sa1756 carry SIRU
+# numbers. Sa0122 is the protein A repeat region, so this panel is not independent of spa typing,
+# nor of the two loci saureus_mlva8_schouls_2009 shares with it, VNTR24_01 (= Sa0122) and VNTR63_01
+# (= Sa1132), which were anchored to this panel's Mu50 counts.

@@ -1,0 +1,19 @@
+# Staphylococcus aureus, the five locus MLVA of Sabat et al. 2003, read as a band pattern on an
+# agarose gel. The loci are in the order of Table 2. The paper defines no profile string, so this
+# order is a presentation choice; see scheme.yml.
+#
+# Primers are Table 2 as published. The sspA pair carries IUPAC ambiguity codes, M and Y, which
+# is why that marker is found by the rescue pass rather than at word size 11.
+#
+# sdr is one primer pair that amplifies the tandemly arrayed sdrC, sdrD and sdrE genes together,
+# by design, so it gives more than one product and is declared in known_multiple. In NCTC 8325 it
+# gives two, 640 bp and 796 bp, from adjacent positions in that array.
+#
+# The search window is derived, not published: it allows thirty repeats either side of the product
+# measured in NCTC 8325, and for sdr it spans both of that strain's products widened the same way.
+
+clfA	GATTCTGACCCAGGTTCAGA	CTGTATCTGGTAATGGTTCTTT	457-1537
+clfB	ATGGTGATTCAGCAGTAAATCC	CATTATTTGGTGGTGTAACTCTT	288-1368
+sdr	GTAACAATTACGGATCATGATG	TACCTGTTTCTGGTAATGCTTT	100-1336
+spa	AGCACCAAAAGAGGAAGACAA	GTTTAACGACATGTACTCCGT	60-1028
+ssp	ATCMATTTYGCMAAYGATGACCA	TTGTCTGAATTATTGTTATCGCC	60-425

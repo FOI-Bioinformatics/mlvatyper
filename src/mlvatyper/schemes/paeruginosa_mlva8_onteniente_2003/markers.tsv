@@ -1,0 +1,17 @@
+marker	unit_length	ref_size	ref_repeats	patterns	label
+ms010	6	167	11	N/A	ms010
+ms061	6	126	12	N/A	ms061
+ms077	39	442	5	N/A	ms077
+ms127	15	210	8	N/A	ms127
+ms142	115	890	7	N/A	ms142
+ms172	54	789	12	N/A	ms172
+ms173	243	3503	14	N/A	ms173
+ms194	12	690	45	N/A	ms194
+# unit_length and ref_repeats are Table 1 of Onteniente et al. 2003, which gives the repeat unit
+# length and the number of units in PAO1 for each locus. ref_size is the product these primers give
+# in the PAO1 assembly GCA_000006765.1; it equals the expected PAO1 product of Table 1 at seven loci
+# and is one base shorter at ms061, 126 against a published 127. A run on PAO1 returns the published
+# unit profile 11-12-5-8-7-12-14-45 with a residual of zero at every locus. No repeat unit sequence
+# is stored; the motifs are long and several arrays imperfect, and the paper gives a motif length
+# rather than a consensus sequence. ms173 is a large 243 bp unit locus whose product reaches several
+# kilobases, so it needs a wide size window and may not amplify from a fragmented assembly.

@@ -1,22 +1,82 @@
 marker	unit_length	ref_size	ref_repeats	patterns	label
-Ft-M22		178		N/A	Ft-M22
-Ft-M23		327		N/A	Ft-M23
-Ft-M24		417		N/A	Ft-M24
-Ft-M03		353		N/A	Ft-M03
-Ft-M20A		319		N/A	Ft-M20A
-Ft-M10		198		N/A	Ft-M10
-Ft-M05		300		N/A	Ft-M05
-Ft-M04		222		N/A	Ft-M04
-Ft-M20B		153		N/A	Ft-M20B
-Ft-M06		272		N/A	Ft-M06
-Ft-M02		339		N/A	Ft-M02
+Ft-M22	6	178	4	N/A	Ft-M22
+Ft-M23	23	327	1	N/A	Ft-M23
+Ft-M24	21	417	2	N/A	Ft-M24
+Ft-M03	9	353	16	N/A	Ft-M03
+Ft-M20A	12	319	4	N/A	Ft-M20A
+Ft-M10	16	198	2	N/A	Ft-M10
+Ft-M05	16	300	2	N/A	Ft-M05
+Ft-M04	5	222	4	N/A	Ft-M04
+Ft-M20B	15	153		N/A	Ft-M20B
+Ft-M06	21	272	4	N/A	Ft-M06
+Ft-M02	6	339	2	N/A	Ft-M02
+#
 # ref_size is the product length measured in the LVS assembly GCA_000009245.1 (AM233362.1) by in silico
-# PCR with these primers, outer primer edge to outer primer edge. Every marker gave exactly one product.
-# The primers are used exactly as published, each carrying a non-genomic 5' G; removing that base from
-# both primers of a pair clears all primer mismatches and shortens every product by 2 bp, so ref_size is
-# only valid for the primers as written here.
-# unit_length, ref_repeats and patterns are still empty: Table S1 gives no repeat units, copy numbers or
-# product sizes, so no allele can be called yet. Take the unit lengths and consensus repeats from
-# Johansson et al. 2004 (doi:10.1128/JB.186.17.5808-5818.2004), which defines these loci, or derive them
-# with mlvatyper discover on a reference run; ref_repeats must then be counted in the LVS amplicons so
-# that it is consistent with the ref_size above.
+# PCR with these primers, outer primer edge to outer primer edge. Every marker gives exactly one product.
+#
+# THE SOURCE TABLE GIVES PRIMERS ONLY, and all eleven loci now call. For ten of them the unit and the
+# copy number are taken from the bundled scheme francisella_johansson_2004, which counts the same arrays
+# and carries the published SCHU S4 copy numbers of Johansson et al. 2004 Table 2. The eleventh,
+# Ft-M20B, is called from a bins table, bins.tsv, under a convention of this scheme, described below.
+#
+# The copy number of the ten comes from calibrating through SCHU S4: the array a locus contains is the
+# same DNA whichever primers flank it, so this scheme's SCHU S4 product minus the array the Johansson
+# scheme counts there gives this scheme's flank, which fixes the copy number in LVS.
+#
+#   locus    Johansson locus, unit and SCHU S4 count   flank   LVS count
+#   Ft-M02   Ft-M2    6 bp   4 copies                    327     2
+#   Ft-M03   Ft-M3    9 bp  25 copies                    209    16
+#   Ft-M04   Ft-M4    5 bp   3 copies                    202     4
+#   Ft-M05   Ft-M5   16 bp   3 copies                    268     2
+#   Ft-M06   Ft-M6   21 bp   4 copies                    188     4
+#   Ft-M10   Ft-M10  16 bp  18 copies                    166     2
+#   Ft-M20A  Ft-M20  12 bp   3 copies                    271     4
+#   Ft-M22   Ft-M22   6 bp   2 copies                    154     4
+#   Ft-M23   Ft-M23  23 bp   2 copies                    304     1
+#   Ft-M24   Ft-M24  21 bp   1 copy                      375     2
+#
+# The calibration was tested on 22 Francisella genomes, whose identity was read from the assembly
+# headers: nine subspecies tularensis, three holarctica, one mediasiatica and nine novicida. Every flank
+# yields a whole number of repeats in LVS. And because both schemes count the same array, their alleles
+# must agree for any strain, which they do: at the nine loci other than Ft-M20, all 112 comparisons in
+# the 13 genomes outside novicida and all 33 in novicida give the same allele. At Ft-M20 they differ in
+# 3 of 13 and in 9 of 9, and that is expected, since Johansson amplifies Ft-M20 as one product and the
+# insertion that Vogler split off into Ft-M20B lengthens it in the genomes that carry the insertion.
+# The scale is the published Johansson one, so the two Francisella schemes are consistent.
+#
+# The units were also checked by the cross strain rule, that a locus keeps one flank so its products
+# differ by whole multiples of the unit. In the 13 genomes outside novicida eight of the ten calibrated
+# loci obey it, Ft-M02, M03, M04, M05, M06, M10, M20A and M23. Ft-M22 and Ft-M24 do not: their steps are
+# 19 bp, and 5 and 16 bp, which point to indels in the flank rather than a different unit, so some
+# strains give a fractional allele there and it is flagged INTERMEDIATE and not rounded. The reference
+# call is a whole number at every locus.
+#
+# Ft-M20B. Vogler et al. split the Johansson Ft-M20 locus into Ft-M20A, the original 12 bp repeat, and
+# Ft-M20B, a roughly 200 bp insertion carrying a separate 15 bp repeat, present in type A.II and
+# novicida isolates. No publication gives an Ft-M20B copy number, so the scheme defines one.
+#
+# The 15 bp unit is confirmed by the data. In the 22 genomes the insertion-bearing products are 351,
+# 366, 381, 396 and 411 bp, five sizes in steps of exactly 15 bp, with the same 106 bp left flank and
+# 200 bp right flank throughout, apart from point differences between strains. The 12 bp that
+# Myrtennas et al. 2020 list for Ft-M20B is not supported; their table gives Ft-M20A the same 12 bp and
+# appears to carry the Ft-M20 unit across to both assays.
+#
+# LVS and the other 153 bp strains have no insertion and so no array. An earlier note here said the
+# 153 bp product held one copy of the unit; that was wrong, because the 15 bp sequence counted lies
+# inside the forward primer itself. The 153 bp state is allele 0. It is not on the 15 bp ladder, since
+# it differs from 351 bp by 198 bp, which is not a multiple of 15, so the repeat formula cannot link the
+# two and Ft-M20B carries no ref_repeats. Alleles come from bins.tsv, 0 at 153 bp and (size - 306) / 15
+# above it, 3 to 7 at the five sizes seen, and an unlisted size is reported OFF_TABLE. Each array is a
+# diverged lead block, n - 2 exact copies of GACCAAGGTAATAAT and a diverged terminal block, so counting
+# the exact copies alone would give 1 to 5, two lower than the allele here. The scale is a convention of
+# this scheme and is not published.
+#
+# Later studies add nothing to the count. Myrtennas et al. 2020 (Microorganisms 8:1784) and Shevtsov et
+# al. 2024 (Pathogens 13:581) find Ft-M20B invariable in their holarctica and mediasiatica strains, and
+# the Spanish genomes give 153 bp throughout, as the 153 bp ref_size here does.
+#
+# THE LOCUS NAMES OF THE TWO SCHEMES DIFFER ONLY IN SPELLING. This scheme pads the number, Ft-M02,
+# where francisella_johansson_2004 does not, Ft-M2, and the allele agreement above confirms the padded
+# and unpadded names are the same VNTR. Ft-M20 there is split here into Ft-M20A and Ft-M20B. The two
+# still amplify different fragments, so their product sizes are not comparable even though their
+# alleles are.
