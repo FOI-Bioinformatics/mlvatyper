@@ -5,13 +5,13 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 3145k	9	271	7	CCTTCCTCG	3145 k
 2666k	9	309	6	CTTTCGCTA	2666 k
 3671k	7	301	18	CTTGGAC	3671 k
-2115k	8	359	4	CGCCGGTT	2115 k
+2115k	8	359	15	CGCCGGTT	2115 k
 2341k	9	172	7	TTCGTGCGC	2341 k
-1500k	11	365	4	GGGAAAGTGCG	1500 k
+1500k	11	365	6	GGGAAAGTGCG	1500 k
 3091k	7	263	12	TCACGGC	3091 k
 3152k	6	232	17	GACTCG	3152 k
 3652k	8	358	8	CCGTAGTC	3652 k
-3564k	15	626	2	GCAGCCTTCTTCGCG	3564 k
+3564k	15	626	30	GCAGCCTTCTTCGCG	3564 k
 20k	7	287	8	CGCCTCA	20 k
 857k	9	259	7	CGAACGAGC;CGAATGAGC	857 k
 1690k	8	344	9	CGTCGATA	1690 k
@@ -21,8 +21,8 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 2815k	9	273	7	TGGCGTCTT	2815 k
 2170k	9	406	24	ATGCCGTGG	2170 k
 389k	8	263	6	GACGAACC	389 k
-1788k	16	301	4	GTCGTGCGATCCTGCT	1788 k
-1217k	10	472	10	CGGACCTAGG	1217 k
+1788k	16	301	8	GTCGTGCGATCCTGCT	1788 k
+1217k	10	472	15	CGGACCTAGG	1217 k
 397k	8	307	12	GCCCGAGA	397 k
 2050k	9	439	12	CGATGCGGT;GCACCCAAC	2050 k
 2862k	10	341	7	CTCGCCTTTG	2862 k
@@ -38,6 +38,10 @@ marker	unit_length	ref_size	ref_repeats	patterns	label
 # markers, always higher, which suggests a column other than the K96243 copy number. They are kept
 # here for review and are not used: for each marker the published value, and where it differs the
 # measured count and the TRF count.
+# Five markers use the published copy number instead of the measured count (2115k 15, 1500k 6, 3564k 30,
+# 1788k 8, 1217k 15), because the measured count gave alleles of 0 or below in 38 calls of a 40 genome screen
+# (3564k down to -7), which no array can have. The published values give alleles of 2 or more for the
+# shortest product seen at each of them. The other markers keep the measured count.
 #   933k 10 (now 9, TRF 9); 2065k 8; 2971k 9 (now 8, TRF 8); 3145k 8 (now 7, TRF 7)
 #   2666k 7 (now 6, TRF 6); 3671k 21 (now 18, TRF 18); 2115k 15 (now 4, TRF 2); 2341k 7
 #   1500k 6 (now 4, TRF 4); 3091k 12; 3152k 17; 3652k 8

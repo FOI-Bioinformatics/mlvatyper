@@ -13,7 +13,7 @@ accession, GCA_ or GCF_, which check-scheme downloads from NCBI into a
 local cache; assemblies are never stored in a scheme directory),
 citation, url, retrieved, rounding,
 allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
-rescue_indels (yes or no), known_multiple, notes. The calling keys become the defaults of the
+rescue_indels (yes or no), known_multiple, interrupted_arrays, notes. The calling keys become the defaults of the
 corresponding options when the scheme is used; options given on the command
 line still win.
 
@@ -110,6 +110,21 @@ class Scheme:
             return ()
         return tuple(m.strip() for m in value.split(",") if m.strip())
 
+    @property
+    def interrupted_arrays(self) -> tuple[str, ...]:
+        """Markers whose arrays the repeat patterns cannot follow across strains, as declared by the scheme."""
+        value = str(self.meta.get("interrupted_arrays", "")).strip()
+        if is_placeholder(value):
+            return ()
+        return tuple(m.strip() for m in value.split(",") if m.strip())
+
+    def marker_defs(self) -> list:
+        """The marker definitions, with the count comparison off for the interrupted arrays."""
+        from dataclasses import replace
+        from .markers import read_markers
+        skip = set(self.interrupted_arrays)
+        return [replace(d, compare_count=False) if d.primer_id in skip else d for d in read_markers(self.markers)]
+
     def calling_defaults(self) -> dict:
         """Metadata values that apply as option defaults."""
         keys = ("rounding", *NUMERIC_KEYS, *BOOLEAN_KEYS)
@@ -196,6 +211,7 @@ def apply_scheme(args, scheme: Scheme, parser_defaults: dict, explicit: set[str]
         args.markers = str(scheme.markers)
     if getattr(args, "bins", None) is None and scheme.bins is not None:
         args.bins = str(scheme.bins)
+    args.interrupted_arrays = scheme.interrupted_arrays
     applied = []
     for key, value in scheme.calling_defaults().items():
         given = key in explicit if explicit is not None else getattr(args, key, None) != parser_defaults.get(key)

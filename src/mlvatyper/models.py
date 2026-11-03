@@ -112,6 +112,9 @@ class MarkerDef:
     ref_repeats: float | None = None
     offset: int | None = None
     label: str | None = None  # locus name used in exports, for example the MLVAbank column name
+    # False when the array is known to hold variant or interrupted units that the patterns cannot follow:
+    # the tandem count is still reported, but a difference from the allele is not flagged
+    compare_count: bool = True
 
     @property
     def display_name(self) -> str:

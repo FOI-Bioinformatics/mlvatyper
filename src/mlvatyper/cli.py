@@ -736,6 +736,8 @@ def do_summarize(args: argparse.Namespace, outdir: Path) -> None:
 
     defs = load_definitions(args, outdir, sts_ids, amplicons) if (args.markers or args.reference_sample
                                                                      or sts_ids) else []
+    skip = set(getattr(args, "interrupted_arrays", ()))
+    defs = [replace(d, compare_count=False) if d.primer_id in skip else d for d in defs]
     legacy_defs = defs if (args.markers or args.reference_sample) else None
     write_all_summaries(amplicons, samples, outdir, args.prefix, legacy_defs, args.clwclean, args.legacy_tables,
                         sts_ids)

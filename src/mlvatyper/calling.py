@@ -202,7 +202,7 @@ def _assign_allele(call: Call, d: MarkerDef, length: int, bins: list[Bin] | None
 def _check_array(call: Call, d: MarkerDef, max_array_length: int | None) -> None:
     allele = _allele_value(call.allele)
     # no copy of the unit at all next to an allele of one or more is a disagreement too: a wrong unit sequence
-    if call.counted and allele is not None and abs(call.array.copies - allele) >= 1:
+    if d.compare_count and call.counted and allele is not None and abs(call.array.copies - allele) >= 1:
         call.status.append(COUNT_DISAGREES)
     if call.array.copies:
         array_length = call.array.span

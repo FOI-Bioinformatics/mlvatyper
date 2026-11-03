@@ -15,10 +15,12 @@ from mlvatyper.scheme import load_scheme
 from tests.conftest import reference_assembly
 
 ASSEMBLY = "GCA_000011545.1"
-PROFILE = ("9-8-8-7-6-18-4-7-4-12-17-8-2-8-7-9-19-23-13-7-24-6-4-10-12-12-7-15-13-16-15-7")
+PROFILE = ("9-8-8-7-6-18-15-7-6-12-17-8-30-8-7-9-19-23-13-7-24-6-8-15-12-12-7-15-13-16-15-7")
 N_MARKERS = 32
 # the two loci the metadata records as limitations
 COMPOUND = "2050k"  # two adjacent arrays with different units, reported as one call
+# markers that use the published copy number: the measured count gave alleles of 0 or below in other strains
+PUBLISHED_COUNT = {"2115k": 15, "1500k": 6, "3564k": 30, "1788k": 8, "1217k": 15}
 HIGHER_ORDER = "3564k"  # TRF reports a 75 bp period, five times the published 15 bp unit
 
 
@@ -35,7 +37,7 @@ def test_scheme_files_are_consistent():
         assert d.label == d.primer_id.replace("k", " k")  # the published name keeps the space
     by_id = {d.primer_id: d for d in defs}
     assert len(by_id[COMPOUND].patterns) == 2  # both consensus units are listed
-    assert by_id[HIGHER_ORDER].ref_repeats == 2
+    assert by_id[HIGHER_ORDER].ref_repeats == 30  # the published copy number, see PUBLISHED_COUNT
 
 
 def test_check_scheme_against_k96243(tmp_path):
@@ -46,7 +48,12 @@ def test_check_scheme_against_k96243(tmp_path):
     assert len(table) == N_MARKERS
     assert (table["n_products"].astype(int) == 1).all()
     assert (table["size_ok"].astype(int) == 1).all()
-    assert (table["repeats_ok"].astype(int) == 1).all()
+    # the count is compared only for markers whose arrays the patterns can follow
+    skip = set(load_scheme("burkholderia_uren_2007").interrupted_arrays)
+    table = table.set_index("marker")
+    assert (table.loc[sorted(skip), "repeats_ok"] == "").all()
+    assert (table.drop(index=sorted(skip))["repeats_ok"].astype(int) == 1).all()
+    table = table.reset_index()
     assert (table["hash_word_11"].astype(int) == 1).all()  # no marker needs the rescue pass
     assert (table["search_pass"] == "main").all()
 
@@ -62,12 +69,15 @@ def test_k96243_profile_is_reproduced(tmp_path):
     long = pd.read_csv(tmp_path / "k96243_calls_long.tsv", sep="\t")
     assert len(long) == N_MARKERS
     assert (long["residual_bp"] == 0).all()
-    # the length based allele and the independent tandem count agree for every marker
-    assert (long["tandem_copies"] == long["allele"].astype(int)).all()
+    # the length based allele and the independent tandem count agree wherever the count is compared
+    skip = set(load_scheme("burkholderia_uren_2007").interrupted_arrays)
+    kept = long[~long["marker"].isin(skip)]
+    assert len(kept) == N_MARKERS - len(skip)
+    assert (kept["tandem_copies"] == kept["allele"].astype(int)).all()
 
 
-def test_published_copy_numbers_are_recorded_but_unused(tmp_path):
-    """The publication's copy numbers are kept as comments, so they cannot reach the parser."""
+def test_published_copy_numbers_are_recorded_and_used_at_five_markers():
+    """The publication's copy numbers are kept as comments; five of them replace the measured count."""
     scheme = load_scheme("burkholderia_uren_2007")
     text = scheme.markers.read_text()
     assert "differ for 20 of 32" in text
@@ -93,3 +103,26 @@ def test_the_indel_rescue_recovers_loci_in_a_second_strain(tmp_path):
     hits = pd.read_csv(tmp_path / "hits.tsv", sep="\t").set_index("marker")
     assert set(hits.index[hits["search_pass"] != "main"]) == {"1764k", "2445k"}
     assert len(hits) == 28
+
+
+def test_five_markers_use_the_published_count_and_sixteen_skip_the_count_check():
+    scheme = load_scheme("burkholderia_uren_2007")
+    defs = {d.primer_id: d for d in read_markers(scheme.markers)}
+    assert {m: int(defs[m].ref_repeats) for m in PUBLISHED_COUNT} == PUBLISHED_COUNT
+    skip = scheme.interrupted_arrays
+    assert len(skip) == 16 and set(PUBLISHED_COUNT) <= set(skip) and set(skip) <= set(defs)
+    marked = {d.primer_id for d in scheme.marker_defs() if not d.compare_count}
+    assert marked == set(skip)
+
+
+def test_a_second_strain_gives_positive_alleles_and_no_flag_at_interrupted_arrays(tmp_path):
+    fixture = reference_assembly("GCF_000756145.1")
+    assert main(["run", "--scheme", "burkholderia_uren_2007", "--fasta", str(fixture), "--outdir",
+                 str(tmp_path), "--prefix", "s", "--align", "none", "--no-report"]) == 0
+    long = pd.read_csv(tmp_path / "s_calls_long.tsv", sep="\t")
+    alleles = pd.to_numeric(long["allele"], errors="coerce")
+    assert (alleles.dropna() > 0).all()
+    assert not long["status"].str.contains("NEGATIVE", na=False).any()
+    skip = set(load_scheme("burkholderia_uren_2007").interrupted_arrays)
+    flagged = long[long["marker"].isin(skip)]["status"].str.contains("COUNT_DISAGREES", na=False)
+    assert not flagged.any()
