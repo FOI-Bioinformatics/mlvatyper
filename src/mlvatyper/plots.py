@@ -113,49 +113,83 @@ def _short(svg_figure) -> str:
     buffer = io.StringIO()
     # tight_layout skips the switched-off dendrogram axes and can leave tick labels outside the canvas, so the
     # canvas is also fitted to everything drawn
-    svg_figure.savefig(buffer, format="svg", bbox_inches="tight", pad_inches=0.06)
+    with plt.rc_context({"svg.fonttype": "none"}):  # text stays text, searchable and small, whoever calls
+        svg_figure.savefig(buffer, format="svg", bbox_inches="tight", pad_inches=0.06)
     plt.close(svg_figure)
     text = buffer.getvalue()
     return text[text.index("<svg"):]
 
 
-def clustered_heatmap(alleles: pd.DataFrame) -> tuple[str, list[str]] | None:
-    """Samples ordered by clustering against loci; each locus is coloured on its own scale.
+MIN_PAIRS = 3  # sample pairs typed at both loci for a distance between two loci
 
-    Returns the SVG and the sample order, or None when there are too few samples or loci to cluster.
+
+def locus_distance(values: np.ndarray) -> np.ndarray:
+    """Distance between loci: the share of sample pairs on which the two loci disagree.
+
+    Each locus divides the samples into groups of equal allele. Two loci agree on a pair of samples when
+    both put the pair in one group or both put it in different groups; the distance is the share of pairs,
+    among those typed at both loci in both samples, on which they disagree (one minus the Rand index of
+    the two partitions). Loci that group the samples alike, whatever their repeat numbers, are close.
+    """
+    n, m = values.shape
+    a, b = np.triu_indices(n, 1)
+    typed = ~np.isnan(values)
+    both = typed[a] & typed[b]  # pairs x loci: the pair is typed at the locus
+    same = (values[a] == values[b]) & both
+    dist = np.full((m, m), np.nan)
+    for j in range(m):
+        for k in range(j, m):
+            usable = both[:, j] & both[:, k]
+            if usable.sum() >= MIN_PAIRS:
+                dist[j, k] = dist[k, j] = float((same[usable, j] != same[usable, k]).mean())
+    np.fill_diagonal(dist, 0.0)
+    known = dist[~np.eye(m, dtype=bool)]
+    known = known[~np.isnan(known)]
+    return np.where(np.isnan(dist), float(known.mean()) if known.size else 0.0, dist)
+
+
+def clustered_heatmap(alleles: pd.DataFrame) -> tuple[str, list[str]] | None:
+    """Samples and loci ordered by clustering; each locus is coloured on its own scale.
+
+    Rows are clustered on the distance between profiles and columns on the distance between loci
+    (locus_distance), both by UPGMA, with the trees drawn on the left and on top. Returns the SVG and the
+    sample order, or None when there are too few samples or loci to cluster.
     """
     import matplotlib.pyplot as plt
     values = allele_matrix(alleles)
     n, m = values.shape
     if n < 3 or m < 2:
         return None
-    dist = distance_matrix(values)
-    merges = upgma(dist)
-    order = leaf_order(merges, n)
-    ordered = values[order]
-    # per locus rank colours: alleles of one locus map to evenly spaced shades, so loci with a wide
-    # range of repeat numbers do not hide those with a narrow one
-    shade = np.full(ordered.shape, np.nan)
-    for j in range(m):
-        column = ordered[:, j]
-        levels = np.unique(column[~np.isnan(column)])
-        for k, level in enumerate(levels):
-            shade[column == level, j] = k / max(len(levels) - 1, 1)
-    height = max(3.0, 0.2 * n + 1.8)
+    row_merges = upgma(distance_matrix(values))
+    order = leaf_order(row_merges, n)
+    col_merges = upgma(locus_distance(values)) if m >= 3 else []
+    col_order = leaf_order(col_merges, m) if col_merges else list(range(m))
+    ordered = values[order][:, col_order]
+    shade = _rank_shades(ordered)
+    height = max(3.6, 0.2 * n + 2.6)
     width = max(7.0, 0.3 * m + 3.5)
     fig = plt.figure(figsize=(width, height))
-    grid = fig.add_gridspec(1, 2, width_ratios=[1, max(4, m * 0.5)], wspace=0.02)
-    ax_tree = fig.add_subplot(grid[0])
-    ax = fig.add_subplot(grid[1])
-    for xs, ys in dendrogram_segments(merges, n, order):
+    grid = fig.add_gridspec(2, 2, width_ratios=[1, max(4, m * 0.5)], height_ratios=[1, max(3, n * 0.25)],
+                            wspace=0.02, hspace=0.02)
+    ax_corner = fig.add_subplot(grid[0, 0])
+    ax_corner.axis("off")
+    ax_top = fig.add_subplot(grid[0, 1])
+    ax_tree = fig.add_subplot(grid[1, 0])
+    ax = fig.add_subplot(grid[1, 1])
+    for xs, ys in dendrogram_segments(row_merges, n, order):
         ax_tree.plot(xs, ys, color="#555555", linewidth=0.8)
     ax_tree.set_ylim(n - 0.5, -0.5)
     ax_tree.invert_xaxis()
     ax_tree.axis("off")
+    for xs, ys in dendrogram_segments(col_merges, m, col_order):
+        ax_top.plot(ys, xs, color="#555555", linewidth=0.8)  # leaves along x, root at the top
+    ax_top.set_xlim(-0.5, m - 0.5)
+    ax_top.set_ylim(bottom=0)
+    ax_top.axis("off")
     cmap = plt.get_cmap("viridis").with_extremes(bad="#f0f0f0")
     ax.imshow(np.ma.masked_invalid(shade), cmap=cmap, aspect="auto", vmin=0, vmax=1, interpolation="nearest")
     ax.set_xticks(range(m))
-    ax.set_xticklabels(list(alleles.columns), rotation=90)
+    ax.set_xticklabels([str(alleles.columns[j]) for j in col_order], rotation=90)
     ax.set_yticks(range(n))
     ax.set_yticklabels([str(alleles.index[i]) for i in order])
     ax.yaxis.tick_right()
@@ -165,14 +199,27 @@ def clustered_heatmap(alleles: pd.DataFrame) -> tuple[str, list[str]] | None:
     ax.tick_params(which="minor", length=0)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    # number the alleles inside the cells when the matrix is small enough to read
-    if n * m <= 900:
-        for i in range(n):
-            for j in range(m):
-                if not np.isnan(ordered[i, j]):
-                    ax.text(j, i, f"{int(ordered[i, j])}", ha="center", va="center", fontsize=5.5,
-                            color="white" if shade[i, j] < 0.55 else "#222222")
+    if n * m <= 900:  # number the alleles inside the cells when the matrix is small enough to read
+        _label_cells(ax, ordered, shade)
     return _short(fig), [str(alleles.index[i]) for i in order]
+
+
+def _rank_shades(values: np.ndarray) -> np.ndarray:
+    """Per locus rank colours: the alleles of a locus map to evenly spaced shades from 0 to 1, so loci with a
+    wide range of repeat numbers do not hide those with a narrow one."""
+    shade = np.full(values.shape, np.nan)
+    for j in range(values.shape[1]):
+        column = values[:, j]
+        levels = np.unique(column[~np.isnan(column)])
+        for k, level in enumerate(levels):
+            shade[column == level, j] = k / max(len(levels) - 1, 1)
+    return shade
+
+
+def _label_cells(ax, values: np.ndarray, shade: np.ndarray) -> None:
+    for i, j in zip(*np.where(~np.isnan(values)), strict=True):
+        ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", fontsize=5.5,
+                color="white" if shade[i, j] < 0.55 else "#222222")
 
 
 def distance_heatmap(alleles: pd.DataFrame, order: list[str]) -> str | None:

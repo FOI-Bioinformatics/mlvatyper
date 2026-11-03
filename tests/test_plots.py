@@ -148,3 +148,26 @@ def test_no_shared_loci_gives_equal_distances_and_no_crash():
     from mlvatyper.plots import classical_mds
     coords, share = classical_mds(d)
     assert np.isfinite(coords).all()
+
+
+def test_loci_that_group_the_samples_alike_are_close():
+    from mlvatyper.plots import locus_distance
+    # A and B split the samples the same way with different repeat numbers; C splits them differently
+    values = np.array([[1, 5, 1], [1, 5, 2], [2, 7, 1], [2, 7, 2], [1, 5, 1]], dtype=float)
+    d = locus_distance(values)
+    assert d[0, 1] == 0.0 and d[0, 2] > 0.3 and np.allclose(d, d.T) and (d.diagonal() == 0).all()
+    # missing values reduce the pairs that are compared, and no pair leaves the mean distance
+    values[:, 2] = np.nan
+    d = locus_distance(values)
+    assert np.isfinite(d).all()
+
+
+def test_heatmap_orders_the_columns_by_their_clustering():
+    import re
+    loci = ["a", "b", "c", "d"]
+    rows = {"s1": [1, 9, 3, 9], "s2": [1, 9, 4, 8], "s3": [2, 9, 3, 9], "s4": [2, 9, 4, 8], "s5": [1, 9, 3, 9]}
+    alleles = pd.DataFrame({k: [str(x) for x in v] for k, v in rows.items()}, index=loci).T
+    svg, _ = clustered_heatmap(alleles)
+    # c and d split the samples identically, so they are next to each other among the column labels
+    labels = re.findall(r'rotate\(-90\)">([a-d])</text>', svg)
+    assert sorted(labels) == loci and abs(labels.index("c") - labels.index("d")) == 1

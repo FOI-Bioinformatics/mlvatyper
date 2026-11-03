@@ -6,6 +6,7 @@ is below 1.0, so the output tables may still change between minor versions.
 ## Unreleased
 
 ### Added
+- The clustered heatmap clusters the loci as well as the samples, with a tree on top. Two loci are close when they put the same pairs of samples together and apart (one minus the Rand index of the two partitions), so loci that carry the same information stand together.
 - `--resume`: each finished sample is written to `per_sample/` (hits, missing markers and a done file with the input file and a hash of the search settings) as soon as it finishes, and `--resume` reads the samples whose input and settings are unchanged instead of searching them again. Results are identical to a run without it.
 - Distinct exit codes: 0 for a clean run, 1 for an invalid input or option, and 2 when the run finished but some samples could not be read (the others are typed). It was 1 for both.
 - The minimum spanning tree of the report breaks ties between edges of equal length with the goeBURST rules (most single, double and triple locus variants, then most samples at the node), so that the tree does not depend on the order of the samples. The figure captions and the software table name the categorical coefficient, UPGMA and goeBURST.
