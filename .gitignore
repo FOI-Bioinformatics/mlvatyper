@@ -16,3 +16,5 @@ testID.sts
 *.fna.gz
 src/mlvatyper/schemes/**/*.fasta
 src/mlvatyper/schemes/**/*.fa
+
+.playwright-mcp/
