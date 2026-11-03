@@ -129,6 +129,32 @@ samples{% endif %}. Several amplicons for one marker are joined with a slash. Ce
 <div class="scroll">{{ profile_table | safe }}</div></details>
 
 <h2 id="figures">3. Figures</h2>
+{% if data.figures.heatmap %}
+<h3>Relationships between samples</h3>
+<figure>{{ data.figures.heatmap | safe }}
+<figcaption>{{ fcap("Clustered allele profiles. Rows are samples ordered by average linkage (UPGMA) clustering on the share of loci that differ; columns are loci in STS order. Each locus has its own colour scale, from the lowest to the highest repeat number seen in it, and the repeat number is printed in the cell when the matrix is small. Grey cells have no single integer allele. The tree shows distance on a scale of 0 to 1.") }}</figcaption></figure>
+{% if data.figures.distance %}
+<figure>{{ data.figures.distance | safe }}
+<figcaption>{{ fcap("Pairwise distances in the order of the heatmap: the share of loci that differ, among loci typed in both samples. Pairs that share fewer than 8 typed loci are given the mean distance. Alleles are compared as categories, so the distance does not reflect the size of the repeat difference.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.mst %}
+<figure>{{ data.figures.mst | safe }}
+<figcaption>{{ fcap("Minimum spanning tree of the distinct allele profiles. Samples with identical profiles share a node (size shows how many, the label gives the first sample and the number of others). Edge labels give the number of loci that differ between neighbours. Node colour is the share of OK calls, so a poorly typed sample can be told from a distant one. The layout places nodes so that straight-line distances approximate distances along the tree; it is a drawing, and only the tree and the edge labels carry information.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.mds %}
+<figure>{{ data.figures.mds | safe }}
+<figcaption>{{ fcap("Classical multidimensional scaling of the pairwise distances in two dimensions. The axis labels give the share of the distance structure that each axis keeps; a low total means that two dimensions describe the samples poorly and the heatmap and the tree should be read instead.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.spectra %}
+<figure>{{ data.figures.spectra | safe }}
+<figcaption>{{ fcap("Allele spectrum per locus: the number of samples with each repeat number.") }}</figcaption></figure>
+{% endif %}
+{% if data.figures.callrate %}
+<figure>{{ data.figures.callrate | safe }}
+<figcaption>{{ fcap("Share of calls with status OK per locus (top) and per sample (bottom), sorted. Loci or samples at the left or top of the sorted bars are those to inspect first.") }}</figcaption></figure>
+{% endif %}
+<h3>Amplicons and status</h3>
+{% endif %}
 <figure>{{ data.figures.lengths | safe }}
 <figcaption>{{ fcap("Amplicon length per marker (points, one per amplicon) and the expected size from the STS file (grey tick).") }}</figcaption></figure>
 <figure>{{ data.figures.residuals | safe }}
