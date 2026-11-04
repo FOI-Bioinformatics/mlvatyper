@@ -5,14 +5,27 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
-## 0.4.0 - 2026-11-03
+## 0.4.0 - 2026-11-04
 
 Highlights: 25 published schemes bundled and documented with their
-references, every locus of every scheme callable, the report extended with
-across-sample summaries and figures, `--resume` and distinct exit codes.
-Two changes alter existing results: the alleles of five
-`burkholderia_uren_2007` markers change with their corrected copy numbers,
-and a run that loses some samples now exits 2 rather than 1.
+references and their DOIs, every locus of every scheme callable, the report
+extended with across-sample summaries and six further figures, `--resume`
+for large sample sets, distinct exit codes, and type checking in CI.
+
+Four changes alter results from 0.3.0, so profiles made with the two should
+not be compared without reading these:
+
+- `burkholderia_uren_2007`: five markers (2115k, 1500k, 3564k, 1788k, 1217k)
+  take the published copy number, because the measured one gave alleles of
+  zero or below in other strains. The K96243 profile changes at those five.
+- `yersinia_klevytska_2001` M27 and `blongum_mlva5_matamoros_2011` VNTR23 are
+  numbered on the units their reference amplicon holds, because the published
+  counts imply a flank longer than the shortest product seen in other strains.
+  Their alleles are 13 and 4 above the published numbering.
+- `Bru_MLVA16` calls from the published size to allele table, so a call that
+  falls on it is reported as BINNED and one that does not is flagged
+  OFF_TABLE. No allele value changes.
+- A run that finishes but loses some samples exits 2 rather than 1.
 
 ### Added
 - `Bru_MLVA16` ships the published size to copy number table of all 16 loci (Al Dahouk et al. 2007, Table 2) as `bins.tsv`, so an allele is the published allele rather than one derived from the reference. Every row of that table is an arithmetic ladder whose step equals the locus repeat unit, and at all 16 loci the size it gives for the copy number the scheme records for 16M equals the measured reference product, which checks the scheme against an independent source and puts the published sizes and the in silico products on one scale. On 30 *Brucella* genomes 88 per cent of calls fall on the ladder and no allele value changes; the rest keep their formula allele and are flagged OFF_TABLE, chiefly Bruce19, where *B. abortus* and *B. suis* sit 3 bp (half a unit) off the *B. melitensis* ladder, as the paper's own predicted sizes for the three sequenced genomes already show.
