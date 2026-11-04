@@ -362,3 +362,17 @@ def test_interrupted_arrays_skip_the_count_comparison():
     assert COUNT_DISAGREES in call_amplicon(amp, d, 0.25, "nearest").status
     skipped = call_amplicon(amp, replace(d, compare_count=False), 0.25, "nearest")
     assert COUNT_DISAGREES not in skipped.status and skipped.array.copies == 10
+
+
+def test_schemes_declare_the_loci_whose_flags_they_explain():
+    """A locus flagged for a published reason is declared, so a screen does not raise it as new."""
+    declared = {s.name: s.explained_flags for s in list_schemes() if s.explained_flags}
+    assert declared["francisella_johansson_2004"] == ("Ft-M19",)
+    assert declared["saureus_mlva8_schouls_2009"] == ("VNTR61_01",)
+    assert set(declared["magalactiae_mlva4_mcauliffe_2008"]) == {"Magal_VNTR17", "Magal_VNTR5", "Magal_VNTR19"}
+    for name, loci in declared.items():
+        scheme = load_scheme(name)
+        markers = {d.primer_id for d in read_markers(scheme.markers)}
+        assert set(loci) <= markers, f"{name} declares a locus it does not have"
+        assert not scheme.missing_provenance(), name
+    assert load_scheme("testM").explained_flags == ()

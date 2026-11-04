@@ -155,7 +155,8 @@ def scheme_info(run_info: dict) -> dict | None:
     doi = re.search(r"10\.\d{4,9}/[^\s;,()]+", f"{meta.get('citation', '')} {meta.get('url', '')}")
     return {"name": scheme.name, "organism": str(meta.get("organism", "")), "citation": str(meta.get("citation", "")),
             "doi": doi.group(0).rstrip(".") if doi else "", "reference": str(meta.get("reference", "")),
-            "assembly": str(meta.get("assembly", "")), "interrupted": list(scheme.interrupted_arrays)}
+            "assembly": str(meta.get("assembly", "")), "interrupted": list(scheme.interrupted_arrays),
+            "explained_flags": list(scheme.explained_flags)}
 
 
 def status_counts(data: ReportData) -> pd.DataFrame:
@@ -525,7 +526,8 @@ def screening_overview(data: ReportData) -> dict | None:
     from .screening import MIN_SAMPLES, overview
     if len(data.samples) < MIN_SAMPLES:
         return None
-    return overview(data.alleles, data.status, data.missing)
+    info = scheme_info(data.run_info)
+    return overview(data.alleles, data.status, data.missing, (info or {}).get("explained_flags", ()))
 
 
 def _screening_html(data: ReportData) -> dict | None:
@@ -535,10 +537,12 @@ def _screening_html(data: ReportData) -> dict | None:
     loci = ov["loci"].reset_index()
     loci["top_flag_share"] = (100 * loci["top_flag_share"]).round(0).astype(int).astype(str) + "%"
     concerns = ov["concerns"].reset_index()[["marker", "concern"]]
+    explained = ov["explained"].reset_index()[["marker", "concern"]]
     return {
         "mean": f"{100 * ov['ok_fraction_mean']:.0f}%", "min": f"{100 * ov['ok_fraction_min']:.0f}%",
         "low": ov["low_call_rate"], "loci_table": _table_html(loci, index=False),
         "concerns_table": _table_html(concerns, index=False) if len(concerns) else "",
+        "explained_table": _table_html(explained, index=False) if len(explained) else "",
         "missing_table": _table_html(ov["missing_by_reason"], index=False) if len(ov["missing_by_reason"]) else "",
     }
 
