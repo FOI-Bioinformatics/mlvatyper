@@ -42,7 +42,8 @@ def _simpson(values: list[str]) -> float:
     return round(1 - float(((counts / n) ** 2).sum()), 3)
 
 
-def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
+def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame,
+                  explained: tuple[str, ...] | list[str] = ()) -> pd.DataFrame:
     rows = []
     for marker in alleles.columns:
         a, s = alleles[marker], status[marker]
@@ -65,7 +66,8 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
         if typed and lowest < 0:
             concern.append(f"allele {lowest:g}")
         share = round(top_n / typed, 3) if typed else 0.0
-        rows.append({"marker": marker, "samples": len(a), "typed": typed, "ok": ok, "missing": missing,
+        rows.append({"marker": marker, "explained": marker in set(explained),
+                     "samples": len(a), "typed": typed, "ok": ok, "missing": missing,
                      "flagged": typed - ok, "top_flag": top, "top_flag_share": share,
                      "distinct_alleles": len(set(numeric)),
                      "simpson": _simpson([f"{v:g}" for v in numeric]), "lowest_allele": lowest,
@@ -83,12 +85,19 @@ def missing_by_reason(missing: pd.DataFrame | None) -> pd.DataFrame:
         "products", ascending=False).reset_index()
 
 
-def overview(alleles: pd.DataFrame, status: pd.DataFrame, missing: pd.DataFrame | None) -> dict:
-    """Everything the report shows for a set of samples."""
+def overview(alleles: pd.DataFrame, status: pd.DataFrame, missing: pd.DataFrame | None,
+             explained: tuple[str, ...] | list[str] = ()) -> dict:
+    """Everything the report shows for a set of samples.
+
+    explained names the loci whose flags the scheme's notes already account for; they are reported
+    apart from the loci that need review, so a known case is not raised again at every run.
+    """
     samples = sample_summary(alleles, status)
-    loci = locus_summary(alleles, status)
+    loci = locus_summary(alleles, status, explained)
     low = samples[samples["ok_fraction"] < LOW_CALL_RATE]
+    flagged = loci[loci["concern"] != ""]
     return {"samples": samples, "loci": loci, "low_call_rate": list(low.index),
-            "concerns": loci[loci["concern"] != ""], "missing_by_reason": missing_by_reason(missing),
+            "concerns": flagged[~flagged["explained"]], "explained": flagged[flagged["explained"]],
+            "missing_by_reason": missing_by_reason(missing),
             "ok_fraction_mean": float(samples["ok_fraction"].mean()),
             "ok_fraction_min": float(samples["ok_fraction"].min())}

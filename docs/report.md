@@ -36,12 +36,17 @@ summary and loci to review](images/report.png)
    the markers.
    For five or more samples a subsection **Across samples** follows: the mean
    and lowest share of loci with status OK, the samples below 75%, the loci
-   to review, a per-locus table (typed, OK, missing, most frequent flag and
+   to review, the loci whose flags the scheme's own notes explain, a per-locus
+   table (typed, OK, missing, most frequent flag and
    its share, distinct alleles, Simpson index, lowest allele) and the missing
    products by reason. A locus is listed for review when one flag is on more
    than half of its typed calls or an allele is below zero (zero itself can be valid, for example an absent insertion), which points at
    the scheme (reference values, repeat unit, patterns) more often than at the
-   strains. The same tables are written as `<prefix>_sample_summary.tsv` and
+   strains. A locus the scheme names in `explained_flags` is listed apart,
+   under "Flagged, and explained by the scheme", because its flag has a
+   published reason such as a structural difference between subspecies; the
+   finding is still reported, just not as something new to chase. The same
+   tables are written as `<prefix>_sample_summary.tsv` and
    `<prefix>_locus_summary.tsv`.
 3. **Allele profiles**: repeat numbers in STS order, shaded by status with
    a colour legend. The table is transposed when markers outnumber samples.

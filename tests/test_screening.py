@@ -82,3 +82,19 @@ def test_the_summaries_and_the_figures_agree_on_what_is_typed():
     import numpy as np
     typed_there = (~np.isnan(allele_matrix(alleles))).sum(axis=1).tolist()
     assert typed_here == typed_there == [2] * 5
+
+
+def test_a_locus_the_scheme_explains_is_listed_apart_from_the_ones_to_review():
+    samples = [f"s{i}" for i in range(6)]
+    alleles = pd.DataFrame({"known": ["2.5"] * 6, "new": ["3.5"] * 6, "fine": [str(i) for i in range(6)]},
+                           index=samples)
+    status = pd.DataFrame({"known": ["INTERMEDIATE"] * 6, "new": ["INTERMEDIATE"] * 6, "fine": ["OK"] * 6},
+                          index=samples)
+    plain = overview(alleles, status, None)
+    assert sorted(plain["concerns"].index) == ["known", "new"] and plain["explained"].empty
+    marked = overview(alleles, status, None, ("known",))
+    assert list(marked["concerns"].index) == ["new"], "only the undeclared locus needs review"
+    assert list(marked["explained"].index) == ["known"], "the declared one is reported apart"
+    # the finding itself is kept either way, so nothing is hidden
+    assert marked["loci"].loc["known", "concern"] == plain["loci"].loc["known", "concern"] != ""
+    assert marked["loci"].loc["known", "explained"] and not marked["loci"].loc["new", "explained"]

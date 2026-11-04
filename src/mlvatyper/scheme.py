@@ -13,7 +13,8 @@ accession, GCA_ or GCF_, which check-scheme downloads from NCBI into a
 local cache; assemblies are never stored in a scheme directory),
 citation, url, retrieved, rounding,
 allele_tolerance, unit_mismatches, margin, mismatches, max_array_length,
-rescue_indels (yes or no), known_multiple, interrupted_arrays, notes. The calling keys become the defaults of the
+rescue_indels (yes or no), known_multiple, interrupted_arrays, explained_flags,
+notes. The calling keys become the defaults of the
 corresponding options when the scheme is used; options given on the command
 line still win.
 
@@ -114,6 +115,20 @@ class Scheme:
     def interrupted_arrays(self) -> tuple[str, ...]:
         """Markers whose arrays the repeat patterns cannot follow across strains, as declared by the scheme."""
         value = str(self.meta.get("interrupted_arrays", "")).strip()
+        if is_placeholder(value):
+            return ()
+        return tuple(m.strip() for m in value.split(",") if m.strip())
+
+    @property
+    def explained_flags(self) -> tuple[str, ...]:
+        """Markers whose flags the scheme's notes already account for, separated by commas.
+
+        A locus can be flagged for a reason that is published and understood, such as a structural
+        deletion in one subspecies or an array too imperfect to sit on one grid. The across-sample
+        summary lists these apart from the loci that need review, so a known case is not reported as
+        a new finding at every run. The reason belongs in notes.
+        """
+        value = str(self.meta.get("explained_flags", "")).strip()
         if is_placeholder(value):
             return ()
         return tuple(m.strip() for m in value.split(",") if m.strip())

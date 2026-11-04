@@ -154,9 +154,11 @@ reference, assembly, citation, url, retrieved, notes, and `known_multiple`, the
 markers that really give more than one product in the reference; `#` starts a comment
 at the start of a line or after a space) that may also set the calling defaults
 `rounding`, `allele_tolerance`, `unit_mismatches`, `margin`, `mismatches`,
-`max_array_length`, `interrupted_arrays` (markers whose arrays hold variant units that the patterns miss, so a difference between the tandem count and the allele is not flagged COUNT_DISAGREES) and `rescue_indels` (yes or no, the same as `--rescue-indels`;
-the U'Ren *Burkholderia* scheme sets it because other strains differ in primer
-sites). `--scheme NAME` (a bundled scheme, listed by
+`max_array_length`, `interrupted_arrays` (markers whose arrays hold variant units that the patterns miss, so a difference between the tandem count and the allele is not flagged COUNT_DISAGREES), `explained_flags` (markers whose flags the
+scheme's notes already account for, which the across-sample summary lists apart
+from the loci that need review) and `rescue_indels` (yes or no, the same as
+`--rescue-indels`; the U'Ren *Burkholderia* scheme sets it because other strains
+differ in primer sites). `--scheme NAME` (a bundled scheme, listed by
 `mlvatyper schemes`) or `--scheme DIR` replaces `--sts`, `--markers` and
 `--bins`; `mlvatyper new-scheme DIR` writes the four files as annotated
 templates, and [schemes.md](schemes.md) describes how to fill them from a

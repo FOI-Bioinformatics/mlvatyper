@@ -153,6 +153,26 @@ calls, or an allele below zero):
 | `saureus_mlva14_pourcel_2009` | Sa1425 | allele -2 |
 | `yersinia_klevytska_2001` | M27 | allele -2 |
 
+Of the loci listed here, three turned out not to be errors at all: Ft-M19 is
+the published 30 bp *holarctica* deletion (all 12 short products are
+*holarctica*, all 7 long ones are *novicida*, *tularensis* or *mediasiatica*),
+Magal_VNTR17 carries the paper's own fractional copy number for an array with
+72 to 83 per cent internal identity, and VNTR61_01 is the locus the Schouls
+paper singles out for a heterogeneous upstream flank, which the authors binned
+by hand. The schemes already recorded all three, so they now name them in
+`explained_flags` and a screen lists them apart from the loci that need review.
+
+Two remain, and neither can be fixed by changing a copy number. At MIRU 580 all
+19 non-reference genomes sit on one grid and H37Rv alone is 24 bp off it, a
+partial copy of the 77 bp unit. At Bruce19, over 31 *Brucella* genomes, only
+three product sizes occur (163 bp in 16M alone, 178 bp and 184 bp); every size
+is congruent modulo 3, and 16M differs from every other genome by an odd
+multiple of 3, never by a multiple of the published 6 bp unit. In both the
+reference sits off the grid the other strains share, which the `grid_offset`
+mechanism cannot express, because a fractional `ref_repeats` assumes the
+reference is on the grid and only moves the flag to the other strains. Both
+need the published size-to-allele table as `bins.tsv`.
+
 Two of these were resolved after the second pass: M27 and VNTR23 are now
 numbered on the units their reference amplicon holds (19 and 7) rather than the
 published counts, because the published counts imply a non-repeat flank longer

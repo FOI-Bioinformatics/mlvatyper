@@ -92,6 +92,13 @@ The per-sample and per-locus tables are written as <code>{{ prefix }}_sample_sum
 {% else %}
 <p>No locus carries one flag on more than half of its calls, and no allele is below zero.</p>
 {% endif %}
+{% if screening.explained_table %}
+<p><b>Flagged, and explained by the scheme.</b> These loci carry a flag for a reason the scheme's notes
+account for, such as a structural difference between subspecies or an array too imperfect to sit on one
+grid. They are listed apart so that a known case is not read as a new finding; see the scheme notes.</p>
+{{ tcap("Loci whose flags the scheme explains.") }}
+<div class="scroll">{{ screening.explained_table | safe }}</div>
+{% endif %}
 <details><summary>Per locus: typed, OK, missing, most frequent flag and diversity</summary>
 {{ tcap("Calls per locus. Share is the part of the typed calls that carry the most frequent flag; the Simpson index is computed over the integer alleles.") }}
 <div class="scroll">{{ screening.loci_table | safe }}</div></details>
