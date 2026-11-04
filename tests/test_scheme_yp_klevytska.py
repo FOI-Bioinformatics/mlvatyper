@@ -84,3 +84,14 @@ def test_co92_calls_every_marker_and_numbers_the_half_copy_loci_on_their_grid(tm
         assert status.loc[ASSEMBLY, marker] == "OK"
     long = pd.read_csv(tmp_path / "co92_calls_long.tsv", sep="\t")
     assert len(long) == N_MARKERS and (long["residual_bp"] == 0).all()
+
+
+def test_m27_is_numbered_on_the_units_its_amplicon_holds():
+    """The published 6 implies a flank longer than products seen in other strains, so it cannot be right."""
+    scheme = load_scheme("yersinia_klevytska_2001")
+    d = {x.primer_id: x for x in read_markers(scheme.markers)}["M27"]
+    assert d.ref_repeats == 19, "19 units of 8 bp in the CO92 amplicon, counted with one mismatch"
+    published_flank = d.ref_size - 6 * d.unit_length
+    assert published_flank > 141, "a 141 bp product occurs, so the published flank is impossible"
+    assert d.ref_size - d.ref_repeats * d.unit_length <= 141
+    assert "shifted by -13" in scheme.meta["notes"], "the offset from the publication is recorded"
