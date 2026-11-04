@@ -1,4 +1,8 @@
-"""The bundled Brucella MLVA-16 scheme against the B. melitensis 16M assembly, downloaded by accession."""
+"""The bundled Brucella MLVA-16 scheme against the B. melitensis 16M assembly, downloaded by accession.
+
+Alleles come from the published size to copy number table of Al Dahouk et al. 2007, shipped as bins.tsv,
+with the repeat formula behind it for sizes the table does not list.
+"""
 
 import pandas as pd
 
@@ -53,7 +57,39 @@ def test_16m_profile_equals_the_published_copy_numbers(tmp_path):
     alleles = pd.read_csv(tmp_path / "b_alleles.tsv", sep="\t", index_col=0, dtype=str)
     assert alleles.loc[ASSEMBLY].to_dict() == {m: str(SOURCE[m][2]) for m in ORDER}
     status = pd.read_csv(tmp_path / "b_status.tsv", sep="\t", index_col=0, dtype=str)
-    assert set(status.loc[ASSEMBLY]) == {"OK"}
+    # every reference size is in the published allele table, so each locus is called from the bins
+    assert set(status.loc[ASSEMBLY]) == {"BINNED"}
     long = pd.read_csv(tmp_path / "b_calls_long.tsv", sep="\t")
     assert (long.fwd_mismatches + long.rev_mismatches == 0).all() and (long.residual_bp == 0).all()
     assert (tmp_path / "b_mlvabank.csv").read_text().splitlines()[0] == "Strain," + ",".join(ORDER)
+
+
+def test_the_published_allele_table_agrees_with_the_reference_values():
+    """Every bin ladder steps by the locus repeat unit and meets markers.tsv at the 16M copy number."""
+    from mlvatyper.calling import read_bins
+    scheme = load_scheme("Bru_MLVA16")
+    bins = read_bins(scheme.bins)
+    assert set(bins) == set(ORDER), "the table covers all 16 loci"
+    for marker, (unit, ref_size, ref_repeats) in SOURCE.items():
+        ladder = sorted((int(b.allele), b.low) for b in bins[marker])
+        assert all(b.low == b.high for b in bins[marker]), f"{marker}: each bin is one size"
+        steps = {(s2 - s1) / (a2 - a1) for (a1, s1), (a2, s2) in zip(ladder, ladder[1:], strict=False)}
+        assert steps == {unit}, f"{marker}: the ladder steps by the repeat unit"
+        assert dict(ladder)[ref_repeats] == ref_size, f"{marker}: the table meets the reference product"
+
+
+def test_a_size_off_the_published_ladder_keeps_an_allele_and_is_flagged(tmp_path):
+    """B. abortus sits 3 bp off the B. melitensis ladder at Bruce19; the call is kept and marked."""
+    fixture = reference_assembly("GCF_000473805.1")  # B. abortus 82
+    assert main(["run", "--scheme", "Bru_MLVA16", "--fasta", str(fixture), "--outdir", str(tmp_path),
+                 "--prefix", "a", "--align", "none", "--no-report"]) == 0
+    long = pd.read_csv(tmp_path / "a_calls_long.tsv", sep="\t").set_index("marker")
+    off = long[long["status"].str.contains("OFF_TABLE", na=False)]
+    from mlvatyper.calling import read_bins
+    assert "Bruce19" in off.index and off.loc["Bruce19", "allele"] % 1 == 0.5
+    ladder = {int(b.low) for b in read_bins(load_scheme("Bru_MLVA16").bins)["Bruce19"]}
+    assert long.loc["Bruce19", "length"] == 184 and 184 not in ladder and 181 in ladder
+    # 3 loci have no product in this draft assembly; of the 13 that do, 11 are on the published ladder
+    typed = long[long["length"].notna()]
+    assert len(typed) == 13 and (typed["status"] == "BINNED").sum() == 11
+    assert set(off.index) == {"Bruce19", "Bruce12"}

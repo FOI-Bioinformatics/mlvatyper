@@ -162,7 +162,22 @@ paper singles out for a heterogeneous upstream flank, which the authors binned
 by hand. The schemes already recorded all three, so they now name them in
 `explained_flags` and a screen lists them apart from the loci that need review.
 
-Two remain, and neither can be fixed by changing a copy number. At MIRU 580 all
+One of the two that remained, Bruce19, is now resolved. The published size to
+copy number table for the whole MLVA-16 panel (Al Dahouk et al. 2007, Table 2)
+is bundled as `bins.tsv`, which also checked the scheme: at all 16 loci the
+size that table gives for the copy number recorded for 16M equals the measured
+reference product. Bruce19's half alleles are real, and the paper's own
+predicted sizes for the three sequenced genomes show them (163 bp in 16M,
+169 in *B. suis*, 184 in *B. abortus*); *B. abortus* and *B. suis* sit 3 bp off
+the *B. melitensis* ladder. Such a size keeps its formula allele and is
+flagged OFF_TABLE instead of being read as an ordinary call.
+
+MIRU 580 remains. The Supply 2006 standardization paper gives unit lengths and
+primers but no size to copy number table, because its alleles were assigned
+with fragment sizing software; that table is in the separate technical guide.
+
+The paragraph below describes the state before these changes, and neither can
+be fixed by changing a copy number. At MIRU 580 all
 19 non-reference genomes sit on one grid and H37Rv alone is 24 bp off it, a
 partial copy of the 77 bp unit. At Bruce19, over 31 *Brucella* genomes, only
 three product sizes occur (163 bp in 16M alone, 178 bp and 184 bp); every size
