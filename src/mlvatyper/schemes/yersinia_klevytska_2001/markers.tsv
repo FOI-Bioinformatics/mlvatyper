@@ -10,7 +10,7 @@ M22	7	235	12	N/A	M22
 M23	7	169	6.5	N/A	M23
 M25	7	335	20	N/A	M25
 M26	8	333	2	N/A	M26
-M27	8	245	6	N/A	M27
+M27	8	245	19	N/A	M27
 M28	8	212	7	N/A	M28
 M29	8	231	8	N/A	M29
 M31	8	326	8	N/A	M31
@@ -59,6 +59,12 @@ M79	8	252	10	N/A	M79
 # the draft sequence available in 2001 or by different criteria. They are kept, because they define the
 # published allele numbering and there is no better source, and ref_size is measured here so that the
 # two are consistent for CO92. Marker, published copies and units found:
+# M27 does not use the published copy number. With the published 6 the implied flank is 245 - 6 x 8 =
+# 197 bp, but products of 141 bp occur, which is shorter than the flank alone and therefore impossible,
+# and 3 of 20 genomes screened got a negative allele. The CO92 amplicon holds 19 copies of the 8 bp unit
+# counted with one mismatch (152 bp of array, 93 bp of flank, against 53 bp of primers), so ref_repeats is
+# 19 and every allele seen is positive. Alleles at M27 are therefore 13 higher than the published
+# numbering; subtract 13 to compare with published M27 values.
 #   M02 11/10; M15 2/4; M22 12/13; M23 6.5/7; M25 20/14; M27 6/19; M33 22/2; M36 1/4; M37 6/7; M43 5/4; M52 4/3; M58 7.5/6; M59 8/6; M61 5/4; M66 2/3; M68 3/2; M77 4/5
 #
 # patterns are left N/A because the publication gives no consensus repeat sequences. The tandem array

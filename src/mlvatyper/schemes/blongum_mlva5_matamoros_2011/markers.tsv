@@ -1,7 +1,7 @@
 marker	unit_length	ref_size	ref_repeats	patterns	label
 VNTR12	14	481	6	N/A	VNTR12
 VNTR21	9	386	4	N/A	VNTR21
-VNTR23	10	374	3	N/A	VNTR23
+VNTR23	10	374	7	N/A	VNTR23
 VNTR25	12	415	7	N/A	VNTR25
 VNTR26	10	274	16	N/A	VNTR26
 # unit_length and ref_repeats are Table 3 and Table 1 of Matamoros et
@@ -14,5 +14,14 @@ VNTR26	10	274	16	N/A	VNTR26
 # patterns is N/A at every locus: counting the published consensus motif in the NCC2705 amplicon does
 # not return the published copy number at any of the five, because the arrays are imperfect and the
 # flank carries partial motifs, so a stored pattern would raise a false COUNT_DISAGREES. The motifs
+# VNTR23 does not use the published copy number of 3. With 3 the implied flank is 374 - 3 x 10 = 344 bp,
+# but products of 314 bp occur, which is shorter than the flank alone and therefore impossible, and 12 of
+# 20 genomes screened got a negative allele. The NCC2705 amplicon holds 6 copies of the published 10 bp
+# unit exactly and 7 counted with one mismatch; ref_repeats is 7, the count at the mismatch allowance the
+# scheme runs with, which leaves a 304 bp flank against 41 bp of primers and makes every allele seen
+# positive. Alleles at VNTR23 are therefore 4 higher than the published numbering; subtract 4 to compare
+# with published VNTR23 values. The reference product, 374 bp, is also 1 bp above the top of the size
+# range Table 2 gives for this locus (313-373 bp), so the published sizes and numbering for VNTR23 may
+# rest on a different scale; reconcile them against the paper before comparing whole profiles.
 # from Table 3 are recorded here instead: VNTR12 TCGTGGGTAGCAAC, VNTR21 AGCCGAATC, VNTR23 CTGATATTCG,
 # VNTR25 CACAACCTGTTT, VNTR26 AGCCATATCA.

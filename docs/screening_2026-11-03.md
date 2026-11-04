@@ -153,6 +153,13 @@ calls, or an allele below zero):
 | `saureus_mlva14_pourcel_2009` | Sa1425 | allele -2 |
 | `yersinia_klevytska_2001` | M27 | allele -2 |
 
+Two of these were resolved after the second pass: M27 and VNTR23 are now
+numbered on the units their reference amplicon holds (19 and 7) rather than the
+published counts, because the published counts imply a non-repeat flank longer
+than the shortest product seen in other strains, which cannot be. Their alleles
+are 13 and 4 above the published numbering, which the scheme notes record. The
+rest of this section describes the state before that change.
+
 These are candidates, not diagnoses. A negative allele means that the product
 is shorter than the reference calibration allows (a reference count that is too
 low, a flank deletion in these strains, or a wrong unit), and a flag on every
