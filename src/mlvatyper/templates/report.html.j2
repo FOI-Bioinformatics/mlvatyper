@@ -141,7 +141,7 @@ samples{% endif %}. Several amplicons for one marker are joined with a slash. Ce
 <figcaption>{{ fcap("Clustered allele profiles. Rows are samples ordered by UPGMA clustering (Sokal and Michener 1958) on the categorical coefficient, the share of loci that differ among the loci typed in both samples, which is the usual way of comparing MLVA profiles; columns are loci ordered by UPGMA clustering on the share of sample pairs on which two loci disagree about whether the samples carry the same allele (one minus the Rand index), so loci that group the samples alike stand together. The trees on the left and on top show the two clusterings. Each locus has its own colour scale, from the lowest to the highest repeat number seen in it, and the repeat number is printed in the cell when the matrix is small. Grey cells have no single integer allele.") }}</figcaption></figure>
 {% if data.figures.distance %}
 <figure>{{ data.figures.distance | safe }}
-<figcaption>{{ fcap("Pairwise distances in the order of the heatmap: the share of loci that differ, among loci typed in both samples. Pairs that share fewer than 8 typed loci are given the mean distance. Alleles are compared as categories, so the distance does not reflect the size of the repeat difference.") }}</figcaption></figure>
+<figcaption>{{ fcap("Pairwise distances in the order of the heatmap: the share of loci that differ, among loci typed in both samples. Pairs that share fewer than 8 typed loci (half the loci, at least 2, for a panel under 16 loci) are given the mean distance. Alleles are compared as categories, so the distance does not reflect the size of the repeat difference.") }}</figcaption></figure>
 {% endif %}
 {% if data.figures.mst %}
 <figure>{{ data.figures.mst | safe }}

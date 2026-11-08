@@ -27,7 +27,9 @@ def sample_summary(alleles: pd.DataFrame, status: pd.DataFrame) -> pd.DataFrame:
     for sample in alleles.index:
         a, s = alleles.loc[sample], status.loc[sample]
         typed = sum(_is_number(v) for v in a)
-        ok = sum(v in GOOD for v in s)
+        # ok counts good calls among the typed ones only: a named bin allele ('3a', status BINNED) is not a
+        # number, so counting its status alone would make ok exceed typed and flagged go below zero
+        ok = sum(st in GOOD and _is_number(v) for v, st in zip(a, s, strict=True))
         missing = sum(v in ABSENT for v in s)
         rows.append({"sample": sample, "loci": n, "typed": typed, "ok": ok, "flagged": typed - ok,
                      "missing": missing, "ok_fraction": round(ok / n, 3) if n else 0.0})
@@ -49,7 +51,7 @@ def locus_summary(alleles: pd.DataFrame, status: pd.DataFrame,
         a, s = alleles[marker], status[marker]
         numeric = [v for v in (allele_value(x) for x in a) if v is not None]
         typed = len(numeric)
-        ok = int(s.isin(GOOD).sum())
+        ok = sum(st in GOOD and _is_number(v) for v, st in zip(a, s, strict=True))  # as in sample_summary
         missing = int(s.isin(ABSENT).sum())
         codes: dict[str, int] = {}
         for sample_status, value in zip(s, a, strict=True):

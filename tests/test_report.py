@@ -167,3 +167,79 @@ def test_a_figure_that_fails_does_not_stop_the_report(tmp_path, monkeypatch, cap
     figs = figures(data)
     assert figs["mds"] == "" and figs["heatmap"].startswith("<svg") and figs["status"].startswith("<svg")
     assert "The mds figure was left out of the report" in caplog.text
+
+
+def test_command_line_reproduces_the_run_and_parses():
+    """Only run options are written; internal values and global options are left out."""
+    import shlex
+
+    from mlvatyper.cli import build_parser
+    from mlvatyper.report import _command_line
+    params = {"scheme": "burkholderia_uren_2007", "fasta": ["a.fa"], "outdir": "o", "prefix": "p",
+              "interrupted_arrays": ["1788k", "857k"], "log_json": "events.jsonl", "rescue_indels": False,
+              "dedup": False, "jobs": 2}
+    cmd = _command_line({"search": {"parameters": params}})
+    assert "--interrupted-arrays" not in cmd and "--log-json" not in cmd
+    assert "--no-rescue-indels" in cmd and "--no-dedup" in cmd and "--jobs 2" in cmd
+    args = build_parser().parse_args(shlex.split(cmd)[1:])
+    assert args.command == "run" and args.rescue_indels is False and args.dedup is False
+
+
+def _report_data(tmp_path, alleles, status):
+    import pandas as pd
+
+    from mlvatyper.report import ReportData
+    return ReportData(tmp_path, "p", "t", {}, list(alleles.index), list(alleles.columns), alleles, status,
+                      alleles, pd.DataFrame(), pd.DataFrame(), None, None)
+
+
+def test_summary_rows_stay_with_their_samples(tmp_path):
+    """A sample without an OK call sorted last in the status counts, so typed/missing landed on another row."""
+    import pandas as pd
+
+    from mlvatyper.report import _summary_table
+    alleles = pd.DataFrame({"m1": ["5", "NOT_DETECTED", "6"], "m2": ["4", "NOT_DETECTED", "4"]},
+                           index=["a_mini", "b_empty", "c_mini"])
+    status = alleles.where(alleles != "NOT_DETECTED", "NOT_DETECTED").mask(alleles != "NOT_DETECTED", "OK")
+    table = _summary_table(_report_data(tmp_path, alleles, status))
+    assert list(table.index) == ["a_mini", "b_empty", "c_mini"]
+    assert table.loc["b_empty", ["markers typed", "missing"]].tolist() == [0, 2]
+    assert table.loc["c_mini", ["markers typed", "missing"]].tolist() == [2, 0]
+
+
+def test_summary_counts_an_exact_half_grid_allele_as_typed(tmp_path):
+    import pandas as pd
+
+    from mlvatyper.report import _summary_table
+    alleles = pd.DataFrame({"m1": ["6.5"], "m2": ["3.1"], "m3": [">=50"], "m4": ["9/9"]}, index=["s"])
+    status = pd.DataFrame({"m1": ["OK"], "m2": ["OK"], "m3": ["CENSORED"], "m4": ["MULTIPLE"]}, index=["s"])
+    assert _summary_table(_report_data(tmp_path, alleles, status)).loc["s", "markers typed"] == 3
+
+
+def test_one_locus_panel_still_gets_the_spectra_and_call_rates(tmp_path):
+    import pandas as pd
+
+    from mlvatyper.report import figures
+    samples = [f"s{i}" for i in range(6)]
+    alleles = pd.DataFrame({"m1": [str(2 + i % 3) for i in range(6)]}, index=samples)
+    status = pd.DataFrame({"m1": ["OK"] * 6}, index=samples)
+    data = _report_data(tmp_path, alleles, status)
+    data.calls = pd.DataFrame({"sample": samples, "marker": ["m1"] * 6, "copy": ["1"] * 6, "length": ["100"] * 6,
+                               "expected_size": ["100"] * 6, "residual_bp": ["0"] * 6, "allele": alleles["m1"],
+                               "status": ["OK"] * 6})
+    out = figures(data)
+    assert out.get("spectra") and out.get("callrate"), "no clustering is needed for these two"
+    assert "heatmap" not in out  # one locus has nothing to cluster
+
+
+def test_summary_tables_of_an_earlier_larger_run_are_removed(fixture_dir):
+    for i in range(5):
+        (fixture_dir / f"extra{i}.fasta").write_text((fixture_dir / "sampleA.fasta").read_text())
+    out = fixture_dir / "out"
+    base = ["run", "--sts", str(fixture_dir / "primers.sts"), "--outdir", str(out), "--prefix", "p", "-N", "0",
+            "-M", "50", "--skip-invalid", "--align", "none", "--markers", str(fixture_dir / "patterns.tsv"),
+            "--reference-sample", "sampleA"]
+    assert main([*base, "--fasta", str(fixture_dir / "*.fasta")]) == 0
+    assert (out / "p_sample_summary.tsv").exists() and (out / "p_locus_summary.tsv").exists()
+    assert main([*base, "--fasta", str(fixture_dir / "sampleA.fasta"), str(fixture_dir / "sampleB.fasta")]) == 0
+    assert not (out / "p_sample_summary.tsv").exists() and not (out / "p_locus_summary.tsv").exists()

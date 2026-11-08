@@ -68,7 +68,7 @@ RUN_INFO = "run_info.json"
 SCHEME_CHECK = "scheme_check.tsv"
 # parser defaults that a scheme may override (see scheme.apply_scheme)
 CALLING_DEFAULTS = {"rounding": "intermediate", "allele_tolerance": 0.25, "unit_mismatches": 1, "margin": 500,
-                    "mismatches": 2, "max_array_length": None}
+                    "mismatches": 2, "max_array_length": None, "rescue_indels": False}
 
 
 def _add_search_args(p: argparse.ArgumentParser) -> None:
@@ -117,9 +117,10 @@ def _add_search_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--max-repeats", type=int, default=50,
                    help="largest repeat number of the per-marker size window written from --markers "
                         "(default 50)")
-    p.add_argument("--rescue-indels", action="store_true",
+    p.add_argument("--rescue-indels", action=argparse.BooleanOptionalAction, default=False,
                    help="for markers still missing, anchor on a gap-free match of one primer (up to -N "
-                        "mismatches) and align the other with up to one indel")
+                        "mismatches) and align the other with up to one indel; --no-rescue-indels turns it "
+                        "off for a scheme that enables it")
 
 
 def _add_scheme_arg(p: argparse.ArgumentParser) -> None:
@@ -813,6 +814,8 @@ def _dispatch(args: argparse.Namespace, outdir: Path, explicit: set[str] | None 
     elif args.command == "run":
         # the samples that did not fail are typed and reported; the exit status still reports the failures
         failed = do_search(args, outdir)
+        if failed and not read_samples(outdir / SAMPLES_FILE):
+            _failed_exit(failed)  # every sample failed: nothing to type or report
         do_summarize(args, outdir)
         if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
             write_html_report(outdir, args.prefix, args.title)

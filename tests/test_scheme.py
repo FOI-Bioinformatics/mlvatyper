@@ -376,3 +376,16 @@ def test_schemes_declare_the_loci_whose_flags_they_explain():
         assert set(loci) <= markers, f"{name} declares a locus it does not have"
         assert not scheme.missing_provenance(), name
     assert load_scheme("testM").explained_flags == ()
+
+
+def test_no_rescue_indels_turns_off_a_scheme_default():
+    from mlvatyper.cli import CALLING_DEFAULTS, build_parser, explicit_options
+    from mlvatyper.scheme import apply_scheme
+    scheme = load_scheme("burkholderia_uren_2007")
+    assert scheme.calling_defaults()["rescue_indels"] is True
+    base = ["run", "--scheme", scheme.name, "--fasta", "x.fa", "--outdir", "o", "--prefix", "p"]
+    for extra, expected in (([], True), (["--no-rescue-indels"], False), (["--rescue-indels"], True)):
+        argv = base + extra
+        args = build_parser().parse_args(argv)
+        apply_scheme(args, scheme, CALLING_DEFAULTS, explicit_options(argv))
+        assert args.rescue_indels is expected, extra

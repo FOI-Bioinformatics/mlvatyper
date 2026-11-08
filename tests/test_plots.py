@@ -193,3 +193,21 @@ def test_a_locus_of_half_alleles_still_clusters():
     assert svg.startswith("<svg") and len(order) == 6
     assert "20.5" not in svg  # the cells show the alleles that are there
     assert ".5" in svg  # as half alleles, not truncated to integers
+
+
+def test_a_poorly_typed_sample_does_not_become_a_hub_of_the_tree():
+    """A pair sharing too few loci took the mean distance, which can undercut real ones in a spanning tree."""
+    from mlvatyper.plots import allele_matrix, profile_groups, profile_tree
+    loci = 16
+    rows = {"a": [2] * 16, "b": [2] * 15 + [3], "c": [2] * 14 + [3, 3], "d": [2] * 13 + [3, 3, 3],
+            "e": [3] * 16, "poor": [2, 2, 2] + ["NOT_DETECTED"] * 13}  # poor is typed at 3 loci only
+    alleles = pd.DataFrame({f"m{i}": [str(rows[s][i]) for s in rows] for i in range(loci)}, index=list(rows))
+    values = allele_matrix(alleles)
+    names = list(alleles.index)
+    groups = profile_groups(values, names)
+    counts, edges = profile_tree(values, groups)
+    by_name = {frozenset((names[groups[a][0]], names[groups[b][0]])): int(counts[a, b]) for a, b, _ in edges}
+    poor_edges = [pair for pair in by_name if "poor" in pair]
+    assert len(poor_edges) == 1, "poor hangs off the tree by one edge, it does not join others"
+    assert by_name[poor_edges[0]] == -1, "and that edge has no real count"
+    assert by_name.get(frozenset(("d", "e"))) == 13, "e joins through its real distance"

@@ -55,7 +55,8 @@ summary and loci to review](images/report.png)
 4. **Figures**: amplicon length per marker against the expected size,
    residual per marker, and a status matrix of samples by markers (ordered
    like the heatmap below for five or more samples). For five or more samples
-   there are six more: a **clustered heatmap of the allele profiles** (rows
+   there are six more (the allele spectra and call rates for any panel; the
+   other four, which compare profiles, for two or more loci): a **clustered heatmap of the allele profiles** (rows
    ordered by average linkage clustering of the samples and columns by
    clustering of the loci, with both trees; two loci are close when they
    divide the samples into the same groups of equal allele, one minus the
@@ -69,7 +70,10 @@ summary and loci to review](images/report.png)
    multidimensional scaling** of the distances in two dimensions, whose axis
    labels give the share of the distance structure each axis keeps. The distance is the
    share of loci that differ among those typed in both samples; pairs with
-   fewer than eight shared loci take the mean distance. The clustering is
+   fewer than eight shared loci (half the loci, at least two, for a panel
+   under 16 loci) take the mean distance, except in the minimum spanning
+   tree, which joins such a pair only after every real distance and draws
+   that edge dashed with "?" instead of a count. The clustering is
    UPGMA on this categorical coefficient, which is how MLVA profiles are
    usually compared; the minimum spanning tree uses the same distance and the
    tie-breaking rules of goeBURST (Francisco et al. 2009), so that equal edges

@@ -98,3 +98,12 @@ def test_a_locus_the_scheme_explains_is_listed_apart_from_the_ones_to_review():
     # the finding itself is kept either way, so nothing is hidden
     assert marked["loci"].loc["known", "concern"] == plain["loci"].loc["known", "concern"] != ""
     assert marked["loci"].loc["known", "explained"] and not marked["loci"].loc["new", "explained"]
+
+
+def test_a_named_bin_allele_never_makes_flagged_negative():
+    """A bin table may name an allele ('3a'); its BINNED status must not count as ok while it is not typed."""
+    alleles = pd.DataFrame({"m1": ["3a", "5"], "m2": ["4", "4"]}, index=["s1", "s2"])
+    status = pd.DataFrame({"m1": ["BINNED", "OK"], "m2": ["OK", "OK"]}, index=["s1", "s2"])
+    for table in (sample_summary(alleles, status), locus_summary(alleles, status)):
+        assert (table["flagged"] >= 0).all() and (table["ok"] <= table["typed"]).all()
+    assert sample_summary(alleles, status).loc["s1", ["typed", "ok", "flagged"]].tolist() == [1, 1, 0]
