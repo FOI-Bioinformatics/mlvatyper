@@ -167,7 +167,9 @@ def status_counts(data: ReportData) -> pd.DataFrame:
         for marker in data.markers:
             for code in str(data.status.loc[sample, marker]).split(";"):
                 counts[sample][code] = counts[sample].get(code, 0) + 1
-    df = pd.DataFrame.from_dict(counts, orient="index").fillna(0).astype(int)
+    # from_dict orders the rows by where each code first appears, not by sample, so put them back in
+    # sample order: callers add per-sample columns as plain lists in data.samples order
+    df = pd.DataFrame.from_dict(counts, orient="index").reindex(data.samples).fillna(0).astype(int)
     order = [c for c in STATUS_GLOSSARY if c in df.columns] + [c for c in df.columns if c not in STATUS_GLOSSARY]
     return df.reindex(columns=order)
 
@@ -249,12 +251,13 @@ def figures(data: ReportData) -> dict[str, str]:
     samples = data.samples
     if len(samples) >= MIN_SAMPLES:
         from . import plots
+        # the spectra and call rates need no clustering, so a one-locus panel (no heatmap) still gets them
+        out["spectra"] = _safe_figure("spectra", plots.allele_spectra, data.alleles) or ""
+        out["callrate"] = _safe_figure("callrate", plots.call_rate_bars, data.status) or ""
         heat = _safe_figure("heatmap", plots.clustered_heatmap, data.alleles)
         if heat:
             out["heatmap"], samples = heat
             out["distance"] = _safe_figure("distance", plots.distance_heatmap, data.alleles, samples) or ""
-            out["spectra"] = _safe_figure("spectra", plots.allele_spectra, data.alleles) or ""
-            out["callrate"] = _safe_figure("callrate", plots.call_rate_bars, data.status) or ""
             out["mds"] = _safe_figure("mds", plots.mds_plot, data.alleles) or ""
             out["mst"] = _safe_figure("mst", plots.mst_plot, data.alleles, data.status) or ""
     codes = list(STATUS_COLOURS)
@@ -361,6 +364,27 @@ def _run_options() -> dict:
     return {a.dest: a for a in sub.choices["run"]._actions if a.option_strings}
 
 
+def _flag_text(action, value, from_scheme: bool) -> str | None:
+    """How one recorded option is written on the command line, or None when it is left out."""
+    import argparse
+
+    flags = [o for o in action.option_strings if o.startswith("--")] or action.option_strings
+    if isinstance(action, argparse.BooleanOptionalAction):
+        if value is True:
+            return flags[0]
+        # off is the default, but a scheme may switch it on, so an explicit off is kept for a scheme run
+        return flags[1] if value is False and from_scheme else None
+    if isinstance(action, argparse._StoreFalseAction):  # --no-dedup and the like
+        return flags[0] if value is False else None
+    if value in (None, False, "", []):
+        return None
+    if value is True:
+        return flags[0]
+    if isinstance(value, list):
+        return f"{flags[0]} {' '.join(str(v) for v in value)}"
+    return f"{flags[0]} {value}"
+
+
 def _command_line(run_info: dict) -> str:
     """The run command that reproduces the recorded search.
 
@@ -369,8 +393,6 @@ def _command_line(run_info: dict) -> str:
     --log-json, which does not change the result) is not written as a flag, and every flag is spelled
     as the parser spells it.
     """
-    import argparse
-
     search = run_info.get("search", {}).get("parameters", {}) or {}
     options = _run_options()
     items = []
@@ -378,25 +400,9 @@ def _command_line(run_info: dict) -> str:
         action = options.get(key)
         if action is None or key == "title":
             continue
-        flags = [o for o in action.option_strings if o.startswith("--")] or action.option_strings
-        if isinstance(action, argparse.BooleanOptionalAction):
-            if value is True:
-                items.append(flags[0])
-            elif value is False and search.get("scheme"):  # the scheme may switch it on; keep it off
-                items.append(flags[1])
-            continue
-        if isinstance(action, argparse._StoreFalseAction):  # --no-dedup and the like
-            if value is False:
-                items.append(flags[0])
-            continue
-        if value in (None, False, "", []):
-            continue
-        if value is True:
-            items.append(flags[0])
-        elif isinstance(value, list):
-            items.append(f"{flags[0]} {' '.join(str(v) for v in value)}")
-        else:
-            items.append(f"{flags[0]} {value}")
+        text = _flag_text(action, value, bool(search.get("scheme")))
+        if text:
+            items.append(text)
     return "mlvatyper run " + " ".join(items)
 
 
@@ -496,13 +502,15 @@ SOFTWARE = [
 
 
 def _summary_table(data: ReportData) -> pd.DataFrame:
-    """Per sample: markers typed (integer allele), flagged and missing, then the status counts."""
+    """Per sample: markers typed (an allele value), flagged and missing, then the status counts."""
     counts = status_counts(data)
     typed = []
     missing = []
     for sample in data.samples:
         row = data.alleles.loc[sample]
-        typed.append(int(sum(str(v).lstrip("-").isdigit() for v in row)))
+        # allele_value, as the screening summaries and the figures use: an exact call on a half grid
+        # (6.5) or a censored one (>=50) is typed, a status code or 9/9 is not
+        typed.append(int(sum(allele_value(str(v)) is not None for v in row)))
         missing.append(int(sum(str(v) in ABSENT_CODES for v in row)))
     counts.insert(0, "markers typed", typed)
     counts.insert(1, "missing", missing)
@@ -627,9 +635,13 @@ def write_report(outdir: Path, prefix: str, title: str | None = None) -> Path:
     data = load_report_data(outdir, prefix, title)
     path = Path(outdir) / f"{prefix}_report.html"
     ov = screening_overview(data)
-    if ov is not None:
-        ov["samples"].to_csv(Path(outdir) / f"{prefix}_sample_summary.tsv", sep="\t")
-        ov["loci"].to_csv(Path(outdir) / f"{prefix}_locus_summary.tsv", sep="\t")
+    for name, key in (("sample_summary", "samples"), ("locus_summary", "loci")):
+        table = Path(outdir) / f"{prefix}_{name}.tsv"
+        if ov is not None:
+            table.write_text(ov[key].to_csv(sep="\t"), encoding="utf-8")
+        elif table.exists():  # from an earlier run of this prefix with enough samples; no longer describes it
+            table.unlink()
+            log.info("Removed %s from an earlier run", table)
     path.write_text(render(data), encoding="utf-8")
     log.info("Wrote %s", path)
     return path

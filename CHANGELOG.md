@@ -5,6 +5,33 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+### Fixed
+
+- The per-sample summary table of the report put the typed and missing
+  counts on the wrong samples when a sample had no OK call: the status
+  counts were ordered by where each code first appeared, not by sample.
+- `run` where every sample fails exits 2 with the "samples failed" message
+  instead of a traceback, and `summarize` on an empty sample list no
+  longer crashes.
+- The report's summary counts an exact call on a half grid (6.5) or a
+  censored call as typed, as the across-sample summaries and figures do.
+- In the minimum spanning tree, a pair that shares too few loci is joined
+  only after every real distance, so a poorly typed sample no longer
+  becomes a hub joining others; its edge is dashed and labelled "?" instead
+  of an invented count.
+- The allele spectra and call rate figures are drawn for a one-locus panel.
+- A report with fewer than five samples removes the sample and locus
+  summary tables an earlier, larger run left under the same prefix.
+- The command line in the report is built from the run options, so it no
+  longer contains `--interrupted-arrays` (not an option) or `--log-json`
+  after the subcommand, and running it works.
+- `--no-rescue-indels` turns off the indel rescue that a scheme enables
+  (burkholderia_uren_2007), as the command line should win over a scheme.
+- A named bin allele ('3a') no longer makes the screening `flagged` count
+  negative.
+- The distance caption and docs/report.md state the shared-loci rule as
+  the code applies it (8, or half the loci for a panel under 16).
+
 ## 0.4.0 - 2026-11-04
 
 Highlights: 25 published schemes bundled and documented with their

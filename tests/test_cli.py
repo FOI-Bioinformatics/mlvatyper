@@ -351,3 +351,14 @@ def test_the_search_engine_is_importable_without_the_command_line():
     assert {"search_sample", "search_samples", "save_sample", "load_sample", "search_key",
             "PER_SAMPLE_DIR"} <= set(dir(runner))
     assert "argparse" not in runner.search_samples.__doc__
+
+
+def test_run_where_every_sample_fails_exits_2_without_a_traceback(fixture_dir, caplog):
+    (fixture_dir / "bad.fasta").write_text("not a fasta\n")
+    out = fixture_dir / "o"
+    rc = main(["run", "--sts", str(fixture_dir / "primers.sts"), "--fasta", str(fixture_dir / "bad.fasta"),
+               "--outdir", str(out), "--prefix", "p", "--skip-invalid", "--align", "none"])
+    assert rc == 2 and "samples failed" in caplog.text
+    # summarize on the empty sample list does not crash either
+    assert main(["summarize", "--outdir", str(out), "--prefix", "p", "--markers",
+                 str(fixture_dir / "patterns.tsv")]) == 0

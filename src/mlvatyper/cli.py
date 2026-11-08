@@ -814,6 +814,8 @@ def _dispatch(args: argparse.Namespace, outdir: Path, explicit: set[str] | None 
     elif args.command == "run":
         # the samples that did not fail are typed and reported; the exit status still reports the failures
         failed = do_search(args, outdir)
+        if failed and not read_samples(outdir / SAMPLES_FILE):
+            _failed_exit(failed)  # every sample failed: nothing to type or report
         do_summarize(args, outdir)
         if args.report and (outdir / f"{args.prefix}_calls_long.tsv").exists():
             write_html_report(outdir, args.prefix, args.title)

@@ -328,7 +328,10 @@ def profile_table(calls: list[Call], samples: list[str], markers: list[str]) -> 
     5-(-1)-3; the marker columns keep the value.
     """
     df = allele_table(calls, samples, markers).fillna(NOT_DETECTED)
-    profile = df[markers].astype(str).map(_profile_cell).agg("-".join, axis=1) if markers else ""
+    if markers and len(df.index):
+        profile = df[markers].astype(str).map(_profile_cell).agg("-".join, axis=1)
+    else:  # no samples (every one failed) or no markers: agg would not give one string per row
+        profile = pd.Series("", index=df.index, dtype=object)
     df.insert(0, "profile", profile)
     return df
 

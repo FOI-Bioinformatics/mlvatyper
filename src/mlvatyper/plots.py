@@ -4,7 +4,8 @@ Clustering uses the categorical distance between profiles and average linkage (U
 with NumPy so that the report needs no further dependency. The distance between two samples is
 the share of loci that differ among the loci with a single integer allele in both; pairs that
 share fewer than shared_threshold loci have no distance and receive the mean of the others, so that
-a poorly typed sample does not pull the tree.
+a poorly typed sample does not pull the clustering; the minimum spanning tree instead takes such a pair
+only after every real distance, so that a poorly typed sample does not become a hub.
 """
 
 import numpy as np
@@ -467,6 +468,22 @@ def profile_groups(values: np.ndarray, names: list[str]) -> list[list[int]]:
     return list(groups.values())
 
 
+def profile_tree(values: np.ndarray, groups: list[list[int]]) -> tuple[np.ndarray, list[tuple[int, int, float]]]:
+    """Locus difference counts and minimum spanning tree edges between the profile groups.
+
+    A pair that shares too few loci has no real distance (count -1). distance_matrix fills it with the
+    mean, which in a spanning tree can undercut real distances and make a poorly typed sample a hub that
+    joins others. Such an edge is therefore placed after every real one (distances are at most 1), so it
+    only joins parts that no real distance connects; mst_plot draws it dashed with "?" for its count.
+    """
+    reps = [g[0] for g in groups]
+    counts = difference_counts(values[reps])
+    unknown = counts < 0
+    np.fill_diagonal(unknown, False)
+    dist = np.where(unknown, 2.0, distance_matrix(values[reps]))
+    return counts, minimum_spanning_tree(dist, counts, [len(g) for g in groups])
+
+
 def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str | None:
     """Minimum spanning tree of the distinct profiles; edge labels give the number of loci that differ."""
     import matplotlib.pyplot as plt
@@ -477,22 +494,21 @@ def mst_plot(alleles: pd.DataFrame, status: pd.DataFrame | None = None) -> str |
     groups = profile_groups(values, names)
     if len(groups) < 3:
         return None
-    reps = [g[0] for g in groups]
-    dist = distance_matrix(values[reps])
-    edges = minimum_spanning_tree(dist, difference_counts(values[reps]), [len(g) for g in groups])
+    counts, edges = profile_tree(values, groups)
     pos = tree_layout(len(groups), edges)
-    loci_shared = np.array([[int((~np.isnan(values[a]) & ~np.isnan(values[b])).sum()) for b in reps] for a in reps])
     if status is not None:
         ok_share = [float(np.mean([status.loc[names[i]].isin(GOOD_CODES).mean() for i in g])) for g in groups]
     else:
         ok_share = [1.0] * len(groups)
     fig, ax = plt.subplots(figsize=(7.2, 6.0))
-    for a, b, w in edges:
-        ax.plot([pos[a, 0], pos[b, 0]], [pos[a, 1], pos[b, 1]], color="#888888", linewidth=0.9, zorder=1)
-        differ = int(round(w * loci_shared[a, b]))
+    for a, b, _w in edges:
+        differ = int(counts[a, b])
+        ax.plot([pos[a, 0], pos[b, 0]], [pos[a, 1], pos[b, 1]], color="#888888", linewidth=0.9, zorder=1,
+                linestyle="--" if differ < 0 else "-")
         mid = (pos[a] + pos[b]) / 2
         if len(groups) <= 60:
-            ax.text(mid[0], mid[1], str(differ), fontsize=5.5, color="#555555", ha="center", va="center",
+            ax.text(mid[0], mid[1], "?" if differ < 0 else str(differ), fontsize=5.5, color="#555555",
+                    ha="center", va="center",
                     bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.4, "alpha": 0.85}, zorder=2)
     sizes = [30 + 40 * (len(g) - 1) for g in groups]
     nodes = ax.scatter(pos[:, 0], pos[:, 1], s=sizes, c=ok_share, cmap="viridis", vmin=0.5, vmax=1.0,
