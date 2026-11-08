@@ -167,3 +167,19 @@ def test_a_figure_that_fails_does_not_stop_the_report(tmp_path, monkeypatch, cap
     figs = figures(data)
     assert figs["mds"] == "" and figs["heatmap"].startswith("<svg") and figs["status"].startswith("<svg")
     assert "The mds figure was left out of the report" in caplog.text
+
+
+def test_command_line_reproduces_the_run_and_parses():
+    """Only run options are written; internal values and global options are left out."""
+    import shlex
+
+    from mlvatyper.cli import build_parser
+    from mlvatyper.report import _command_line
+    params = {"scheme": "burkholderia_uren_2007", "fasta": ["a.fa"], "outdir": "o", "prefix": "p",
+              "interrupted_arrays": ["1788k", "857k"], "log_json": "events.jsonl", "rescue_indels": False,
+              "dedup": False, "jobs": 2}
+    cmd = _command_line({"search": {"parameters": params}})
+    assert "--interrupted-arrays" not in cmd and "--log-json" not in cmd
+    assert "--no-rescue-indels" in cmd and "--no-dedup" in cmd and "--jobs 2" in cmd
+    args = build_parser().parse_args(shlex.split(cmd)[1:])
+    assert args.command == "run" and args.rescue_indels is False and args.dedup is False

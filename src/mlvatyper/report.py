@@ -351,26 +351,52 @@ def methods_text(run_info: dict, prefix: str | None = None) -> str:
 
 
 # options stored under their dest whose flag is the negation (store_false); see cli.build_parser
-NEGATED_FLAGS = {"dedup": "--no-dedup", "iupac": "--no-iupac", "report": "--no-report", "download": "--no-download"}
+def _run_options() -> dict:
+    """The options of the run subcommand, by their destination in the parsed arguments."""
+    import argparse
+
+    from .cli import build_parser  # imported here: cli imports this module
+    parser = build_parser()
+    sub = next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
+    return {a.dest: a for a in sub.choices["run"]._actions if a.option_strings}
 
 
 def _command_line(run_info: dict) -> str:
+    """The run command that reproduces the recorded search.
+
+    Built from the options the run subcommand defines, so a value stored for internal use (such as
+    the interrupted arrays a scheme declares) or a global option given before the subcommand (such as
+    --log-json, which does not change the result) is not written as a flag, and every flag is spelled
+    as the parser spells it.
+    """
+    import argparse
+
     search = run_info.get("search", {}).get("parameters", {}) or {}
+    options = _run_options()
     items = []
     for key, value in sorted(search.items()):
-        if key in NEGATED_FLAGS:
+        action = options.get(key)
+        if action is None or key == "title":
+            continue
+        flags = [o for o in action.option_strings if o.startswith("--")] or action.option_strings
+        if isinstance(action, argparse.BooleanOptionalAction):
+            if value is True:
+                items.append(flags[0])
+            elif value is False and search.get("scheme"):  # the scheme may switch it on; keep it off
+                items.append(flags[1])
+            continue
+        if isinstance(action, argparse._StoreFalseAction):  # --no-dedup and the like
             if value is False:
-                items.append(NEGATED_FLAGS[key])
+                items.append(flags[0])
             continue
-        if value in (None, False, "", []) or key == "title":
+        if value in (None, False, "", []):
             continue
-        flag = "--" + key.replace("_", "-")
         if value is True:
-            items.append(flag)
+            items.append(flags[0])
         elif isinstance(value, list):
-            items.append(f"{flag} {' '.join(str(v) for v in value)}")
+            items.append(f"{flags[0]} {' '.join(str(v) for v in value)}")
         else:
-            items.append(f"{flag} {value}")
+            items.append(f"{flags[0]} {value}")
     return "mlvatyper run " + " ".join(items)
 
 
