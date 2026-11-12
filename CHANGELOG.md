@@ -5,6 +5,14 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+## 0.5.0 - 2026-11-12
+
+An audit of the two bundled *Brucella* schemes against their source
+publications and the allele numbering the Brucella MLVA database uses, plus
+the earlier HOOF-Print assay. Three changes alter *Brucella* results, so
+profiles made with 0.4.0 and with this version should not be compared without
+reading them.
+
 ### Added
 
 - `brucella_hoofprints_bricker_2003`: the eight locus HOOF-Print assay
