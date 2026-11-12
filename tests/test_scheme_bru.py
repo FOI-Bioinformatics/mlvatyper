@@ -15,11 +15,12 @@ ASSEMBLY = "GCF_000007125.1"
 # scheme order: panel 1 (MLVA-8), panel 2A, panel 2B
 ORDER = ["Bruce06", "Bruce08", "Bruce11", "Bruce12", "Bruce42", "Bruce43", "Bruce45", "Bruce55",
          "Bruce18", "Bruce19", "Bruce21", "Bruce04", "Bruce07", "Bruce09", "Bruce16", "Bruce30"]
-# repeat unit (bp), B. melitensis 16M product (bp) and copy number, from Le Fleche et al. 2006 Table 1
+# repeat unit (bp), B. melitensis 16M product (bp) and copy number, from Le Fleche et al. 2006 Table 1;
+# Bruce19 is numbered in 3 bp units as in MLVAbank allele numbering version 3.6 (16M = 36, twice the 6 bp value)
 SOURCE = {
     "Bruce06": (134, 408, 3), "Bruce08": (18, 348, 4), "Bruce11": (63, 257, 2), "Bruce12": (15, 392, 13),
     "Bruce42": (125, 539, 4), "Bruce43": (12, 182, 2), "Bruce45": (18, 151, 3), "Bruce55": (40, 273, 3),
-    "Bruce18": (8, 146, 5), "Bruce19": (6, 163, 18), "Bruce21": (8, 148, 6),
+    "Bruce18": (8, 146, 5), "Bruce19": (3, 163, 36), "Bruce21": (8, 148, 6),
     "Bruce04": (8, 152, 2), "Bruce07": (8, 158, 5), "Bruce09": (8, 156, 7), "Bruce16": (8, 152, 3),
     "Bruce30": (8, 151, 6),
 }
@@ -64,32 +65,58 @@ def test_16m_profile_equals_the_published_copy_numbers(tmp_path):
     assert (tmp_path / "b_mlvabank.csv").read_text().splitlines()[0] == "Strain," + ",".join(ORDER)
 
 
-def test_the_published_allele_table_agrees_with_the_reference_values():
-    """Every bin ladder steps by the locus repeat unit and meets markers.tsv at the 16M copy number."""
+# rows of bins.tsv taken from the MLVAbank version 3.6 binning file that are not points on the ladder
+V36_RANGES = {"Bruce12": {(327, 332), (342, 347), (392, 397), (407, 411)}, "Bruce21": {(172, 175)}}
+V36_OFF_LADDER = {"Bruce16": {254, 270}, "Bruce55": {533}}
+
+
+def test_the_allele_table_agrees_with_the_reference_values():
+    """Apart from the listed version 3.6 rows, each ladder steps by the repeat unit and meets 16M."""
     from mlvatyper.calling import read_bins
     scheme = load_scheme("Bru_MLVA16")
     bins = read_bins(scheme.bins)
     assert set(bins) == set(ORDER), "the table covers all 16 loci"
     for marker, (unit, ref_size, ref_repeats) in SOURCE.items():
-        ladder = sorted((int(b.allele), b.low) for b in bins[marker])
-        assert all(b.low == b.high for b in bins[marker]), f"{marker}: each bin is one size"
-        steps = {(s2 - s1) / (a2 - a1) for (a1, s1), (a2, s2) in zip(ladder, ladder[1:], strict=False)}
-        assert steps == {unit}, f"{marker}: the ladder steps by the repeat unit"
-        assert dict(ladder)[ref_repeats] == ref_size, f"{marker}: the table meets the reference product"
+        ranges = {(b.low, b.high) for b in bins[marker] if b.low != b.high}
+        assert ranges == V36_RANGES.get(marker, set()), marker
+        for b in bins[marker]:
+            if b.low in V36_OFF_LADDER.get(marker, set()):
+                continue
+            # a range must contain its ladder size; a point must be on the ladder
+            on_ladder = [s for s in range(b.low, b.high + 1) if (s - ref_size) % unit == 0]
+            assert len(on_ladder) == 1, f"{marker} {b.low}-{b.high}"
+            assert int(b.allele) == ref_repeats + (on_ladder[0] - ref_size) // unit, f"{marker} {b.low}"
+        assert any(b.low == ref_size and int(b.allele) == ref_repeats for b in bins[marker]), marker
 
 
-def test_a_size_off_the_published_ladder_keeps_an_allele_and_is_flagged(tmp_path):
-    """B. abortus sits 3 bp off the B. melitensis ladder at Bruce19; the call is kept and marked."""
+def test_bruce19_3bp_numbering_gives_integer_alleles_off_the_6bp_ladder(tmp_path):
+    """B. abortus 82 gives 184 bp at Bruce19, half a 6 bp unit off the B. melitensis ladder; it is 43."""
     fixture = reference_assembly("GCF_000473805.1")  # B. abortus 82
     assert main(["run", "--scheme", "Bru_MLVA16", "--fasta", str(fixture), "--outdir", str(tmp_path),
                  "--prefix", "a", "--align", "none", "--no-report"]) == 0
     long = pd.read_csv(tmp_path / "a_calls_long.tsv", sep="\t").set_index("marker")
-    off = long[long["status"].str.contains("OFF_TABLE", na=False)]
-    from mlvatyper.calling import read_bins
-    assert "Bruce19" in off.index and off.loc["Bruce19", "allele"] % 1 == 0.5
-    ladder = {int(b.low) for b in read_bins(load_scheme("Bru_MLVA16").bins)["Bruce19"]}
-    assert long.loc["Bruce19", "length"] == 184 and 184 not in ladder and 181 in ladder
-    # 3 loci have no product in this draft assembly; of the 13 that do, 11 are on the published ladder
+    assert long.loc["Bruce19", "length"] == 184
+    assert long.loc["Bruce19", "allele"] == 43 and long.loc["Bruce19", "status"] == "BINNED"
+    # 3 loci have no product in this draft assembly; of the 13 that do, 12 are on the table
     typed = long[long["length"].notna()]
-    assert len(typed) == 13 and (typed["status"] == "BINNED").sum() == 11
-    assert set(off.index) == {"Bruce19", "Bruce12"}
+    assert len(typed) == 13 and (typed["status"] == "BINNED").sum() == 12
+    off = typed[typed["status"].str.contains("OFF_TABLE", na=False)]
+    assert list(off.index) == ["Bruce12"] and off.loc["Bruce12", "allele"] == 12  # 375 bp, 2 bp under 377
+
+
+def test_primer_site_substitution_near_the_3_prime_end_is_rescued(tmp_path):
+    """B. canis carries a substitution 5 nt from the 3' end of the Bruce11 forward primer.
+
+    The main search misses it; the scheme turns on rescue_indels, which finds the 698 bp product,
+    the published B. canis allele 9 (Al Dahouk et al. 2007, Table 2). Bruce21 at 175 bp is 9 by
+    the version 3.6 range 172-175 rather than 9.5.
+    """
+    assert load_scheme("Bru_MLVA16").meta.get("rescue_indels") is True
+    fixture = reference_assembly("GCF_000018525.1")  # B. canis ATCC 23365
+    assert main(["run", "--scheme", "Bru_MLVA16", "--fasta", str(fixture), "--outdir", str(tmp_path),
+                 "--prefix", "c", "--align", "none", "--no-report"]) == 0
+    long = pd.read_csv(tmp_path / "c_calls_long.tsv", sep="\t").set_index("marker")
+    assert long.loc["Bruce11", "length"] == 698 and long.loc["Bruce11", "allele"] == 9
+    assert long.loc["Bruce11", "search_pass"] != "main" and long.loc["Bruce11", "fwd_mismatches"] == 1
+    assert long.loc["Bruce21", "length"] == 175 and long.loc["Bruce21", "allele"] == 9
+    assert long["allele"].notna().all()
