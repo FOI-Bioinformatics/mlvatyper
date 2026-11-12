@@ -78,7 +78,7 @@ def test_16m_profile_and_chromosomes(tmp_path):
     profile = pd.read_csv(tmp_path / "16m_profile.tsv", sep="\t", index_col=0, dtype=str)
     assert profile.loc[ASSEMBLY, "profile"] == PROFILE
     status = pd.read_csv(tmp_path / "16m_status.tsv", sep="\t", index_col=0, dtype=str)
-    assert set(status.loc[ASSEMBLY]) == {"OK"}
+    assert set(status.loc[ASSEMBLY]) == {"BINNED"}  # every 16M size is in bins.tsv
     long = pd.read_csv(tmp_path / "16m_calls_long.tsv", sep="\t").set_index("marker")
     assert (long["residual_bp"] == 0).all()
     # every locus sits on the chromosome the publication states

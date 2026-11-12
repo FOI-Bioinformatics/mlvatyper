@@ -1,20 +1,4 @@
-# Published size to allele table for all 16 loci, Table 2 of Al Dahouk et al. 2007
-# (J Microbiol Methods 69:137-145, doi:10.1016/j.mimet.2006.12.015), which the paper heads
-# "The corresponding number of repeat units is given for each allele". Sizes the paper puts in
-# parentheses were not observed in its B. melitensis isolates but are part of the same ladder,
-# and are kept so that the table covers the whole range.
-#
-# Every row of the published table is an arithmetic ladder whose step equals the locus repeat unit,
-# and at all 16 loci the size the table gives for the copy number this scheme records for 16M equals
-# the measured reference product in markers.tsv, so the published sizes and the in silico products
-# are on one scale. An allele here is therefore the published allele, directly comparable with
-# published Brucella MLVA profiles.
-#
-# A size that is not in the table still gets an allele from the repeat formula and is flagged
-# OFF_TABLE. On 30 Brucella genomes 88 per cent of calls fall on the ladder; the rest are mostly
-# Bruce19, where B. abortus and B. suis sit 3 bp (half a unit) off the B. melitensis ladder, which
-# the paper's own predicted sizes for the three sequenced genomes (163 bp in 16M, 169 in B. suis,
-# 184 in B. abortus) already show.
+# Al Dahouk et al. 2007 Table 2 merged with the MLVA_finder Brucella binning file (allele numbering v3.6); see scheme.yml notes.
 marker	size	allele
 Bruce06	140-140	1
 Bruce06	274-274	2
@@ -39,12 +23,12 @@ Bruce11	1013-1013	14
 Bruce11	1076-1076	15
 Bruce12	302-302	7
 Bruce12	317-317	8
-Bruce12	332-332	9
-Bruce12	347-347	10
+Bruce12	327-332	9
+Bruce12	342-347	10
 Bruce12	362-362	11
 Bruce12	377-377	12
-Bruce12	392-392	13
-Bruce12	407-407	14
+Bruce12	392-397	13
+Bruce12	407-411	14
 Bruce12	422-422	15
 Bruce12	437-437	16
 Bruce12	452-452	17
@@ -69,6 +53,7 @@ Bruce55	313-313	4
 Bruce55	353-353	5
 Bruce55	393-393	6
 Bruce55	433-433	7
+Bruce55	533-533	10
 Bruce18	130-130	3
 Bruce18	138-138	4
 Bruce18	146-146	5
@@ -76,20 +61,30 @@ Bruce18	154-154	6
 Bruce18	162-162	7
 Bruce18	170-170	8
 Bruce18	178-178	9
-Bruce19	79-79	4
-Bruce19	85-85	5
-Bruce19	91-91	6
-Bruce19	163-163	18
-Bruce19	169-169	19
-Bruce19	175-175	20
-Bruce19	181-181	21
-Bruce19	187-187	22
-Bruce19	205-205	25
+Bruce18	186-186	10
+Bruce19	76-76	7
+Bruce19	79-79	8
+Bruce19	82-82	9
+Bruce19	85-85	10
+Bruce19	88-88	11
+Bruce19	91-91	12
+Bruce19	163-163	36
+Bruce19	169-169	38
+Bruce19	172-172	39
+Bruce19	175-175	40
+Bruce19	178-178	41
+Bruce19	181-181	42
+Bruce19	184-184	43
+Bruce19	187-187	44
+Bruce19	190-190	45
+Bruce19	193-193	46
+Bruce19	202-202	49
+Bruce19	205-205	50
 Bruce21	140-140	5
 Bruce21	148-148	6
 Bruce21	156-156	7
 Bruce21	164-164	8
-Bruce21	172-172	9
+Bruce21	172-175	9
 Bruce04	144-144	1
 Bruce04	152-152	2
 Bruce04	160-160	3
@@ -161,8 +156,11 @@ Bruce16	200-200	9
 Bruce16	208-208	10
 Bruce16	216-216	11
 Bruce16	224-224	12
+Bruce16	232-232	13
 Bruce16	240-240	14
 Bruce16	248-248	15
+Bruce16	254-254	16
+Bruce16	270-270	18
 Bruce30	119-119	2
 Bruce30	127-127	3
 Bruce30	135-135	4

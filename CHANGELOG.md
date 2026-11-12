@@ -5,6 +5,38 @@ is below 1.0, so the output tables may still change between minor versions.
 
 ## Unreleased
 
+### Added
+
+- `brucella_hoofprints_bricker_2003`: the eight locus HOOF-Print assay
+  (Bricker et al. 2003), anchored on *B. abortus* 9-941. Alleles are counts of
+  the octamer AGGGCAGT; the published 5' primer tails need `mismatches: 5`,
+  which the scheme sets. Note the 11 bp offset the paper reports at Locus-4
+  for *B. suis* biovar 1 and the strains on its ladder.
+- `brucella_mlva15_lefleche_2006` gains a `bins.tsv`, the MLVA-16 table
+  without Bruce19.
+
+### Changed
+
+Three changes alter Brucella results from 0.4.0:
+
+- `Bru_MLVA16` Bruce19 is now counted in 3 bp units, as in MLVAbank allele
+  numbering version 3.6 (16M = 36). Publications that count 6 bp units, among
+  them Al Dahouk et al. 2007, report half these values, so a Bruce19 allele
+  from 0.4.0 must be doubled before it is compared with one from this version.
+- `bins.tsv` of both *Brucella* schemes now combines Al Dahouk et al. 2007
+  Table 2 with the version 3.6 binning file distributed with MLVA_finder. Sizes
+  that were off the published ladder now receive the version 3.6 allele,
+  chiefly Bruce21 at 172-175 bp (9, not 9.5) and four Bruce12 ranges. At
+  Bruce12 the sizes 422, 437 and 452 bp keep the ladder values 15, 16 and 17,
+  where the version 3.6 file gives 14 for all three.
+- Both *Brucella* schemes set `rescue_indels`, because single substitutions
+  near the 3' end of a primer occur in some lineages (Bruce11 in *B. canis*,
+  Bruce19 and Bruce30 in *B. ovis*, Bruce43 in some *B. abortus*) and the main
+  search does not report them. Those loci are now typed instead of missing.
+
+On 54 public *Brucella* genomes these changes raise the number of loci typed
+from 844 to 861 and reduce the half alleles from 73 to 9.
+
 ## 0.4.0 - 2026-11-04
 
 Highlights: 25 published schemes bundled and documented with their

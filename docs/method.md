@@ -253,10 +253,21 @@ below are shorter than they are.
   16M (AE008917 and AE008918, assembly GCF_000007125.1, which the CI job
   checks); all 16 products match the Table 1 sizes exactly and typing 16M
   reproduces its published copy numbers. As for `Lpn_MLVA12` no unit
-  sequences are shipped, so alleles are called from length alone. The
-  panel 2 microsatellites (for example Bruce19, a 6 bp unit) form long
-  arrays that collapse in short-read assemblies; use `--max-array-length`
-  or long reads and read those loci against the published allele table.
+  sequences are shipped, so alleles are called from length alone, against a
+  size table that combines Al Dahouk et al. 2007 Table 2 with the MLVAbank
+  allele numbering version 3.6 used by MLVA_finder. Bruce19 follows version
+  3.6 and is counted in 3 bp units (16M = 36); publications that use 6 bp
+  units report half these values. With reads shorter than 250 bp, Bruce06,
+  Bruce42, Bruce55 and Bruce21 are the loci most often misassembled
+  (Vergnaud et al. 2018); use `--max-array-length` or long reads.
+
+- `brucella_hoofprints_bricker_2003`: the eight locus HOOF-Print assay
+  (Bricker et al. 2003), an earlier *Brucella* scheme that shares no locus with
+  MLVA-16. Every locus is an array of the octamer AGGGCAGT, so an allele is a
+  repeat count and the arrays are counted as a cross-check. The published
+  primers carry 5' tails that do not match the template, so the scheme sets
+  `mismatches: 5`. Reference values are measured in *B. abortus* 9-941 and the
+  copy numbers are those drawn in Figure 1 for the three sequenced genomes.
 
 - `bacillus_mlva8_keim_2000`: the eight locus MLVA-8 panel for *Bacillus
   anthracis* (Keim et al. 2000), anchored on Ames Ancestor. The primer table

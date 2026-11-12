@@ -1,0 +1,14 @@
+marker	unit_length	ref_size	ref_repeats	offset	patterns	label
+# Reference is B. abortus biovar 1 strain 9-941 (GCF_000008145.1), the strain Bricker et al. 2003
+# designed the assay on. ref_size is the product measured in that assembly and ref_repeats the number
+# of complete repeat units drawn for "ab" in Figure 1 of the paper. The repeat is the octamer
+# AGGGCAGT with the variants gGGGCAGT and AaGGCAGT named in the figure legend; the 9 bp variant
+# aAGGGCAGT at Locus-8 is not a pattern, so that array is not counted exactly.
+Locus-1	8	140	2	124	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-1
+Locus-2	8	125	5	85	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-2
+Locus-3	8	151	4	119	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-3
+Locus-4	8	155	4	123	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-4
+Locus-5	8	138	2	122	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-5
+Locus-6	8	158	2	142	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-6
+Locus-7	8	183	14	71	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-7
+Locus-8	8	91	2	75	AGGGCAGT;GGGGCAGT;AAGGCAGT	Bru-VNTR-8
