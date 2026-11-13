@@ -52,12 +52,16 @@ a built-in repeat finder is used without it).
 ## Usage
 
 With a bundled scheme, which supplies the primers, the marker definitions
-and the calling defaults. Twenty-five published schemes are bundled, for
+and the calling defaults. Twenty-six published schemes are bundled, for
 *Bacillus anthracis*, *Bifidobacterium longum*, *Brucella*, *Burkholderia
 pseudomallei*, *Coxiella burnetii*, *Francisella tularensis*, *Legionella
 pneumophila*, *Mycobacterium tuberculosis*, *Mycoplasma agalactiae*,
 *Neisseria meningitidis*, *Pseudomonas aeruginosa*, *Salmonella enterica*,
-*Staphylococcus aureus* and *Yersinia pestis*. `mlvatyper schemes` lists them,
+*Staphylococcus aureus* and *Yersinia pestis*. Three of them type *Brucella*:
+the 16-locus panel of Le Fleche et al. 2006 (`Bru_MLVA16`), the same panel
+without Bruce19 (`brucella_mlva15_lefleche_2006`), and the 8-locus HOOF-Print
+assay of Bricker et al. 2003 (`brucella_hoofprints_bricker_2003`), which shares
+no locus with the other two. `mlvatyper schemes` lists them,
 `mlvatyper schemes NAME` describes one, and the
 [scheme references](docs/scheme_references.md) give the publication behind each:
 
